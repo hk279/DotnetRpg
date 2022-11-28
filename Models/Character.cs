@@ -9,5 +9,6 @@ namespace dotnet_rpg.Models
         public int Defense { get; set; } = 10;
         public int Intelligence { get; set; } = 10;
         public CharacterClass Class { get; set; } = CharacterClass.Warrior;
+        public User? User { get; set; }
     }
 }

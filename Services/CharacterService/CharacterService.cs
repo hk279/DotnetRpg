@@ -1,11 +1,14 @@
 using dotnet_rpg.Dtos.Character;
 using AutoMapper;
+using dotnet_rpg.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace dotnet_rpg.Services.CharacterService
 {
     public class CharacterService : ICharacterService
     {
         private readonly IMapper _autoMapper;
+        private readonly DataContext _context;
 
         private static List<Character> characters = new List<Character> {
             new Character() { Id = 1, Name = "Grommash", Class = CharacterClass.Warrior },
@@ -14,31 +17,32 @@ namespace dotnet_rpg.Services.CharacterService
             new Character() { Id = 4, Name = "Anduin", Class = CharacterClass.Priest }
         };
 
-        public CharacterService(IMapper autoMapper)
+        public CharacterService(IMapper autoMapper, DataContext context)
         {
             _autoMapper = autoMapper;
+            _context = context;
+        }
+
+        public async Task<ServiceResponse<List<GetCharacterDto>>> GetAllCharacters()
+        {
+            var allCharacters = await _context.Characters.Select(c => _autoMapper.Map<GetCharacterDto>(c)).ToListAsync();
+            return new ServiceResponse<List<GetCharacterDto>> { Data = allCharacters };
+        }
+
+        public async Task<ServiceResponse<GetCharacterDto>> GetCharacterById(int id)
+        {
+            var character = await _context.Characters.FirstOrDefaultAsync(c => c.Id == id);
+            return new ServiceResponse<GetCharacterDto> { Data = _autoMapper.Map<GetCharacterDto>(character) };
         }
 
         public async Task<ServiceResponse<List<GetCharacterDto>>> AddCharacter(AddCharacterDto newCharacter)
         {
             var characterToAdd = _autoMapper.Map<Character>(newCharacter);
-            characterToAdd.Id = characters.Max(c => c.Id) + 1;
-            characters.Add(characterToAdd);
+            _context.Characters.Add(characterToAdd);
+            await _context.SaveChangesAsync();
 
-            var data = characters.Select(c => _autoMapper.Map<GetCharacterDto>(c)).ToList();
-            return new ServiceResponse<List<GetCharacterDto>> { Data = data };
-        }
-
-        public async Task<ServiceResponse<List<GetCharacterDto>>> GetAllCharacters()
-        {
-            var data = characters.Select(c => _autoMapper.Map<GetCharacterDto>(c)).ToList();
-            return new ServiceResponse<List<GetCharacterDto>> { Data = data };
-        }
-
-        public async Task<ServiceResponse<GetCharacterDto>> GetCharacterById(int id)
-        {
-            var character = characters.FirstOrDefault(c => c.Id == id);
-            return new ServiceResponse<GetCharacterDto> { Data = _autoMapper.Map<GetCharacterDto>(character) };
+            var allCharacters = await _context.Characters.Select(c => _autoMapper.Map<GetCharacterDto>(c)).ToListAsync();
+            return new ServiceResponse<List<GetCharacterDto>> { Data = allCharacters };
         }
 
         public async Task<ServiceResponse<GetCharacterDto>> UpdateCharacter(UpdateCharacterDto updatedCharacter)
@@ -47,8 +51,11 @@ namespace dotnet_rpg.Services.CharacterService
 
             try
             {
-                var characterToUpdate = characters.FirstOrDefault(c => c.Id == updatedCharacter.Id);
+                var characterToUpdate = await _context.Characters.FirstAsync(c => c.Id == updatedCharacter.Id);
+
                 _autoMapper.Map(updatedCharacter, characterToUpdate);
+                await _context.SaveChangesAsync();
+
                 response.Data = _autoMapper.Map<GetCharacterDto>(characterToUpdate);
             }
             catch (Exception ex)
@@ -66,9 +73,12 @@ namespace dotnet_rpg.Services.CharacterService
 
             try
             {
-                var characterToRemove = characters.First(c => c.Id == id);
-                characters.Remove(characterToRemove);
-                response.Data = characters.Select(c => _autoMapper.Map<GetCharacterDto>(c)).ToList();
+                var characterToRemove = await _context.Characters.FirstAsync(c => c.Id == id);
+
+                _context.Characters.Remove(characterToRemove);
+                await _context.SaveChangesAsync();
+
+                response.Data = _context.Characters.Select(c => _autoMapper.Map<GetCharacterDto>(c)).ToList();
             }
             catch (Exception ex)
             {
