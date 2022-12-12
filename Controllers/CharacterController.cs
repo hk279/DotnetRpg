@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using dotnet_rpg.Dtos.Character;
 using dotnet_rpg.Services.CharacterService;
 using Microsoft.AspNetCore.Authorization;
@@ -20,12 +21,17 @@ public class CharacterController : ControllerBase
     [HttpGet("all")]
     public async Task<ActionResult<ServiceResponse<List<GetCharacterDto>>>> Get()
     {
+        int userId = int.Parse(User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier).Value);
         return Ok(await _characterService.GetAllCharacters());
     }
 
     [HttpGet("{id}")]
     public async Task<ActionResult<ServiceResponse<GetCharacterDto>>> GetSingle(int id)
     {
+        var response = await _characterService.GetCharacterById(id);
+
+        if (response.Data == null) return NotFound(response);
+
         return Ok(await _characterService.GetCharacterById(id));
     }
 
@@ -49,6 +55,16 @@ public class CharacterController : ControllerBase
     public async Task<ActionResult<ServiceResponse<List<GetCharacterDto>>>> Delete(int id)
     {
         var response = await _characterService.DeleteCharacter(id);
+
+        if (response.Data == null) return NotFound(response);
+
+        return Ok(response);
+    }
+
+    [HttpPost("add-skill")]
+    public async Task<ActionResult<ServiceResponse<List<GetCharacterDto>>>> AddSkill(AddCharacterSkillDto newCharacterSkill)
+    {
+        var response = await _characterService.AddCharacterSkill(newCharacterSkill);
 
         if (response.Data == null) return NotFound(response);
 
