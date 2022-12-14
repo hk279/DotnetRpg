@@ -134,12 +134,6 @@ public class CharacterService : ICharacterService
         return response;
     }
 
-    private int GetUserId()
-    {
-        return int.Parse(_httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier));
-        // TODO: Handle user not found
-    }
-
     public async Task<ServiceResponse<GetCharacterDto>> AddCharacterSkill(AddCharacterSkillDto newCharacterSkill)
     {
         var response = new ServiceResponse<GetCharacterDto>();
@@ -179,5 +173,12 @@ public class CharacterService : ICharacterService
 
         return response;
     }
+
+    private int GetUserId()
+    {
+        var httpContext = _httpContextAccessor.HttpContext ?? throw new ArgumentNullException(nameof(_httpContextAccessor.HttpContext));
+        return int.Parse(httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier));
+    }
+
 }
 
