@@ -19,9 +19,9 @@ public class AuthService : IAuthService
         _config = config;
     }
 
-    public async Task<ServiceResponse<string>> Login(string username, string password)
+    public async Task<ServiceResponse<LoginDetails>> Login(string username, string password)
     {
-        var response = new ServiceResponse<string>();
+        var response = new ServiceResponse<LoginDetails>();
 
         var user = await _context.Users.FirstOrDefaultAsync(u => u.Username.ToLower().Equals(username.ToLower()));
 
@@ -39,7 +39,7 @@ public class AuthService : IAuthService
         {
             try
             {
-                response.Data = CreateToken(user);
+                response.Data = new LoginDetails(user.Username, CreateToken(user));
             }
             catch (Exception ex)
             {

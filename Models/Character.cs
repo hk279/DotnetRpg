@@ -10,7 +10,7 @@ namespace dotnet_rpg.Models
         public int Intelligence { get; set; } = 0;
         public CharacterClass Class { get; set; } = CharacterClass.Warrior;
         public User User { get; set; } = null!;
-        public Weapon Weapon { get; set; }
-        public List<Skill> Skills { get; set; }
+        public Weapon Weapon { get; set; } = null!;
+        public List<Skill> Skills { get; set; } = null!;
     }
 }

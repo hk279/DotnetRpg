@@ -10,6 +10,7 @@ using Swashbuckle.AspNetCore.Filters;
 using Microsoft.OpenApi.Models;
 using dotnet_rpg.Services.WeaponService;
 
+var allowDevOrigin = "_allowDevOrigin";
 var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 var tokenSecret = builder.Configuration.GetSection("TokenSettings:Secret").Value ?? throw new ArgumentException("Missing token secret");
@@ -53,6 +54,12 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+
+    app.UseCors(builder =>
+           builder.WithOrigins("http://localhost:3000")
+                  .AllowAnyHeader()
+                  .AllowAnyMethod()
+                  .AllowCredentials());
 }
 
 app.UseHttpsRedirection();

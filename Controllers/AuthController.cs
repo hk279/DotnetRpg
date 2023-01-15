@@ -29,7 +29,7 @@ public class AuthController : ControllerBase
     {
         var response = await _authService.Login(loginDetails.Username, loginDetails.Password);
 
-        if (!response.Success) return BadRequest(response);
+        if (!response.Success) return Unauthorized(response);
         return Ok(response);
     }
 }
