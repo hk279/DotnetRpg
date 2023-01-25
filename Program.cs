@@ -9,8 +9,8 @@ using Microsoft.IdentityModel.Tokens;
 using Swashbuckle.AspNetCore.Filters;
 using Microsoft.OpenApi.Models;
 using dotnet_rpg.Services.WeaponService;
+using dotnet_rpg.Services.FightService;
 
-var allowDevOrigin = "_allowDevOrigin";
 var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 var tokenSecret = builder.Configuration.GetSection("TokenSettings:Secret").Value ?? throw new ArgumentException("Missing token secret");
@@ -46,6 +46,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICharacterService, CharacterService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IWeaponService, WeaponService>();
+builder.Services.AddScoped<IFightService, FightService>();
 
 var app = builder.Build();
 

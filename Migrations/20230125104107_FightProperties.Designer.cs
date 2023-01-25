@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using dotnet_rpg.Data;
 
@@ -11,9 +12,11 @@ using dotnet_rpg.Data;
 namespace dotnetrpg.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20230125104107_FightProperties")]
+    partial class FightProperties
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -45,13 +48,13 @@ namespace dotnetrpg.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("Armor")
-                        .HasColumnType("int");
-
                     b.Property<int>("Class")
                         .HasColumnType("int");
 
                     b.Property<int>("Defeats")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Defense")
                         .HasColumnType("int");
 
                     b.Property<int>("Fights")
@@ -66,9 +69,6 @@ namespace dotnetrpg.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("Resistance")
-                        .HasColumnType("int");
 
                     b.Property<int>("Strength")
                         .HasColumnType("int");
@@ -97,9 +97,6 @@ namespace dotnetrpg.Migrations
                     b.Property<int>("Damage")
                         .HasColumnType("int");
 
-                    b.Property<int>("DamageType")
-                        .HasColumnType("int");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -113,21 +110,18 @@ namespace dotnetrpg.Migrations
                         {
                             Id = 1,
                             Damage = 30,
-                            DamageType = 0,
                             Name = "Fireball"
                         },
                         new
                         {
                             Id = 2,
                             Damage = 20,
-                            DamageType = 0,
                             Name = "Charge"
                         },
                         new
                         {
                             Id = 3,
                             Damage = 40,
-                            DamageType = 0,
                             Name = "Backstab"
                         });
                 });
