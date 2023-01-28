@@ -60,13 +60,13 @@ public class FightService : IFightService
                     fightLogRow += $" Damage inflicted: {damage}.";
                     response.Data.FightLog.Add(fightLogRow);
 
-                    if (opponent.HitPoints <= 0)
+                    if (opponent.CurrentHitPoints <= 0)
                     {
                         defeated = true;
                         attacker.Victories++;
                         opponent.Defeats++;
                         response.Data.FightLog.Add($"{opponent.Name} has been defeated.");
-                        response.Data.FightLog.Add($"{attacker.Name} wins with {attacker.HitPoints} HP left.");
+                        response.Data.FightLog.Add($"{attacker.Name} wins with {attacker.CurrentHitPoints} HP left.");
                         break;
                     }
                 }
@@ -74,7 +74,7 @@ public class FightService : IFightService
             characters.ForEach(c =>
             {
                 c.Fights++;
-                c.HitPoints = 100;
+                c.CurrentHitPoints = c.MaxHitPoints;
             });
 
             await _context.SaveChangesAsync();
@@ -118,7 +118,7 @@ public class FightService : IFightService
 
             int damage = AttackWithSkill(attacker, defender, skill);
 
-            if (defender.HitPoints <= 0)
+            if (defender.CurrentHitPoints <= 0)
             {
                 response.Message = $"{defender.Name} has been defeated!";
             }
@@ -129,8 +129,8 @@ public class FightService : IFightService
             {
                 AttackerName = attacker.Name,
                 DefenderName = defender.Name,
-                AttackerHitPoints = attacker.HitPoints,
-                DefenderHitPoints = defender.HitPoints,
+                AttackerHitPoints = attacker.CurrentHitPoints,
+                DefenderHitPoints = defender.CurrentHitPoints,
                 Damage = damage
             };
         }
@@ -164,7 +164,7 @@ public class FightService : IFightService
 
             int damage = AttackWithWeapon(attacker, defender);
 
-            if (defender.HitPoints <= 0)
+            if (defender.CurrentHitPoints <= 0)
             {
                 response.Message = $"{defender.Name} has been defeated!";
             }
@@ -175,8 +175,8 @@ public class FightService : IFightService
             {
                 AttackerName = attacker.Name,
                 DefenderName = defender.Name,
-                AttackerHitPoints = attacker.HitPoints,
-                DefenderHitPoints = defender.HitPoints,
+                AttackerHitPoints = attacker.CurrentHitPoints,
+                DefenderHitPoints = defender.CurrentHitPoints,
                 Damage = damage
             };
         }
@@ -209,7 +209,7 @@ public class FightService : IFightService
 
         if (damage > 0)
         {
-            defender.HitPoints -= damage;
+            defender.CurrentHitPoints -= damage;
         }
 
         return damage;
@@ -228,7 +228,7 @@ public class FightService : IFightService
 
         if (damage > 0)
         {
-            defender.HitPoints -= damage;
+            defender.CurrentHitPoints -= damage;
         }
 
         return damage;
