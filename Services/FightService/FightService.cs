@@ -13,71 +13,42 @@ public class FightService : IFightService
         _context = context;
     }
 
-    public async Task<ServiceResponse<FightResultDto>> Fight(BeginFightDto request)
+    public async Task<ServiceResponse<BeginFightResultDto>> BeginFight(BeginFightDto request)
     {
-        var response = new ServiceResponse<FightResultDto>
+        var response = new ServiceResponse<BeginFightResultDto>
         {
-            Data = new FightResultDto()
+            Data = new BeginFightResultDto()
         };
 
         try
         {
-            var characters = await _context.Characters
-                .Include(c => c.Weapon)
-                .Include(c => c.Skills)
-                .Where(c => request.CharacterIds.Contains(c.Id))
-                .ToListAsync();
+            var playerCharacter = await _context.Characters.FirstOrDefaultAsync(c => c.Id == request.PlayerCharacterId);
+            var enemies = await _context.Characters.Where(c => request.EnemyIds.Contains(c.Id)).ToListAsync();
 
-            var defeated = false;
-
-            var rng = new Random();
-            characters = characters.OrderBy(a => rng.Next()).ToList();
-
-            while (!defeated)
+            if (playerCharacter == null || enemies == null || enemies.Count == 0)
             {
-                foreach (var attacker in characters)
-                {
-                    var opponents = characters.Where(c => c.Id != attacker.Id).ToList();
-                    var opponent = opponents[rng.Next(opponents.Count)];
-
-                    int damage = 0;
-                    var fightLogRow = string.Empty;
-
-                    var useWeapon = rng.Next(2) == 0;
-
-                    if (useWeapon)
-                    {
-                        fightLogRow = $"{attacker.Name} attacked {opponent.Name} with {attacker.Weapon.Name}.";
-                        damage = AttackWithWeapon(attacker, opponent);
-                    }
-                    else
-                    {
-                        var skill = attacker.Skills[rng.Next(attacker.Skills.Count)];
-                        fightLogRow = $"{attacker.Name} used '{skill.Name}' on defender {opponent.Name}.";
-                        damage = AttackWithSkill(attacker, opponent, skill);
-                    }
-
-                    fightLogRow += $" Damage inflicted: {damage}.";
-                    response.Data.FightLog.Add(fightLogRow);
-
-                    if (opponent.CurrentHitPoints <= 0)
-                    {
-                        defeated = true;
-                        attacker.Victories++;
-                        opponent.Defeats++;
-                        response.Data.FightLog.Add($"{opponent.Name} has been defeated.");
-                        response.Data.FightLog.Add($"{attacker.Name} wins with {attacker.CurrentHitPoints} HP left.");
-                        break;
-                    }
-                }
+                response.Success = false;
+                response.Message = "Invalid fight. Player character or enemies not found.";
+                return response;
             }
-            characters.ForEach(c =>
-            {
-                c.Fights++;
-                c.CurrentHitPoints = c.MaxHitPoints;
-            });
 
+            var newFight = new Fight()
+            {
+                PlayerCharacter = playerCharacter,
+                Enemies = enemies,
+                FightStatus = FightStatus.Ongoing,
+                IsPlayersTurn = true
+            };
+
+            await _context.AddAsync(newFight);
             await _context.SaveChangesAsync();
+
+            response.Data = new BeginFightResultDto
+            {
+                Id = newFight.Id,
+                PlayerCharacterId = playerCharacter.Id,
+                EnemyIds = enemies.Select(c => c.Id).ToList()
+            };
         }
         catch (Exception ex)
         {
@@ -189,17 +160,14 @@ public class FightService : IFightService
         return response;
     }
 
-    private static int AttackWithSkill(Character? attacker, Character? defender, Skill? skill)
+    private static int AttackWithSkill(Character attacker, Character defender, Skill skill)
     {
-        // Magic damage scales with INT / RES
-        // Physical damage scales with STR / ARM 
-        var damageBonus = skill.DamageType == DamageType.Physical ?
-            Math.Round((decimal)attacker.Strength / 100, 2) :
-            Math.Round((decimal)attacker.Intelligence / 100, 2);
-
-        var damageReduction = skill.DamageType == DamageType.Physical ?
-            Math.Round((decimal)defender.Armor / 100, 2) :
-            Math.Round((decimal)defender.Resistance / 100, 2);
+        var (damageBonus, damageReduction) = skill.DamageType switch
+        {
+            DamageType.Physical => (Math.Round((decimal)attacker.Strength / 100, 2), Math.Round((decimal)defender.Armor / 100, 2)),
+            DamageType.Magic => (Math.Round((decimal)attacker.Intelligence / 100, 2), Math.Round((decimal)defender.Resistance / 100, 2)),
+            _ => throw new ArgumentOutOfRangeException(nameof(skill.DamageType), "Invalid damage type")
+        };
 
         var baseDamage = skill.Damage;
         var damageMultiplier = 1 + damageBonus - damageReduction;
@@ -215,8 +183,9 @@ public class FightService : IFightService
         return damage;
     }
 
-    private static int AttackWithWeapon(Character? attacker, Character? defender)
+    private static int AttackWithWeapon(Character attacker, Character defender)
     {
+        // Weapons always deal physical damage
         var damageBonus = Math.Round((decimal)attacker.Strength / 100, 2);
         var damageReduction = Math.Round((decimal)defender.Armor / 100, 2);
 

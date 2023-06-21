@@ -7,4 +7,6 @@ public class Skill
     public int Damage { get; set; }
     public DamageType DamageType { get; set; }
     public List<Character> Characters { get; set; } = null!;
+
+    // TODO: Skill cooldowns
 }

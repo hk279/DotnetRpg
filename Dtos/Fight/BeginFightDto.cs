@@ -2,5 +2,6 @@ namespace dotnet_rpg.Dtos.Fight;
 
 public class BeginFightDto
 {
-    public List<int> CharacterIds { get; set; }
+    public int PlayerCharacterId { get; set; }
+    public List<int> EnemyIds { get; set; } = null!;
 }
