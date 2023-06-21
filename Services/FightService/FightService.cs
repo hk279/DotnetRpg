@@ -1,5 +1,6 @@
 using dotnet_rpg.Data;
 using dotnet_rpg.Dtos.Fight;
+using dotnet_rpg.Services.CharacterService;
 using Microsoft.EntityFrameworkCore;
 
 namespace dotnet_rpg.Services.FightService;
@@ -7,10 +8,12 @@ namespace dotnet_rpg.Services.FightService;
 public class FightService : IFightService
 {
     private readonly DataContext _context;
+    private readonly ICharacterService _characterService;
 
-    public FightService(DataContext context)
+    public FightService(DataContext context, ICharacterService characterService)
     {
         _context = context;
+        _characterService = characterService;
     }
 
     public async Task<ServiceResponse<BeginFightResultDto>> BeginFight(BeginFightDto request)
@@ -23,21 +26,18 @@ public class FightService : IFightService
         try
         {
             var playerCharacter = await _context.Characters.FirstOrDefaultAsync(c => c.Id == request.PlayerCharacterId);
-            var enemies = await _context.Characters.Where(c => request.EnemyIds.Contains(c.Id)).ToListAsync();
+            var enemyCharacter = _characterService.GetRandomEnemy();
 
-            if (playerCharacter == null || enemies == null || enemies.Count == 0)
-            {
-                response.Success = false;
-                response.Message = "Invalid fight. Player character or enemies not found.";
-                return response;
-            }
+            await _context.AddAsync(enemyCharacter);
+            await _context.SaveChangesAsync();
 
+            if (playerCharacter == null) throw new Exception("Player character not found.");
+            if (playerCharacter.FightId != null) throw new Exception("Player is already in a fight.");
+
+            // TODO: Add a reward for winning the fight
             var newFight = new Fight()
             {
-                PlayerCharacter = playerCharacter,
-                Enemies = enemies,
-                FightStatus = FightStatus.Ongoing,
-                IsPlayersTurn = true
+                Characters = new List<Character>() { playerCharacter, enemyCharacter }
             };
 
             await _context.AddAsync(newFight);
@@ -47,7 +47,7 @@ public class FightService : IFightService
             {
                 Id = newFight.Id,
                 PlayerCharacterId = playerCharacter.Id,
-                EnemyIds = enemies.Select(c => c.Id).ToList()
+                EnemyCharacterId = enemyCharacter.Id
             };
         }
         catch (Exception ex)
@@ -70,29 +70,29 @@ public class FightService : IFightService
                 .FirstOrDefaultAsync(c => c.Id == request.AttackerId);
             var defender = await _context.Characters
                 .FirstOrDefaultAsync(c => c.Id == request.DefenderId);
+            var fight = await _context.Fights.FindAsync(request.FightId);
 
-            if (attacker == null || defender == null)
-            {
-                response.Success = false;
-                response.Message = "Invalid attack. Attacker or defender not found.";
-                return response;
-            }
+            if (attacker == null || defender == null || fight == null) throw new Exception("Invalid attack");
 
-            var skill = attacker.Skills.FirstOrDefault(s => s.Id == request.SkillId);
-
-            if (skill == null)
-            {
-                response.Success = false;
-                response.Message = "Invalid skill. Attacker doesn't possess this skill.";
-                return response;
-            }
-
-            int damage = AttackWithSkill(attacker, defender, skill);
+            var skill = attacker.Skills.FirstOrDefault(s => s.Id == request.SkillId) ?? throw new Exception("Invalid skill. Attacker doesn't possess this skill.");
+            var damage = AttackWithSkill(attacker, defender, skill);
+            var fightStatus = FightStatus.Ongoing;
 
             if (defender.CurrentHitPoints <= 0)
             {
                 response.Message = $"{defender.Name} has been defeated!";
+
+                var allEnemyCharactersInFight = fight.Characters.Where(c => !c.IsPlayerCharacter);
+
+                if (allEnemyCharactersInFight.All(c => c.CurrentHitPoints <= 0))
+                {
+                    _context.RemoveRange(allEnemyCharactersInFight);
+                    _context.Remove(fight);
+                    fightStatus = FightStatus.PlayerWon;
+                }
             }
+
+            // TODO: Add defender action
 
             await _context.SaveChangesAsync();
 
@@ -102,7 +102,8 @@ public class FightService : IFightService
                 DefenderName = defender.Name,
                 AttackerHitPoints = attacker.CurrentHitPoints,
                 DefenderHitPoints = defender.CurrentHitPoints,
-                Damage = damage
+                Damage = damage,
+                FightStatus = fightStatus,
             };
         }
         catch (Exception ex)
@@ -114,7 +115,7 @@ public class FightService : IFightService
         return response;
     }
 
-    public async Task<ServiceResponse<AttackResultDto>> WeaponAttack(WeaponAttackDto request)
+    public async Task<ServiceResponse<AttackResultDto>> WeaponAttack(AttackDto request)
     {
         var response = new ServiceResponse<AttackResultDto>();
 
@@ -125,20 +126,27 @@ public class FightService : IFightService
                 .FirstOrDefaultAsync(c => c.Id == request.AttackerId);
             var defender = await _context.Characters
                 .FirstOrDefaultAsync(c => c.Id == request.DefenderId);
+            var fight = await _context.Fights.FindAsync(request.FightId);
 
-            if (attacker == null || defender == null)
-            {
-                response.Success = false;
-                response.Message = "Invalid attack. Attacker or defender not found.";
-                return response;
-            }
+            if (attacker == null || defender == null || fight == null) throw new Exception("Invalid attack");
+            if (defender.CurrentHitPoints <= 0) throw new Exception("Defender is already dead");
 
-            int damage = AttackWithWeapon(attacker, defender);
+            var damage = AttackWithWeapon(attacker, defender);
 
             if (defender.CurrentHitPoints <= 0)
             {
                 response.Message = $"{defender.Name} has been defeated!";
+
+                var allEnemyCharactersInFight = fight.Characters.Where(c => !c.IsPlayerCharacter);
+
+                if (allEnemyCharactersInFight.All(c => c.CurrentHitPoints <= 0))
+                {
+                    _context.RemoveRange(allEnemyCharactersInFight);
+                    _context.Remove(fight);
+                }
             }
+
+            // TODO: Add defender action
 
             await _context.SaveChangesAsync();
 

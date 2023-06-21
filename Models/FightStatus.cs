@@ -8,5 +8,5 @@ public enum FightStatus
     Unknown,
     Ongoing,
     PlayerWon,
-    EnemiesWon
+    EnemyWon
 }

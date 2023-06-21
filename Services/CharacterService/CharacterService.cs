@@ -11,6 +11,12 @@ public class CharacterService : ICharacterService
     private readonly IMapper _autoMapper;
     private readonly DataContext _context;
     public readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly List<Character> _enemyTemplates = new()
+    {
+        new Character(5) { Name = "Wild Boar", IsPlayerCharacter = false, Strength = 10, Intelligence = 0, Armor = 5, Resistance = 5 },
+        new Character(5) { Name = "Wolf", IsPlayerCharacter = false, Strength = 5, Intelligence = 0, Armor = 10, Resistance = 5 },
+        new Character(5) { Name = "Alpha Wolf", IsPlayerCharacter = false, Strength = 10, Intelligence = 0, Armor = 15, Resistance = 10 }
+    };
 
     public CharacterService(IMapper autoMapper, DataContext context, IHttpContextAccessor httpContextAccessor)
     {
@@ -52,12 +58,18 @@ public class CharacterService : ICharacterService
 
     public async Task<ServiceResponse<List<GetCharacterDto>>> AddCharacter(AddCharacterDto newCharacter)
     {
-        // TODO: Validation - existing name not allowed
+        var response = new ServiceResponse<List<GetCharacterDto>>();
 
         var characterToAdd = _autoMapper.Map<Character>(newCharacter);
-        characterToAdd.User = await _context.Users.FirstOrDefaultAsync(u => u.Id == GetUserId());
+        var currentUser = await _context.Users.FirstOrDefaultAsync(u => u.Id == GetUserId());
+        characterToAdd.User = currentUser;
 
-        // TODO: Return error response if user not found
+        if (currentUser == null)
+        {
+            response.Success = false;
+            response.Message = "Invalid user";
+            return response;
+        }
 
         _context.Characters.Add(characterToAdd);
         await _context.SaveChangesAsync();
@@ -67,7 +79,10 @@ public class CharacterService : ICharacterService
             .Include(c => c.Weapon)
             .Where(c => c.User.Id == GetUserId())
             .Select(c => _autoMapper.Map<GetCharacterDto>(c)).ToListAsync();
-        return new ServiceResponse<List<GetCharacterDto>> { Data = allCharacters };
+
+        response.Data = allCharacters;
+
+        return response;
     }
 
     public async Task<ServiceResponse<GetCharacterDto>> UpdateCharacter(UpdateCharacterDto updatedCharacter)
@@ -180,5 +195,11 @@ public class CharacterService : ICharacterService
         return int.Parse(httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier));
     }
 
+    public Character GetRandomEnemy()
+    {
+        var random = new Random();
+        var index = random.Next(0, _enemyTemplates.Count + 1);
+        return _enemyTemplates[index];
+    }
 }
 

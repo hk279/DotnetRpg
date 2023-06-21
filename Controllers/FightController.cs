@@ -24,7 +24,7 @@ public class FightController : ControllerBase
     }
 
     [HttpPost("weapon-attack")]
-    public async Task<ActionResult<ServiceResponse<AttackResultDto>>> WeaponAttack(WeaponAttackDto request)
+    public async Task<ActionResult<ServiceResponse<AttackResultDto>>> WeaponAttack(AttackDto request)
     {
         return Ok(await _fightService.WeaponAttack(request));
     }

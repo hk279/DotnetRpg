@@ -12,8 +12,8 @@ using dotnet_rpg.Data;
 namespace dotnetrpg.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20230125132911_SkillDamageType")]
-    partial class SkillDamageType
+    [Migration("20230621175941_Refinement")]
+    partial class Refinement
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -51,19 +51,26 @@ namespace dotnetrpg.Migrations
                     b.Property<int>("Armor")
                         .HasColumnType("int");
 
-                    b.Property<int>("Class")
+                    b.Property<string>("Avatar")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("Class")
                         .HasColumnType("int");
 
-                    b.Property<int>("Defeats")
+                    b.Property<int>("CurrentHitPoints")
                         .HasColumnType("int");
 
-                    b.Property<int>("Fights")
-                        .HasColumnType("int");
-
-                    b.Property<int>("HitPoints")
+                    b.Property<int?>("FightId")
                         .HasColumnType("int");
 
                     b.Property<int>("Intelligence")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsPlayerCharacter")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("MaxHitPoints")
                         .HasColumnType("int");
 
                     b.Property<string>("Name")
@@ -73,20 +80,38 @@ namespace dotnetrpg.Migrations
                     b.Property<int>("Resistance")
                         .HasColumnType("int");
 
+                    b.Property<int>("Stamina")
+                        .HasColumnType("int");
+
                     b.Property<int>("Strength")
                         .HasColumnType("int");
 
                     b.Property<int?>("UserId")
                         .HasColumnType("int");
 
-                    b.Property<int>("Victories")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
+
+                    b.HasIndex("FightId");
 
                     b.HasIndex("UserId");
 
                     b.ToTable("Characters");
+                });
+
+            modelBuilder.Entity("dotnet_rpg.Models.Fight", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("FightStatus")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Fights");
                 });
 
             modelBuilder.Entity("dotnet_rpg.Models.Skill", b =>
@@ -116,21 +141,21 @@ namespace dotnetrpg.Migrations
                         {
                             Id = 1,
                             Damage = 30,
-                            DamageType = 0,
+                            DamageType = 2,
                             Name = "Fireball"
                         },
                         new
                         {
                             Id = 2,
                             Damage = 20,
-                            DamageType = 0,
+                            DamageType = 1,
                             Name = "Charge"
                         },
                         new
                         {
                             Id = 3,
                             Damage = 40,
-                            DamageType = 0,
+                            DamageType = 1,
                             Name = "Backstab"
                         });
                 });
@@ -203,9 +228,16 @@ namespace dotnetrpg.Migrations
 
             modelBuilder.Entity("dotnet_rpg.Models.Character", b =>
                 {
+                    b.HasOne("dotnet_rpg.Models.Fight", "Fight")
+                        .WithMany("Characters")
+                        .HasForeignKey("FightId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("dotnet_rpg.Models.User", "User")
                         .WithMany("Characters")
                         .HasForeignKey("UserId");
+
+                    b.Navigation("Fight");
 
                     b.Navigation("User");
                 });
@@ -224,6 +256,11 @@ namespace dotnetrpg.Migrations
             modelBuilder.Entity("dotnet_rpg.Models.Character", b =>
                 {
                     b.Navigation("Weapon");
+                });
+
+            modelBuilder.Entity("dotnet_rpg.Models.Fight", b =>
+                {
+                    b.Navigation("Characters");
                 });
 
             modelBuilder.Entity("dotnet_rpg.Models.User", b =>

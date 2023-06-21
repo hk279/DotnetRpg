@@ -14,11 +14,11 @@ namespace dotnet_rpg.Data
                 new Skill { Id = 3, Name = "Backstab", Damage = 40, DamageType = DamageType.Physical }
             );
 
-            modelBuilder.Entity<Character>().HasData(
-                new Character(5) { Id = 1, Name = "Wild Boar", IsPlayerCharacter = false, Strength = 10, Intelligence = 0, Armor = 5, Resistance = 5 },
-                new Character(5) { Id = 2, Name = "Wolf", IsPlayerCharacter = false, Strength = 5, Intelligence = 0, Armor = 10, Resistance = 5 },
-                new Character(5) { Id = 3, Name = "Alpha Wolf", IsPlayerCharacter = false, Strength = 10, Intelligence = 0, Armor = 15, Resistance = 10 }
-            );
+            modelBuilder.Entity<Fight>()
+                .HasMany(f => f.Characters)
+                .WithOne(c => c.Fight)
+                .HasForeignKey(c => c.FightId)
+                .OnDelete(DeleteBehavior.SetNull);
         }
 
         public DbSet<Character> Characters { get; set; }

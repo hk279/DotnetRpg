@@ -81,22 +81,18 @@ public class AuthService : IAuthService
         return false;
     }
 
-    private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
+    private static void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
     {
-        using (var hmac = new HMACSHA512())
-        {
-            passwordSalt = hmac.Key;
-            passwordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(password));
-        }
+        using var hmac = new HMACSHA512();
+        passwordSalt = hmac.Key;
+        passwordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(password));
     }
 
-    private bool VerifyPasswordHash(string password, byte[] passwordHash, byte[] passwordSalt)
+    private static bool VerifyPasswordHash(string password, byte[] passwordHash, byte[] passwordSalt)
     {
-        using (var hmac = new HMACSHA512(passwordSalt))
-        {
-            var computeHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(password));
-            return computeHash.SequenceEqual(passwordHash);
-        }
+        using var hmac = new HMACSHA512(passwordSalt);
+        var computeHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(password));
+        return computeHash.SequenceEqual(passwordHash);
     }
 
     private string CreateToken(User user)

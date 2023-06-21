@@ -12,7 +12,7 @@ namespace dotnet_rpg.Models
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public string Avatar { get; set; } = string.Empty;
-        public bool IsPlayerCharacter { get; set; }
+        public bool IsPlayerCharacter { get; set; } = true;
         /// <summary>
         /// Bonus to physical damage type
         /// </summary>
@@ -36,5 +36,7 @@ namespace dotnet_rpg.Models
         public User? User { get; set; }
         public Weapon? Weapon { get; set; }
         public List<Skill> Skills { get; set; } = new List<Skill>();
+        public Fight? Fight { get; set; }
+        public int? FightId { get; set; }
     }
 }

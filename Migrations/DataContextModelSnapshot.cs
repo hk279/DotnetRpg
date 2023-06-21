@@ -93,50 +93,6 @@ namespace dotnetrpg.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Characters");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Armor = 5,
-                            Avatar = "",
-                            CurrentHitPoints = 100,
-                            Intelligence = 0,
-                            IsPlayerCharacter = false,
-                            MaxHitPoints = 100,
-                            Name = "Wild Boar",
-                            Resistance = 5,
-                            Stamina = 5,
-                            Strength = 10
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Armor = 10,
-                            Avatar = "",
-                            CurrentHitPoints = 100,
-                            Intelligence = 0,
-                            IsPlayerCharacter = false,
-                            MaxHitPoints = 100,
-                            Name = "Wolf",
-                            Resistance = 5,
-                            Stamina = 5,
-                            Strength = 5
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Armor = 15,
-                            Avatar = "",
-                            CurrentHitPoints = 100,
-                            Intelligence = 0,
-                            IsPlayerCharacter = false,
-                            MaxHitPoints = 100,
-                            Name = "Alpha Wolf",
-                            Resistance = 10,
-                            Stamina = 5,
-                            Strength = 10
-                        });
                 });
 
             modelBuilder.Entity("dotnet_rpg.Models.Fight", b =>
@@ -147,21 +103,7 @@ namespace dotnetrpg.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("FightStatus")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("IsPlayersTurn")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("MyProperty")
-                        .HasColumnType("int");
-
-                    b.Property<int>("PlayerCharacterId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("PlayerCharacterId");
 
                     b.ToTable("Fights");
                 });
@@ -280,26 +222,18 @@ namespace dotnetrpg.Migrations
 
             modelBuilder.Entity("dotnet_rpg.Models.Character", b =>
                 {
-                    b.HasOne("dotnet_rpg.Models.Fight", null)
-                        .WithMany("Enemies")
-                        .HasForeignKey("FightId");
+                    b.HasOne("dotnet_rpg.Models.Fight", "Fight")
+                        .WithMany("Characters")
+                        .HasForeignKey("FightId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("dotnet_rpg.Models.User", "User")
                         .WithMany("Characters")
                         .HasForeignKey("UserId");
 
+                    b.Navigation("Fight");
+
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("dotnet_rpg.Models.Fight", b =>
-                {
-                    b.HasOne("dotnet_rpg.Models.Character", "PlayerCharacter")
-                        .WithMany()
-                        .HasForeignKey("PlayerCharacterId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("PlayerCharacter");
                 });
 
             modelBuilder.Entity("dotnet_rpg.Models.Weapon", b =>
@@ -320,7 +254,7 @@ namespace dotnetrpg.Migrations
 
             modelBuilder.Entity("dotnet_rpg.Models.Fight", b =>
                 {
-                    b.Navigation("Enemies");
+                    b.Navigation("Characters");
                 });
 
             modelBuilder.Entity("dotnet_rpg.Models.User", b =>
