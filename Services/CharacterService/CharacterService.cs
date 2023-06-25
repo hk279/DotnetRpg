@@ -25,15 +25,15 @@ public class CharacterService : ICharacterService
         _httpContextAccessor = httpContextAccessor;
     }
 
-    public async Task<ServiceResponse<List<GetCharacterDto>>> GetAllCharacters()
+    public async Task<ServiceResponse<List<GetCharacterListingDto>>> GetAllCharacters()
     {
         var allCharacters = await _context.Characters
             .Include(c => c.Skills)
             .Include(c => c.Weapon)
             .Where(c => c.User.Id == GetUserId())
-            .Select(c => _autoMapper.Map<GetCharacterDto>(c))
+            .Select(c => _autoMapper.Map<GetCharacterListingDto>(c))
             .ToListAsync();
-        return new ServiceResponse<List<GetCharacterDto>> { Data = allCharacters };
+        return new ServiceResponse<List<GetCharacterListingDto>> { Data = allCharacters };
     }
 
     public async Task<ServiceResponse<GetCharacterDto>> GetCharacterById(int id)

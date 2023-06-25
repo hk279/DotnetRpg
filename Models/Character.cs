@@ -32,7 +32,7 @@ namespace dotnet_rpg.Models
         /// Mitigation against magic damage type
         /// </summary>
         public int Resistance { get; set; }
-        public CharacterClass? Class { get; set; }
+        public CharacterClass Class { get; set; }
         public User? User { get; set; }
         public Weapon? Weapon { get; set; }
         public List<Skill> Skills { get; set; } = new List<Skill>();

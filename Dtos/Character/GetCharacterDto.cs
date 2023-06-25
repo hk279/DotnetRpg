@@ -15,7 +15,7 @@ namespace dotnet_rpg.Dtos.Character
         public int CurrentHitPoints { get; set; }
         public int Armor { get; set; }
         public int Resistance { get; set; }
-        public CharacterClass? Class { get; set; }
+        public CharacterClass Class { get; set; }
         public GetWeaponDto? Weapon { get; set; }
         public List<GetSkillDto> Skills { get; set; } = new List<GetSkillDto>();
     }
