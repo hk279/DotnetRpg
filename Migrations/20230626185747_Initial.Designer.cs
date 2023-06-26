@@ -12,8 +12,8 @@ using dotnet_rpg.Data;
 namespace dotnetrpg.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20230621181729_RemovedFightStatus")]
-    partial class RemovedFightStatus
+    [Migration("20230626185747_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -55,7 +55,7 @@ namespace dotnetrpg.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("Class")
+                    b.Property<int>("Class")
                         .HasColumnType("int");
 
                     b.Property<int>("CurrentHitPoints")
@@ -119,15 +119,21 @@ namespace dotnetrpg.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("CharacterClass")
+                        .HasColumnType("int");
+
                     b.Property<int>("Damage")
                         .HasColumnType("int");
 
-                    b.Property<int>("DamageType")
+                    b.Property<int>("Healing")
                         .HasColumnType("int");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("SkillType")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -137,23 +143,110 @@ namespace dotnetrpg.Migrations
                         new
                         {
                             Id = 1,
-                            Damage = 30,
-                            DamageType = 2,
-                            Name = "Fireball"
+                            CharacterClass = 1,
+                            Damage = 10,
+                            Healing = 0,
+                            Name = "Charge",
+                            SkillType = 1
                         },
                         new
                         {
                             Id = 2,
-                            Damage = 20,
-                            DamageType = 1,
-                            Name = "Charge"
+                            CharacterClass = 1,
+                            Damage = 5,
+                            Healing = 0,
+                            Name = "Rend",
+                            SkillType = 1
                         },
                         new
                         {
                             Id = 3,
-                            Damage = 40,
-                            DamageType = 1,
-                            Name = "Backstab"
+                            CharacterClass = 1,
+                            Damage = 0,
+                            Healing = 0,
+                            Name = "Enrage",
+                            SkillType = 1
+                        },
+                        new
+                        {
+                            Id = 4,
+                            CharacterClass = 1,
+                            Damage = 20,
+                            Healing = 0,
+                            Name = "Skillful Strike",
+                            SkillType = 1
+                        },
+                        new
+                        {
+                            Id = 5,
+                            CharacterClass = 2,
+                            Damage = 0,
+                            Healing = 0,
+                            Name = "Arcane Barrier",
+                            SkillType = 2
+                        },
+                        new
+                        {
+                            Id = 6,
+                            CharacterClass = 2,
+                            Damage = 20,
+                            Healing = 0,
+                            Name = "Ice Lance",
+                            SkillType = 2
+                        },
+                        new
+                        {
+                            Id = 7,
+                            CharacterClass = 2,
+                            Damage = 5,
+                            Healing = 0,
+                            Name = "Combustion",
+                            SkillType = 2
+                        },
+                        new
+                        {
+                            Id = 8,
+                            CharacterClass = 2,
+                            Damage = 10,
+                            Healing = 0,
+                            Name = "Lightning Storm",
+                            SkillType = 2
+                        },
+                        new
+                        {
+                            Id = 9,
+                            CharacterClass = 3,
+                            Damage = 0,
+                            Healing = 0,
+                            Name = "Battle Meditation",
+                            SkillType = 2
+                        },
+                        new
+                        {
+                            Id = 10,
+                            CharacterClass = 3,
+                            Damage = 0,
+                            Healing = 0,
+                            Name = "Miraclous Touch",
+                            SkillType = 2
+                        },
+                        new
+                        {
+                            Id = 11,
+                            CharacterClass = 3,
+                            Damage = 20,
+                            Healing = 0,
+                            Name = "Holy Smite",
+                            SkillType = 2
+                        },
+                        new
+                        {
+                            Id = 12,
+                            CharacterClass = 3,
+                            Damage = 5,
+                            Healing = 0,
+                            Name = "Cleansing Pain",
+                            SkillType = 2
                         });
                 });
 

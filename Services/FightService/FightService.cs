@@ -170,11 +170,11 @@ public class FightService : IFightService
 
     private static int AttackWithSkill(Character attacker, Character defender, Skill skill)
     {
-        var (damageBonus, damageReduction) = skill.DamageType switch
+        var (damageBonus, damageReduction) = skill.SkillType switch
         {
-            DamageType.Physical => (Math.Round((decimal)attacker.Strength / 100, 2), Math.Round((decimal)defender.Armor / 100, 2)),
-            DamageType.Magic => (Math.Round((decimal)attacker.Intelligence / 100, 2), Math.Round((decimal)defender.Resistance / 100, 2)),
-            _ => throw new ArgumentOutOfRangeException(nameof(skill.DamageType), "Invalid damage type")
+            SkillType.Physical => (Math.Round((decimal)attacker.Strength / 100, 2), Math.Round((decimal)defender.Armor / 100, 2)),
+            SkillType.Magic => (Math.Round((decimal)attacker.Intelligence / 100, 2), Math.Round((decimal)defender.Resistance / 100, 2)),
+            _ => throw new ArgumentOutOfRangeException(nameof(skill.SkillType), "Invalid damage type")
         };
 
         var baseDamage = skill.Damage;

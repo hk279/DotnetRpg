@@ -9,9 +9,21 @@ namespace dotnet_rpg.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Skill>().HasData(
-                new Skill { Id = 1, Name = "Fireball", Damage = 30, DamageType = DamageType.Magic },
-                new Skill { Id = 2, Name = "Charge", Damage = 20, DamageType = DamageType.Physical },
-                new Skill { Id = 3, Name = "Backstab", Damage = 40, DamageType = DamageType.Physical }
+                // Warrior
+                new Skill { Id = 1, Name = "Charge", Damage = 10, SkillType = SkillType.Physical, CharacterClass = CharacterClass.Warrior },
+                new Skill { Id = 2, Name = "Rend", Damage = 5, SkillType = SkillType.Physical, CharacterClass = CharacterClass.Warrior },
+                new Skill { Id = 3, Name = "Enrage", Damage = 0, SkillType = SkillType.Physical, CharacterClass = CharacterClass.Warrior },
+                new Skill { Id = 4, Name = "Skillful Strike", Damage = 20, SkillType = SkillType.Physical, CharacterClass = CharacterClass.Warrior },
+                // Mage
+                new Skill { Id = 5, Name = "Arcane Barrier", Damage = 0, SkillType = SkillType.Magic, CharacterClass = CharacterClass.Mage },
+                new Skill { Id = 6, Name = "Ice Lance", Damage = 20, SkillType = SkillType.Magic, CharacterClass = CharacterClass.Mage },
+                new Skill { Id = 7, Name = "Combustion", Damage = 5, SkillType = SkillType.Magic, CharacterClass = CharacterClass.Mage },
+                new Skill { Id = 8, Name = "Lightning Storm", Damage = 10, SkillType = SkillType.Magic, CharacterClass = CharacterClass.Mage },
+                // Priest
+                new Skill { Id = 9, Name = "Battle Meditation", Damage = 0, SkillType = SkillType.Magic, CharacterClass = CharacterClass.Priest },
+                new Skill { Id = 10, Name = "Miraclous Touch", Damage = 0, SkillType = SkillType.Magic, CharacterClass = CharacterClass.Priest },
+                new Skill { Id = 11, Name = "Holy Smite", Damage = 20, SkillType = SkillType.Magic, CharacterClass = CharacterClass.Priest },
+                new Skill { Id = 12, Name = "Cleansing Pain", Damage = 5, SkillType = SkillType.Magic, CharacterClass = CharacterClass.Priest }
             );
 
             modelBuilder.Entity<Fight>()

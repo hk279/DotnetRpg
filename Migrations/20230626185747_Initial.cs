@@ -17,9 +17,7 @@ namespace dotnetrpg.Migrations
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    FightStatus = table.Column<int>(type: "int", nullable: false),
-                    IsPlayersTurn = table.Column<bool>(type: "bit", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1")
                 },
                 constraints: table =>
                 {
@@ -34,7 +32,9 @@ namespace dotnetrpg.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Damage = table.Column<int>(type: "int", nullable: false),
-                    DamageType = table.Column<int>(type: "int", nullable: false)
+                    SkillType = table.Column<int>(type: "int", nullable: false),
+                    Healing = table.Column<int>(type: "int", nullable: false),
+                    CharacterClass = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -72,7 +72,7 @@ namespace dotnetrpg.Migrations
                     CurrentHitPoints = table.Column<int>(type: "int", nullable: false),
                     Armor = table.Column<int>(type: "int", nullable: false),
                     Resistance = table.Column<int>(type: "int", nullable: false),
-                    Class = table.Column<int>(type: "int", nullable: true),
+                    Class = table.Column<int>(type: "int", nullable: false),
                     UserId = table.Column<int>(type: "int", nullable: true),
                     FightId = table.Column<int>(type: "int", nullable: true)
                 },
@@ -83,7 +83,8 @@ namespace dotnetrpg.Migrations
                         name: "FK_Characters_Fights_FightId",
                         column: x => x.FightId,
                         principalTable: "Fights",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
                     table.ForeignKey(
                         name: "FK_Characters_Users_UserId",
                         column: x => x.UserId,
@@ -138,12 +139,21 @@ namespace dotnetrpg.Migrations
 
             migrationBuilder.InsertData(
                 table: "Skills",
-                columns: new[] { "Id", "Damage", "DamageType", "Name" },
+                columns: new[] { "Id", "CharacterClass", "Damage", "Healing", "Name", "SkillType" },
                 values: new object[,]
                 {
-                    { 1, 30, 2, "Fireball" },
-                    { 2, 20, 1, "Charge" },
-                    { 3, 40, 1, "Backstab" }
+                    { 1, 1, 10, 0, "Charge", 1 },
+                    { 2, 1, 5, 0, "Rend", 1 },
+                    { 3, 1, 0, 0, "Enrage", 1 },
+                    { 4, 1, 20, 0, "Skillful Strike", 1 },
+                    { 5, 2, 0, 0, "Arcane Barrier", 2 },
+                    { 6, 2, 20, 0, "Ice Lance", 2 },
+                    { 7, 2, 5, 0, "Combustion", 2 },
+                    { 8, 2, 10, 0, "Lightning Storm", 2 },
+                    { 9, 3, 0, 0, "Battle Meditation", 2 },
+                    { 10, 3, 0, 0, "Miraclous Touch", 2 },
+                    { 11, 3, 20, 0, "Holy Smite", 2 },
+                    { 12, 3, 5, 0, "Cleansing Pain", 2 }
                 });
 
             migrationBuilder.CreateIndex(
