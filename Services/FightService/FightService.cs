@@ -1,6 +1,6 @@
 using dotnet_rpg.Data;
 using dotnet_rpg.Dtos.Fight;
-using dotnet_rpg.Services.CharacterService;
+using dotnet_rpg.Services.EnemyGeneratorService;
 using Microsoft.EntityFrameworkCore;
 
 namespace dotnet_rpg.Services.FightService;
@@ -8,12 +8,12 @@ namespace dotnet_rpg.Services.FightService;
 public class FightService : IFightService
 {
     private readonly DataContext _context;
-    private readonly ICharacterService _characterService;
+    private readonly IEnemyGeneratorService _enemyGeneratorService;
 
-    public FightService(DataContext context, ICharacterService characterService)
+    public FightService(DataContext context, IEnemyGeneratorService enemyGeneratorService)
     {
         _context = context;
-        _characterService = characterService;
+        _enemyGeneratorService = enemyGeneratorService;
     }
 
     public async Task<ServiceResponse<BeginFightResultDto>> BeginFight(BeginFightDto request)
@@ -25,19 +25,23 @@ public class FightService : IFightService
 
         try
         {
-            var playerCharacter = await _context.Characters.FirstOrDefaultAsync(c => c.Id == request.PlayerCharacterId);
-            var enemyCharacter = _characterService.GetRandomEnemy();
+            var allCharacters = new List<Character>();
+            var playerCharacter = await _context.Characters.FirstOrDefaultAsync(c => c.Id == request.PlayerCharacterId)
+            ?? throw new Exception("Player character not found.");
 
-            await _context.AddAsync(enemyCharacter);
-            await _context.SaveChangesAsync();
-
-            if (playerCharacter == null) throw new Exception("Player character not found.");
             if (playerCharacter.FightId != null) throw new Exception("Player is already in a fight.");
+
+            var enemyCharacters = _enemyGeneratorService.GetEnemies(playerCharacter.Level);
+
+            allCharacters.Add(playerCharacter);
+            allCharacters.AddRange(enemyCharacters);
+
+            await _context.SaveChangesAsync();
 
             // TODO: Add a reward for winning the fight
             var newFight = new Fight()
             {
-                Characters = new List<Character>() { playerCharacter, enemyCharacter }
+                Characters = allCharacters
             };
 
             await _context.AddAsync(newFight);
@@ -47,7 +51,7 @@ public class FightService : IFightService
             {
                 Id = newFight.Id,
                 PlayerCharacterId = playerCharacter.Id,
-                EnemyCharacterId = enemyCharacter.Id
+                EnemyCharacterIds = enemyCharacters.Select(c => c.Id).ToList(),
             };
         }
         catch (Exception ex)

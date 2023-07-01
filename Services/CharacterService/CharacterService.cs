@@ -11,12 +11,6 @@ public class CharacterService : ICharacterService
     private readonly IMapper _autoMapper;
     private readonly DataContext _context;
     public readonly IHttpContextAccessor _httpContextAccessor;
-    private readonly List<Character> _enemyTemplates = new()
-    {
-        new Character(5) { Name = "Wild Boar", IsPlayerCharacter = false, Strength = 10, Intelligence = 0, Armor = 5, Resistance = 5 },
-        new Character(5) { Name = "Wolf", IsPlayerCharacter = false, Strength = 5, Intelligence = 0, Armor = 10, Resistance = 5 },
-        new Character(5) { Name = "Alpha Wolf", IsPlayerCharacter = false, Strength = 10, Intelligence = 0, Armor = 15, Resistance = 10 }
-    };
 
     public CharacterService(IMapper autoMapper, DataContext context, IHttpContextAccessor httpContextAccessor)
     {
@@ -193,13 +187,6 @@ public class CharacterService : ICharacterService
     {
         var httpContext = _httpContextAccessor.HttpContext ?? throw new ArgumentNullException(nameof(_httpContextAccessor.HttpContext));
         return int.Parse(httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier));
-    }
-
-    public Character GetRandomEnemy()
-    {
-        var random = new Random();
-        var index = random.Next(0, _enemyTemplates.Count + 1);
-        return _enemyTemplates[index];
     }
 }
 
