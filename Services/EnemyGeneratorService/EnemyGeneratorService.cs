@@ -34,23 +34,21 @@ public class EnemyGeneratorService : IEnemyGeneratorService
 
     public List<Character> GetEnemies(int playerCharacterLevel)
     {
-        var random = new Random();
-
         // 20% probability to get multi-enemy combat
-        if (random.Next(100) < 20)
+        if (RNG.GetBoolean(0.2))
         {
             // TODO: Implement multi-enemy groups
         }
 
-        var index = random.Next(0, _singleEnemyTemplates.Count + 1);
-        var singleEnemy = GenerateSingleEnemyCharacter(playerCharacterLevel, _singleEnemyTemplates[index], random);
+        var enemyGenerationData = RNG.PickRandom(_singleEnemyTemplates);
+        var singleEnemy = GenerateSingleEnemyCharacter(playerCharacterLevel, enemyGenerationData);
 
         return new List<Character> { singleEnemy };
     }
 
-    private static Character GenerateSingleEnemyCharacter(int playerCharacterLevel, EnemyGenerationData data, Random random)
+    private static Character GenerateSingleEnemyCharacter(int playerCharacterLevel, EnemyGenerationData data)
     {
-        var enemyLevel = GetEnemyLevel(playerCharacterLevel, random);
+        var enemyLevel = GetEnemyLevel(playerCharacterLevel);
         var baseAttributeValue = 5;
 
         var strength = data.EnemyClass switch
@@ -114,19 +112,21 @@ public class EnemyGeneratorService : IEnemyGeneratorService
         };
     }
 
-    private static int GetEnemyLevel(int playerCharacterLevel, Random random)
+    /// <summary>
+    /// 20% probability for an enemy with -1 level compared to player character
+    /// 20% probability for an enemy with +1 level compared to player character
+    /// </summary>
+    private static int GetEnemyLevel(int playerCharacterLevel)
     {
-        var randomNumber = random.Next(100);
-        var enemyLevel = randomNumber switch
+        if (RNG.GetBoolean(0.2))
         {
-            < 20 => playerCharacterLevel - 1, // 20% chance to be one level lower
-            > 80 => playerCharacterLevel + 1, // 20% chance to be one lever higher
-            _ => playerCharacterLevel
-        };
+            var enemyLevel = playerCharacterLevel - 1;
+            return enemyLevel < 1 ? 1 : enemyLevel;
+        }
 
-        if (enemyLevel == 0) enemyLevel = 1;
+        if (RNG.GetBoolean(0.2)) return playerCharacterLevel + 1;
 
-        return enemyLevel;
+        return playerCharacterLevel;
     }
 
     private record EnemyGenerationData(string Name, EnemyType EnemyType, CharacterClass EnemyClass);

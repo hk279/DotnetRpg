@@ -3,10 +3,10 @@ using System.Text.Json.Serialization;
 namespace dotnet_rpg.Models;
 
 [JsonConverter(typeof(JsonStringEnumConverter))]
-public enum FightStatus
+public enum SkillTargetType
 {
     Unknown,
-    Ongoing,
-    Victory,
-    Defeat
+    Self,
+    Friendly,
+    Enemy
 }
