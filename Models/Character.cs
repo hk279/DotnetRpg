@@ -17,7 +17,7 @@ namespace dotnet_rpg.Models
         public string Avatar { get; set; } = string.Empty;
         public bool IsPlayerCharacter { get; set; } = true;
 
-        public int Level { get; set; }
+        public int Level { get; set; } = 1;
         public long Experience { get; set; }
 
         /// <summary>

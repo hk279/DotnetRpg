@@ -7,6 +7,7 @@ namespace dotnet_rpg.Dtos.Character
         public int Strength { get; set; }
         public int Intelligence { get; set; }
         public int Stamina { get; set; }
+        public int Spirit { get; set; }
         public CharacterClass? Class { get; set; }
     }
 }

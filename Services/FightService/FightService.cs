@@ -80,35 +80,26 @@ public class FightService : IFightService
 
             var skill = attacker.Skills.FirstOrDefault(s => s.Id == request.SkillId) ?? throw new Exception("Invalid skill. Attacker doesn't possess this skill.");
             var damage = AttackWithSkill(attacker, defender, skill);
-            var fightStatus = FightStatus.Ongoing;
-
-            if (defender.CurrentHitPoints <= 0)
-            {
-                response.Message = $"{defender.Name} has been defeated!";
-
-                var allEnemyCharactersInFight = fight.Characters.Where(c => !c.IsPlayerCharacter);
-
-                if (allEnemyCharactersInFight.All(c => c.CurrentHitPoints <= 0))
-                {
-                    _context.RemoveRange(allEnemyCharactersInFight);
-                    _context.Remove(fight);
-                    fightStatus = FightStatus.PlayerWon;
-                }
-            }
-
-            // TODO: Add defender action
-
-            await _context.SaveChangesAsync();
-
-            response.Data = new AttackResultDto
+            var attackResult = new AttackResultDto
             {
                 AttackerName = attacker.Name,
                 DefenderName = defender.Name,
                 AttackerHitPoints = attacker.CurrentHitPoints,
                 DefenderHitPoints = defender.CurrentHitPoints,
                 Damage = damage,
-                FightStatus = fightStatus,
+                FightStatus = FightStatus.Ongoing,
             };
+
+            if (defender.CurrentHitPoints <= 0)
+            {
+                HandleEnemyDefeated(response, defender, fight, attackResult);
+            }
+
+            // TODO: Add defender action
+
+            await _context.SaveChangesAsync();
+
+            response.Data = attackResult;
         }
         catch (Exception ex)
         {
@@ -136,32 +127,26 @@ public class FightService : IFightService
             if (defender.CurrentHitPoints <= 0) throw new Exception("Defender is already dead");
 
             var damage = AttackWithWeapon(attacker, defender);
-
-            if (defender.CurrentHitPoints <= 0)
-            {
-                response.Message = $"{defender.Name} has been defeated!";
-
-                var allEnemyCharactersInFight = fight.Characters.Where(c => !c.IsPlayerCharacter);
-
-                if (allEnemyCharactersInFight.All(c => c.CurrentHitPoints <= 0))
-                {
-                    _context.RemoveRange(allEnemyCharactersInFight);
-                    _context.Remove(fight);
-                }
-            }
-
-            // TODO: Add defender action
-
-            await _context.SaveChangesAsync();
-
-            response.Data = new AttackResultDto
+            var attackResult = new AttackResultDto
             {
                 AttackerName = attacker.Name,
                 DefenderName = defender.Name,
                 AttackerHitPoints = attacker.CurrentHitPoints,
                 DefenderHitPoints = defender.CurrentHitPoints,
-                Damage = damage
+                Damage = damage,
+                FightStatus = FightStatus.Ongoing,
             };
+
+            if (defender.CurrentHitPoints <= 0)
+            {
+                HandleEnemyDefeated(response, defender, fight, attackResult);
+            }
+
+            // TODO: Add defender action(s)
+
+            await _context.SaveChangesAsync();
+
+            response.Data = attackResult;
         }
         catch (Exception ex)
         {
@@ -213,5 +198,22 @@ public class FightService : IFightService
         }
 
         return damage;
+    }
+
+    private void HandleEnemyDefeated(ServiceResponse<AttackResultDto> response, Character defender, Fight fight, AttackResultDto attackResult)
+    {
+        response.Message = $"{defender.Name} has been defeated!";
+
+        var allEnemyCharactersInFight = fight.Characters.Where(c => !c.IsPlayerCharacter);
+        var allEnemiesDefeated = allEnemyCharactersInFight.All(c => c.CurrentHitPoints <= 0);
+
+        if (allEnemiesDefeated) HandleVictory(fight, allEnemyCharactersInFight, attackResult);
+    }
+
+    private void HandleVictory(Fight fight, IEnumerable<Character> allEnemyCharactersInFight, AttackResultDto attackResult)
+    {
+        _context.RemoveRange(allEnemyCharactersInFight);
+        _context.Remove(fight);
+        attackResult.FightStatus = FightStatus.PlayerWon;
     }
 }

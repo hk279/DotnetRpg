@@ -10,6 +10,7 @@ using Swashbuckle.AspNetCore.Filters;
 using Microsoft.OpenApi.Models;
 using dotnet_rpg.Services.WeaponService;
 using dotnet_rpg.Services.FightService;
+using dotnet_rpg.Services.EnemyGeneratorService;
 
 var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -47,6 +48,7 @@ builder.Services.AddScoped<ICharacterService, CharacterService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IWeaponService, WeaponService>();
 builder.Services.AddScoped<IFightService, FightService>();
+builder.Services.AddScoped<IEnemyGeneratorService, EnemyGeneratorService>();
 
 var app = builder.Build();
 

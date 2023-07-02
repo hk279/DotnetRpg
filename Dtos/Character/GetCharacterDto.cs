@@ -13,6 +13,9 @@ namespace dotnet_rpg.Dtos.Character
         public int Stamina { get; set; }
         public int MaxHitPoints { get; set; }
         public int CurrentHitPoints { get; set; }
+        public int Spirit { get; set; }
+        public int MaxEnergy { get; set; }
+        public int CurrentEnergy { get; set; }
         public int Armor { get; set; }
         public int Resistance { get; set; }
         public CharacterClass Class { get; set; }
