@@ -18,10 +18,7 @@ public class FightService : IFightService
 
     public async Task<ServiceResponse<BeginFightResultDto>> BeginFight(BeginFightDto request)
     {
-        var response = new ServiceResponse<BeginFightResultDto>
-        {
-            Data = new BeginFightResultDto()
-        };
+        var response = new ServiceResponse<BeginFightResultDto>();
 
         try
         {
