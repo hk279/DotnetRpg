@@ -1,12 +1,13 @@
 namespace dotnet_rpg.Dtos.Character
 {
+    // Possibly redundant. Used for testing purposes for now. 
     public class UpdateCharacterDto
     {
-        // TODO: Change into "level up" request when expreience/levels are implemented
         public int Id { get; set; }
-        public string Name { get; set; } = string.Empty;
-        public int Strength { get; set; } = 5;
-        public int Intelligence { get; set; } = 5;
-        public int Stamina { get; set; } = 5;
+        public string Name { get; set; } = null!;
+        public int Strength { get; set; }
+        public int Intelligence { get; set; }
+        public int Stamina { get; set; }
+        public int Spirit { get; set; }
     }
 }

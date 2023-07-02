@@ -2,8 +2,8 @@ namespace dotnet_rpg.Dtos.Fight;
 
 public class AttackResultDto
 {
-    public string AttackerName { get; set; } = null!;
-    public string DefenderName { get; set; } = null!;
+    public required string AttackerName { get; set; }
+    public required string DefenderName { get; set; }
     public int AttackerHitPoints { get; set; }
     public int DefenderHitPoints { get; set; }
     public int Damage { get; set; }

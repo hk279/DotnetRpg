@@ -24,7 +24,7 @@ public class CharacterService : ICharacterService
         var allCharacters = await _context.Characters
             .Include(c => c.Skills)
             .Include(c => c.Weapon)
-            .Where(c => c.User.Id == GetUserId())
+            .Where(c => c.User != null && c.User.Id == GetUserId())
             .Select(c => _autoMapper.Map<GetCharacterListingDto>(c))
             .ToListAsync();
         return new ServiceResponse<List<GetCharacterListingDto>> { Data = allCharacters };
@@ -37,7 +37,7 @@ public class CharacterService : ICharacterService
         var character = await _context.Characters
             .Include(c => c.Skills)
             .Include(c => c.Weapon)
-            .FirstOrDefaultAsync(c => c.Id == id && c.User.Id == GetUserId());
+            .FirstOrDefaultAsync(c => c.Id == id && c.User != null && c.User.Id == GetUserId());
 
         if (character == null)
         {
@@ -54,31 +54,40 @@ public class CharacterService : ICharacterService
     {
         var response = new ServiceResponse<List<GetCharacterDto>>();
 
-        var characterToAdd = _autoMapper.Map<Character>(newCharacter);
-        var currentUser = await _context.Users.FirstOrDefaultAsync(u => u.Id == GetUserId());
-        characterToAdd.User = currentUser;
+        try
+        {
+            var totalAttributes = newCharacter.Strength + newCharacter.Intelligence + newCharacter.Stamina + newCharacter.Spirit;
+            if (totalAttributes > 30)
+            {
+                response.Success = false;
+                response.Message = "Allowed total attribute points exceeded";
+            }
 
-        if (currentUser == null)
+            var characterToAdd = _autoMapper.Map<Character>(newCharacter);
+            var currentUser = await _context.Users.FirstOrDefaultAsync(u => u.Id == GetUserId()) ?? throw new Exception("User not found");
+            characterToAdd.User = currentUser;
+
+            await _context.Characters.AddAsync(characterToAdd);
+            await _context.SaveChangesAsync();
+
+            var allCharacters = await _context.Characters
+                .Include(c => c.Skills)
+                .Include(c => c.Weapon)
+                .Where(c => c.User != null && c.User.Id == GetUserId())
+                .Select(c => _autoMapper.Map<GetCharacterDto>(c)).ToListAsync();
+
+            response.Data = allCharacters;
+        }
+        catch (Exception ex)
         {
             response.Success = false;
-            response.Message = "Invalid user";
-            return response;
+            response.Message = ex.Message;
         }
-
-        _context.Characters.Add(characterToAdd);
-        await _context.SaveChangesAsync();
-
-        var allCharacters = await _context.Characters
-            .Include(c => c.Skills)
-            .Include(c => c.Weapon)
-            .Where(c => c.User.Id == GetUserId())
-            .Select(c => _autoMapper.Map<GetCharacterDto>(c)).ToListAsync();
-
-        response.Data = allCharacters;
 
         return response;
     }
 
+    // Possibly redundant. Used for testing purposes for now. 
     public async Task<ServiceResponse<GetCharacterDto>> UpdateCharacter(UpdateCharacterDto updatedCharacter)
     {
         var response = new ServiceResponse<GetCharacterDto>();
@@ -88,14 +97,8 @@ public class CharacterService : ICharacterService
             var characterToUpdate = await _context.Characters
                 .Include(c => c.Skills)
                 .Include(c => c.Weapon)
-                .FirstOrDefaultAsync(c => c.Id == updatedCharacter.Id && c.User.Id == GetUserId());
-
-            if (characterToUpdate == null)
-            {
-                response.Success = false;
-                response.Message = "Character not found";
-                return response;
-            }
+                .FirstOrDefaultAsync(c => c.Id == updatedCharacter.Id && c.User != null && c.User.Id == GetUserId())
+                ?? throw new Exception("Character not found");
 
             _autoMapper.Map(updatedCharacter, characterToUpdate);
             await _context.SaveChangesAsync();
@@ -116,23 +119,14 @@ public class CharacterService : ICharacterService
 
         try
         {
-            var characterToRemove = await _context.Characters.FirstOrDefaultAsync(c => c.Id == id && c.User.Id == GetUserId());
-
-            if (characterToRemove == null)
-            {
-                response.Success = false;
-                response.Message = "Character not found";
-                return response;
-            }
+            var characterToRemove = await _context.Characters.FirstOrDefaultAsync(c => c.Id == id && c.User != null && c.User.Id == GetUserId())
+            ?? throw new Exception("Character not found");
 
             _context.Characters.Remove(characterToRemove);
             await _context.SaveChangesAsync();
             response.Data = _context.Characters
-                .Include(c => c.Skills)
-                .Include(c => c.Weapon)
-                .Where(c => c.User.Id == GetUserId())
+                .Where(c => c.User != null && c.User.Id == GetUserId())
                 .Select(c => _autoMapper.Map<GetCharacterDto>(c)).ToList();
-
         }
         catch (Exception ex)
         {
@@ -152,23 +146,11 @@ public class CharacterService : ICharacterService
             var character = await _context.Characters
                 .Include(c => c.Skills)
                 .Include(c => c.Weapon)
-                .FirstOrDefaultAsync(c => c.Id == newCharacterSkill.CharacterId && c.User.Id == GetUserId());
+                .FirstOrDefaultAsync(c => c.Id == newCharacterSkill.CharacterId && c.User.Id == GetUserId())
+                ?? throw new Exception("Character not found");
 
-            if (character == null)
-            {
-                response.Success = false;
-                response.Message = "Character not found";
-                return response;
-            }
-
-            var skill = await _context.Skills.FirstOrDefaultAsync(s => s.Id == newCharacterSkill.SkillId);
-
-            if (skill == null)
-            {
-                response.Success = false;
-                response.Message = "Skill not found";
-                return response;
-            }
+            var skill = await _context.Skills.FirstOrDefaultAsync(s => s.Id == newCharacterSkill.SkillId)
+            ?? throw new Exception("Skill not found");
 
             character.Skills.Add(skill);
             await _context.SaveChangesAsync();
@@ -186,7 +168,7 @@ public class CharacterService : ICharacterService
     private int GetUserId()
     {
         var httpContext = _httpContextAccessor.HttpContext ?? throw new ArgumentNullException(nameof(_httpContextAccessor.HttpContext));
-        return int.Parse(httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier));
+        var nameIdentifier = httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new ArgumentNullException("No UserId");
+        return int.Parse(nameIdentifier);
     }
 }
-

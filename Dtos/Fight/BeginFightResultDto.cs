@@ -4,5 +4,5 @@ public class BeginFightResultDto
 {
     public int Id { get; init; }
     public int PlayerCharacterId { get; init; }
-    public List<int> EnemyCharacterIds { get; init; } = null!;
+    public required List<int> EnemyCharacterIds { get; init; }
 }

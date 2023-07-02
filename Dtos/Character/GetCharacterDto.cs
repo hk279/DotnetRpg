@@ -6,8 +6,8 @@ namespace dotnet_rpg.Dtos.Character
     public class GetCharacterDto
     {
         public int Id { get; set; }
-        public string Name { get; set; } = string.Empty;
-        public string Avatar { get; set; } = string.Empty;
+        public required string Name { get; set; }
+        public required string Avatar { get; set; }
         public int Strength { get; set; }
         public int Intelligence { get; set; }
         public int Stamina { get; set; }
@@ -20,6 +20,7 @@ namespace dotnet_rpg.Dtos.Character
         public int Resistance { get; set; }
         public CharacterClass Class { get; set; }
         public GetWeaponDto? Weapon { get; set; }
-        public List<GetSkillDto> Skills { get; set; } = new List<GetSkillDto>();
+        public required List<GetSkillDto> Skills { get; set; }
+        public int? FightId { get; set; }
     }
 }

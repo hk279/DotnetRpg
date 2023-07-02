@@ -124,7 +124,7 @@ public class FightService : IFightService
             var fight = await _context.Fights.FindAsync(request.FightId);
 
             if (attacker == null || defender == null || fight == null) throw new Exception("Invalid attack");
-            if (defender.CurrentHitPoints <= 0) throw new Exception("Defender is already dead");
+            if (defender.CurrentHitPoints <= 0) throw new Exception("Defender is already defeated");
 
             var damage = AttackWithWeapon(attacker, defender);
             var attackResult = new AttackResultDto

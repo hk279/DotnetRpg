@@ -3,7 +3,7 @@ namespace dotnet_rpg.Dtos.Character;
 public class GetCharacterListingDto
 {
     public int Id { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public string Avatar { get; set; } = string.Empty;
+    public required string Name { get; set; }
+    public required string Avatar { get; set; }
     public CharacterClass Class { get; set; }
 }

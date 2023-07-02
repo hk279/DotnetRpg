@@ -2,7 +2,7 @@ namespace dotnet_rpg.Dtos.Skill;
 
 public class GetSkillDto
 {
-    public string Name { get; set; } = string.Empty;
+    public required string Name { get; set; }
     public int Damage { get; set; }
     public SkillType DamageType { get; set; }
 }
