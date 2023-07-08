@@ -70,7 +70,7 @@ public class FightService : IFightService
                 .Include(c => c.Skills)
                 .FirstOrDefaultAsync(c => c.Id == request.AttackerId);
             var defender = await _context.Characters
-                .FirstOrDefaultAsync(c => c.Id == request.DefenderId);
+                .FirstOrDefaultAsync(c => c.Id == request.TargetId);
             var fight = await _context.Fights.FindAsync(request.FightId);
 
             if (attacker == null || defender == null || fight == null) throw new Exception("Invalid attack");
@@ -121,7 +121,7 @@ public class FightService : IFightService
                 .Include(c => c.Weapon)
                 .FirstOrDefaultAsync(c => c.Id == request.AttackerId);
             var defender = await _context.Characters
-                .FirstOrDefaultAsync(c => c.Id == request.DefenderId);
+                .FirstOrDefaultAsync(c => c.Id == request.TargetId);
             var fight = await _context.Fights.FindAsync(request.FightId);
 
             if (attacker == null || defender == null || fight == null) throw new Exception("Invalid attack");

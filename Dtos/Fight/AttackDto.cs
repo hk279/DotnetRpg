@@ -4,7 +4,7 @@ public class AttackDto
 {
     public int FightId { get; set; }
     public int AttackerId { get; set; }
-    public int DefenderId { get; set; }
+    public int TargetId { get; set; }
 }
 
 public class SkillAttackDto : AttackDto
