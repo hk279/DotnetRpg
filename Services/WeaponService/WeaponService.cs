@@ -20,6 +20,7 @@ public class WeaponService : IWeaponService
         _autoMapper = autoMapper;
     }
 
+    // TODO: Create a separate service for all equipment-related actions (inventory, equipping, etc.)
     public async Task<ServiceResponse<GetCharacterDto>> AddCharacterWeapon(AddCharacterWeaponDto newWeapon)
     {
         var response = new ServiceResponse<GetCharacterDto>();

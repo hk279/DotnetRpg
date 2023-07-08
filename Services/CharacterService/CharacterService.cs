@@ -27,6 +27,7 @@ public class CharacterService : ICharacterService
             .Where(c => c.User != null && c.User.Id == GetUserId())
             .Select(c => _autoMapper.Map<GetCharacterListingDto>(c))
             .ToListAsync();
+
         return new ServiceResponse<List<GetCharacterListingDto>> { Data = allCharacters };
     }
 
@@ -34,18 +35,49 @@ public class CharacterService : ICharacterService
     {
         var response = new ServiceResponse<GetCharacterDto>();
 
-        var character = await _context.Characters
-            .Include(c => c.Skills)
-            .Include(c => c.Weapon)
-            .FirstOrDefaultAsync(c => c.Id == id && c.User != null && c.User.Id == GetUserId());
+        try
+        {
+            var character = await _context.Characters
+                .Include(c => c.Skills)
+                .Include(c => c.Weapon)
+                .FirstOrDefaultAsync(c => c.Id == id && c.User != null && c.User.Id == GetUserId())
+                ?? throw new Exception("Character not found");
 
-        if (character == null)
+            response.Data = _autoMapper.Map<GetCharacterDto>(character);
+        }
+        catch (Exception ex)
         {
             response.Success = false;
-            response.Message = "Character not found";
+            response.Message = ex.Message;
         }
 
-        response.Data = _autoMapper.Map<GetCharacterDto>(character);
+        return response;
+    }
+
+    public async Task<ServiceResponse<List<GetCharacterDto>>> GetEnemies(int id)
+    {
+        var response = new ServiceResponse<List<GetCharacterDto>>();
+
+        try
+        {
+            var character = await _context.Characters.FirstOrDefaultAsync(c => c.Id == id && c.User != null && c.User.Id == GetUserId())
+            ?? throw new Exception("Character not found");
+
+            var fightId = character.FightId ?? throw new Exception("Character is not in a fight");
+            var enemies = await _context.Characters
+                .Where(c => c.FightId == fightId && !c.IsPlayerCharacter)
+                .Select(c => _autoMapper.Map<GetCharacterDto>(c))
+                .ToListAsync();
+
+            if (!enemies.Any()) throw new Exception("No enemies found");
+
+            response.Data = enemies;
+        }
+        catch (Exception ex)
+        {
+            response.Success = false;
+            response.Message = ex.Message;
+        }
 
         return response;
     }
@@ -137,6 +169,7 @@ public class CharacterService : ICharacterService
         return response;
     }
 
+    // TODO: Changes coming. Skills will be added through other events.
     public async Task<ServiceResponse<GetCharacterDto>> AddCharacterSkill(AddCharacterSkillDto newCharacterSkill)
     {
         var response = new ServiceResponse<GetCharacterDto>();
@@ -168,7 +201,7 @@ public class CharacterService : ICharacterService
     private int GetUserId()
     {
         var httpContext = _httpContextAccessor.HttpContext ?? throw new ArgumentNullException(nameof(_httpContextAccessor.HttpContext));
-        var nameIdentifier = httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new ArgumentNullException("No UserId");
-        return int.Parse(nameIdentifier);
+        var userId = httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new ArgumentNullException("No UserId");
+        return int.Parse(userId);
     }
 }

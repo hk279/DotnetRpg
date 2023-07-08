@@ -19,10 +19,15 @@ public class CharacterController : ControllerBase
     }
 
     [HttpGet("all")]
-    public async Task<ActionResult<ServiceResponse<List<GetCharacterListingDto>>>> Get()
+    public async Task<ActionResult<ServiceResponse<List<GetCharacterListingDto>>>> GetAll()
     {
-        int userId = int.Parse(User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier).Value);
         return Ok(await _characterService.GetAllCharacters());
+    }
+
+    [HttpGet("{characterId}/enemies")]
+    public async Task<ActionResult<ServiceResponse<List<GetCharacterDto>>>> GetEnemies(int characterId)
+    {
+        return Ok(await _characterService.GetEnemies(characterId));
     }
 
     [HttpGet("{id}")]

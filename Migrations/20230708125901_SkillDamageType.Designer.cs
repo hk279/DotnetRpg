@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using dotnet_rpg.Data;
 
@@ -11,9 +12,11 @@ using dotnet_rpg.Data;
 namespace dotnetrpg.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20230708125901_SkillDamageType")]
+    partial class SkillDamageType
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -137,9 +140,6 @@ namespace dotnetrpg.Migrations
                     b.Property<int>("Damage")
                         .HasColumnType("int");
 
-                    b.Property<int>("DamageType")
-                        .HasColumnType("int");
-
                     b.Property<int>("Healing")
                         .HasColumnType("int");
 
@@ -147,7 +147,10 @@ namespace dotnetrpg.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("TargetType")
+                    b.Property<int>("SkillDamageType")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SkillTargetType")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -160,120 +163,120 @@ namespace dotnetrpg.Migrations
                             Id = 1,
                             CharacterClass = 1,
                             Damage = 10,
-                            DamageType = 1,
                             Healing = 0,
                             Name = "Charge",
-                            TargetType = 3
+                            SkillDamageType = 1,
+                            SkillTargetType = 3
                         },
                         new
                         {
                             Id = 2,
                             CharacterClass = 1,
                             Damage = 5,
-                            DamageType = 1,
                             Healing = 0,
                             Name = "Rend",
-                            TargetType = 3
+                            SkillDamageType = 1,
+                            SkillTargetType = 3
                         },
                         new
                         {
                             Id = 3,
                             CharacterClass = 1,
                             Damage = 0,
-                            DamageType = 1,
                             Healing = 0,
                             Name = "Enrage",
-                            TargetType = 1
+                            SkillDamageType = 1,
+                            SkillTargetType = 1
                         },
                         new
                         {
                             Id = 4,
                             CharacterClass = 1,
                             Damage = 20,
-                            DamageType = 1,
                             Healing = 0,
                             Name = "Skillful Strike",
-                            TargetType = 3
+                            SkillDamageType = 1,
+                            SkillTargetType = 3
                         },
                         new
                         {
                             Id = 5,
                             CharacterClass = 2,
                             Damage = 0,
-                            DamageType = 2,
                             Healing = 0,
                             Name = "Arcane Barrier",
-                            TargetType = 2
+                            SkillDamageType = 2,
+                            SkillTargetType = 2
                         },
                         new
                         {
                             Id = 6,
                             CharacterClass = 2,
                             Damage = 20,
-                            DamageType = 2,
                             Healing = 0,
                             Name = "Ice Lance",
-                            TargetType = 3
+                            SkillDamageType = 2,
+                            SkillTargetType = 3
                         },
                         new
                         {
                             Id = 7,
                             CharacterClass = 2,
                             Damage = 5,
-                            DamageType = 2,
                             Healing = 0,
                             Name = "Combustion",
-                            TargetType = 3
+                            SkillDamageType = 2,
+                            SkillTargetType = 3
                         },
                         new
                         {
                             Id = 8,
                             CharacterClass = 2,
                             Damage = 10,
-                            DamageType = 2,
                             Healing = 0,
                             Name = "Lightning Storm",
-                            TargetType = 3
+                            SkillDamageType = 2,
+                            SkillTargetType = 3
                         },
                         new
                         {
                             Id = 9,
                             CharacterClass = 3,
                             Damage = 0,
-                            DamageType = 2,
                             Healing = 0,
                             Name = "Battle Meditation",
-                            TargetType = 1
+                            SkillDamageType = 2,
+                            SkillTargetType = 1
                         },
                         new
                         {
                             Id = 10,
                             CharacterClass = 3,
                             Damage = 0,
-                            DamageType = 2,
                             Healing = 20,
                             Name = "Miraclous Touch",
-                            TargetType = 2
+                            SkillDamageType = 2,
+                            SkillTargetType = 2
                         },
                         new
                         {
                             Id = 11,
                             CharacterClass = 3,
                             Damage = 20,
-                            DamageType = 2,
                             Healing = 0,
                             Name = "Holy Smite",
-                            TargetType = 3
+                            SkillDamageType = 2,
+                            SkillTargetType = 3
                         },
                         new
                         {
                             Id = 12,
                             CharacterClass = 3,
                             Damage = 5,
-                            DamageType = 2,
                             Healing = 0,
                             Name = "Cleansing Pain",
-                            TargetType = 3
+                            SkillDamageType = 2,
+                            SkillTargetType = 3
                         });
                 });
 

@@ -7,6 +7,7 @@ namespace dotnet_rpg.Dtos.Character
     {
         public int Id { get; set; }
         public required string Name { get; set; }
+        public int Level { get; set; }
         public required string Avatar { get; set; }
         public int Strength { get; set; }
         public int Intelligence { get; set; }

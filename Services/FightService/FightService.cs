@@ -96,7 +96,7 @@ public class FightService : IFightService
                 HandleEnemyDefeated(response, defender, fight, attackResult);
             }
 
-            HandleEnemyActions(response, attacker, fight, attackResult);
+            HandleEnemyActions(attacker, fight, attackResult);
 
             await _context.SaveChangesAsync();
 
@@ -147,7 +147,7 @@ public class FightService : IFightService
                 HandleEnemyDefeated(response, defender, fight, attackResult);
             }
 
-            HandleEnemyActions(response, attacker, fight, attackResult);
+            HandleEnemyActions(attacker, fight, attackResult);
 
             await _context.SaveChangesAsync();
 
@@ -164,11 +164,11 @@ public class FightService : IFightService
 
     private static int AttackWithSkill(Character attacker, Character defender, Skill skill)
     {
-        var (damageBonus, damageReduction) = skill.SkillType switch
+        var (damageBonus, damageReduction) = skill.DamageType switch
         {
-            SkillType.Physical => (Math.Round((decimal)attacker.Strength / 100, 2), Math.Round((decimal)defender.Armor / 100, 2)),
-            SkillType.Magic => (Math.Round((decimal)attacker.Intelligence / 100, 2), Math.Round((decimal)defender.Resistance / 100, 2)),
-            _ => throw new ArgumentOutOfRangeException(nameof(skill.SkillType), "Invalid damage type")
+            SkillDamageType.Physical => (Math.Round((decimal)attacker.Strength / 100, 2), Math.Round((decimal)defender.Armor / 100, 2)),
+            SkillDamageType.Magic => (Math.Round((decimal)attacker.Intelligence / 100, 2), Math.Round((decimal)defender.Resistance / 100, 2)),
+            _ => throw new ArgumentOutOfRangeException(nameof(skill.DamageType), "Invalid damage type")
         };
 
         var baseDamage = skill.Damage;
@@ -230,7 +230,7 @@ public class FightService : IFightService
         resultDto.FightStatus = FightStatus.Defeat;
     }
 
-    private void HandleEnemyActions(ServiceResponse<PlayerActionResultDto> response, Character playerCharacter, Fight fight, PlayerActionResultDto resultDto)
+    private void HandleEnemyActions(Character playerCharacter, Fight fight, PlayerActionResultDto resultDto)
     {
         var allEnemyCharactersInFight = fight.Characters.Where(c => !c.IsPlayerCharacter);
         var damage = 0;
@@ -248,7 +248,7 @@ public class FightService : IFightService
 
             if (enemyCharacter.CurrentHitPoints > 0)
             {
-                var enemyTargetedSkills = enemyCharacter.Skills.Where(s => s.SkillTargetType == SkillTargetType.Enemy).ToList();
+                var enemyTargetedSkills = enemyCharacter.Skills.Where(s => s.TargetType == SkillTargetType.Enemy).ToList();
 
                 // 50 / 50 change to do a skill attack or a weapon attack
                 if (RNG.GetBoolean(0.5) && enemyTargetedSkills.Any())
