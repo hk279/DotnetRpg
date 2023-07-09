@@ -65,6 +65,8 @@ public class CharacterService : ICharacterService
 
             var fightId = character.FightId ?? throw new Exception("Character is not in a fight");
             var enemies = await _context.Characters
+                .Include(c => c.Skills)
+                .Include(c => c.Weapon)
                 .Where(c => c.FightId == fightId && !c.IsPlayerCharacter)
                 .Select(c => _autoMapper.Map<GetCharacterDto>(c))
                 .ToListAsync();

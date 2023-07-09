@@ -4,33 +4,33 @@ public class EnemyGeneratorService : IEnemyGeneratorService
 {
     private readonly List<EnemyGenerationData> _singleEnemyTemplates = new()
     {
-        new EnemyGenerationData("Grizzly Bear", EnemyType.Single, CharacterClass.Warrior),
-        new EnemyGenerationData("Deranged Knight", EnemyType.Single, CharacterClass.Warrior),
-        new EnemyGenerationData("Rogue Wizard", EnemyType.Single, CharacterClass.Mage),
-        new EnemyGenerationData("Cultist Shaman", EnemyType.Single, CharacterClass.Priest),
+        new EnemyGenerationData("Grizzly Bear", EnemyType.Single, CharacterClass.Warrior, new Weapon {Name = "Claw", Damage = 5}),
+        new EnemyGenerationData("Deranged Knight", EnemyType.Single, CharacterClass.Warrior, new Weapon {Name = "Longsword", Damage = 10}),
+        new EnemyGenerationData("Rogue Wizard", EnemyType.Single, CharacterClass.Mage, new Weapon {Name = "Ornate Staff", Damage = 4}),
+        new EnemyGenerationData("Cultist Shaman", EnemyType.Single, CharacterClass.Priest, new Weapon {Name = "Sacrificial Knife", Damage = 6}),
     };
 
-    private readonly List<List<EnemyGenerationData>> _multiEnemyTemplates = new()
-    {
-        new List<EnemyGenerationData>() {
-            new EnemyGenerationData("Wild Boar", EnemyType.Multi, CharacterClass.Warrior),
-            new EnemyGenerationData("Wild Boar", EnemyType.Multi, CharacterClass.Warrior),
-            new EnemyGenerationData("Rabid Wild Boar", EnemyType.Multi, CharacterClass.Warrior)
-        },
+    // private readonly List<List<EnemyGenerationData>> _multiEnemyTemplates = new()
+    // {
+    //     new List<EnemyGenerationData>() {
+    //         new EnemyGenerationData("Wild Boar", EnemyType.Multi, CharacterClass.Warrior),
+    //         new EnemyGenerationData("Wild Boar", EnemyType.Multi, CharacterClass.Warrior),
+    //         new EnemyGenerationData("Rabid Wild Boar", EnemyType.Multi, CharacterClass.Warrior)
+    //     },
 
-        new List<EnemyGenerationData>()
-        {
-            new EnemyGenerationData("Wolf", EnemyType.Multi, CharacterClass.Warrior),
-            new EnemyGenerationData("Wolf", EnemyType.Multi, CharacterClass.Warrior),
-            new EnemyGenerationData("Alpha Wolf", EnemyType.Multi, CharacterClass.Warrior)
-        },
+    //     new List<EnemyGenerationData>()
+    //     {
+    //         new EnemyGenerationData("Wolf", EnemyType.Multi, CharacterClass.Warrior),
+    //         new EnemyGenerationData("Wolf", EnemyType.Multi, CharacterClass.Warrior),
+    //         new EnemyGenerationData("Alpha Wolf", EnemyType.Multi, CharacterClass.Warrior)
+    //     },
 
-        new List<EnemyGenerationData>()
-        {
-            new EnemyGenerationData("Cultist Novice", EnemyType.Multi, CharacterClass.Priest),
-            new EnemyGenerationData("Cultist Novice", EnemyType.Multi, CharacterClass.Warrior)
-        },
-    };
+    //     new List<EnemyGenerationData>()
+    //     {
+    //         new EnemyGenerationData("Cultist Novice", EnemyType.Multi, CharacterClass.Priest),
+    //         new EnemyGenerationData("Cultist Novice", EnemyType.Multi, CharacterClass.Warrior)
+    //     },
+    // };
 
     public List<Character> GetEnemies(int playerCharacterLevel)
     {
@@ -108,7 +108,8 @@ public class EnemyGeneratorService : IEnemyGeneratorService
             Strength = strength,
             Intelligence = intelligence,
             Armor = armor,
-            Resistance = resistance
+            Resistance = resistance,
+            Weapon = data.Weapon
         };
     }
 
@@ -129,7 +130,7 @@ public class EnemyGeneratorService : IEnemyGeneratorService
         return playerCharacterLevel;
     }
 
-    private record EnemyGenerationData(string Name, EnemyType EnemyType, CharacterClass EnemyClass);
+    private record EnemyGenerationData(string Name, EnemyType EnemyType, CharacterClass EnemyClass, Weapon Weapon);
 
     private enum EnemyType
     {

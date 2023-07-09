@@ -76,9 +76,7 @@ public class AuthService : IAuthService
     public async Task<bool> UserExists(string username)
     {
         var userExists = await _context.Users.AnyAsync(u => u.Username.ToLower() == username.ToLower());
-
-        if (userExists) return true;
-        return false;
+        return userExists;
     }
 
     private static void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)

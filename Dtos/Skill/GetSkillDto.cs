@@ -6,6 +6,8 @@ public class GetSkillDto
     public required string Name { get; set; }
     public int Damage { get; set; }
     public int Healing { get; set; }
+    public int EnergyCost { get; set; }
+    public int Cooldown { get; set; }
     public SkillDamageType DamageType { get; set; }
     public SkillTargetType TargetType { get; set; }
 }

@@ -122,7 +122,12 @@ public class FightService : IFightService
                 .FirstOrDefaultAsync(c => c.Id == request.AttackerId);
             var defender = await _context.Characters
                 .FirstOrDefaultAsync(c => c.Id == request.TargetId);
-            var fight = await _context.Fights.FindAsync(request.FightId);
+            var fight = await _context.Fights
+                .Include(f => f.Characters)
+                    .ThenInclude(c => c.Weapon)
+                .Include(f => f.Characters)
+                    .ThenInclude(c => c.Skills)
+                .FirstOrDefaultAsync(f => f.Id == request.FightId);
 
             if (attacker == null || defender == null || fight == null) throw new Exception("Invalid attack");
             if (defender.CurrentHitPoints <= 0) throw new Exception("Defender is already defeated");
