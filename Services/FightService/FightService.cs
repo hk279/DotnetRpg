@@ -16,14 +16,14 @@ public class FightService : IFightService
         _enemyGeneratorService = enemyGeneratorService;
     }
 
-    public async Task<ServiceResponse<BeginFightResultDto>> BeginFight(BeginFightDto request)
+    public async Task<ServiceResponse<BeginFightResultDto>> BeginFight(int characterId)
     {
         var response = new ServiceResponse<BeginFightResultDto>();
 
         try
         {
             var allCharacters = new List<Character>();
-            var playerCharacter = await _context.Characters.FirstOrDefaultAsync(c => c.Id == request.PlayerCharacterId)
+            var playerCharacter = await _context.Characters.FirstOrDefaultAsync(c => c.Id == characterId)
             ?? throw new Exception("Player character not found.");
 
             if (playerCharacter.FightId != null) throw new Exception("Player is already in a fight.");
@@ -66,23 +66,23 @@ public class FightService : IFightService
 
         try
         {
-            var attacker = await _context.Characters
+            var playerCharacter = await _context.Characters
                 .Include(c => c.Skills)
-                .FirstOrDefaultAsync(c => c.Id == request.AttackerId);
-            var defender = await _context.Characters
-                .FirstOrDefaultAsync(c => c.Id == request.TargetId);
+                .FirstOrDefaultAsync(c => c.Id == request.PlayerCharacterId);
+            var enemyCharacter = await _context.Characters
+                .FirstOrDefaultAsync(c => c.Id == request.EnemyCharacterId);
             var fight = await _context.Fights.FindAsync(request.FightId);
 
-            if (attacker == null || defender == null || fight == null) throw new Exception("Invalid attack");
+            if (playerCharacter == null || enemyCharacter == null || fight == null) throw new Exception("Invalid attack");
 
-            var skill = attacker.Skills.FirstOrDefault(s => s.Id == request.SkillId) ?? throw new Exception("Invalid skill. Attacker doesn't possess this skill.");
-            var damage = AttackWithSkill(attacker, defender, skill);
+            var skill = playerCharacter.Skills.FirstOrDefault(s => s.Id == request.SkillId) ?? throw new Exception("Invalid skill. Attacker doesn't possess this skill.");
+            var damage = AttackWithSkill(playerCharacter, enemyCharacter, skill);
             var attackResult = new PlayerActionResultDto
             {
                 PlayerAction = new ActionDto
                 {
-                    TargetCharacterId = defender.Id,
-                    TargetCharacterName = defender.Name,
+                    TargetCharacterId = enemyCharacter.Id,
+                    TargetCharacterName = enemyCharacter.Name,
                     ActionType = ActionType.WeaponAttack,
                     SkillName = null,
                     Damage = damage,
@@ -91,12 +91,12 @@ public class FightService : IFightService
                 FightStatus = FightStatus.Ongoing,
             };
 
-            if (defender.CurrentHitPoints <= 0)
+            if (enemyCharacter.CurrentHitPoints <= 0)
             {
-                HandleEnemyDefeated(response, defender, fight, attackResult);
+                HandleEnemyDefeated(response, playerCharacter, enemyCharacter, fight, attackResult);
             }
 
-            HandleEnemyActions(attacker, fight, attackResult);
+            HandleEnemyActions(playerCharacter, fight, attackResult);
 
             await _context.SaveChangesAsync();
 
@@ -117,11 +117,11 @@ public class FightService : IFightService
 
         try
         {
-            var attacker = await _context.Characters
+            var playerCharacter = await _context.Characters
                 .Include(c => c.Weapon)
-                .FirstOrDefaultAsync(c => c.Id == request.AttackerId);
-            var defender = await _context.Characters
-                .FirstOrDefaultAsync(c => c.Id == request.TargetId);
+                .FirstOrDefaultAsync(c => c.Id == request.PlayerCharacterId);
+            var enemyCharacter = await _context.Characters
+                .FirstOrDefaultAsync(c => c.Id == request.EnemyCharacterId);
             var fight = await _context.Fights
                 .Include(f => f.Characters)
                     .ThenInclude(c => c.Weapon)
@@ -129,16 +129,16 @@ public class FightService : IFightService
                     .ThenInclude(c => c.Skills)
                 .FirstOrDefaultAsync(f => f.Id == request.FightId);
 
-            if (attacker == null || defender == null || fight == null) throw new Exception("Invalid attack");
-            if (defender.CurrentHitPoints <= 0) throw new Exception("Defender is already defeated");
+            if (playerCharacter == null || enemyCharacter == null || fight == null) throw new Exception("Invalid attack");
+            if (enemyCharacter.CurrentHitPoints <= 0) throw new Exception("Defender is already defeated");
 
-            var damage = AttackWithWeapon(attacker, defender);
+            var damage = AttackWithWeapon(playerCharacter, enemyCharacter);
             var attackResult = new PlayerActionResultDto
             {
                 PlayerAction = new ActionDto
                 {
-                    TargetCharacterId = defender.Id,
-                    TargetCharacterName = defender.Name,
+                    TargetCharacterId = enemyCharacter.Id,
+                    TargetCharacterName = enemyCharacter.Name,
                     ActionType = ActionType.WeaponAttack,
                     SkillName = null,
                     Damage = damage,
@@ -147,12 +147,12 @@ public class FightService : IFightService
                 FightStatus = FightStatus.Ongoing,
             };
 
-            if (defender.CurrentHitPoints <= 0)
+            if (enemyCharacter.CurrentHitPoints <= 0)
             {
-                HandleEnemyDefeated(response, defender, fight, attackResult);
+                HandleEnemyDefeated(response, playerCharacter, enemyCharacter, fight, attackResult);
             }
 
-            HandleEnemyActions(attacker, fight, attackResult);
+            HandleEnemyActions(playerCharacter, fight, attackResult);
 
             await _context.SaveChangesAsync();
 
@@ -205,34 +205,33 @@ public class FightService : IFightService
         if (damage > 0)
         {
             defender.CurrentHitPoints -= damage;
+            if (defender.CurrentHitPoints < 0) defender.CurrentHitPoints = 0;
         }
 
         return damage;
     }
 
-    private void HandleEnemyDefeated(ServiceResponse<PlayerActionResultDto> response, Character defender, Fight fight, PlayerActionResultDto resultDto)
+    private void HandleEnemyDefeated(ServiceResponse<PlayerActionResultDto> response, Character playerCharacter, Character defeatedEnemy, Fight fight, PlayerActionResultDto resultDto)
     {
-        response.Message = $"{defender.Name} has been defeated!";
+        response.Message = $"{defeatedEnemy.Name} has been defeated!";
 
         var allEnemyCharactersInFight = fight.Characters.Where(c => !c.IsPlayerCharacter);
         var allEnemiesDefeated = allEnemyCharactersInFight.All(c => c.CurrentHitPoints <= 0);
 
-        if (allEnemiesDefeated) HandleVictory(fight, allEnemyCharactersInFight, resultDto);
+        if (allEnemiesDefeated)
+        {
+            resultDto.FightStatus = FightStatus.Victory;
+            EndFight(fight, allEnemyCharactersInFight, playerCharacter);
+        };
     }
 
-    private void HandleVictory(Fight fight, IEnumerable<Character> allEnemyCharactersInFight, PlayerActionResultDto resultDto)
+    private void EndFight(Fight fight, IEnumerable<Character> allEnemyCharactersInFight, Character playerCharacter)
     {
         _context.RemoveRange(allEnemyCharactersInFight);
         _context.Remove(fight);
-        resultDto.FightStatus = FightStatus.Victory;
-    }
 
-    // TODO
-    private void HandleDefeat(Fight fight, IEnumerable<Character> allEnemyCharactersInFight, PlayerActionResultDto resultDto)
-    {
-        _context.RemoveRange(allEnemyCharactersInFight);
-        _context.Remove(fight);
-        resultDto.FightStatus = FightStatus.Defeat;
+        playerCharacter.CurrentHitPoints = playerCharacter.MaxHitPoints;
+        playerCharacter.CurrentEnergy = playerCharacter.MaxEnergy;
     }
 
     private void HandleEnemyActions(Character playerCharacter, Fight fight, PlayerActionResultDto resultDto)
@@ -290,7 +289,8 @@ public class FightService : IFightService
 
         if (playerCharacter.CurrentHitPoints <= 0)
         {
-            HandleDefeat(fight, allEnemyCharactersInFight, resultDto);
+            resultDto.FightStatus = FightStatus.Defeat;
+            EndFight(fight, allEnemyCharactersInFight, playerCharacter);
         }
 
         resultDto.PlayerCharacterRemainingHitPoints = playerCharacter.CurrentHitPoints;

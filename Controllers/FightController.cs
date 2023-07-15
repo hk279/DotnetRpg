@@ -17,10 +17,10 @@ public class FightController : ControllerBase
         _fightService = fightService;
     }
 
-    [HttpPost]
-    public async Task<ActionResult<ServiceResponse<BeginFightResultDto>>> Fight(BeginFightDto request)
+    [HttpPost("{characterId}")]
+    public async Task<ActionResult<ServiceResponse<BeginFightResultDto>>> Fight(int characterId)
     {
-        return Ok(await _fightService.BeginFight(request));
+        return Ok(await _fightService.BeginFight(characterId));
     }
 
     [HttpPost("weapon-attack")]
