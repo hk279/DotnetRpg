@@ -71,7 +71,12 @@ public class FightService : IFightService
                 .FirstOrDefaultAsync(c => c.Id == request.PlayerCharacterId);
             var enemyCharacter = await _context.Characters
                 .FirstOrDefaultAsync(c => c.Id == request.EnemyCharacterId);
-            var fight = await _context.Fights.FindAsync(request.FightId);
+            var fight = await _context.Fights
+                .Include(f => f.Characters)
+                    .ThenInclude(c => c.Weapon)
+                .Include(f => f.Characters)
+                    .ThenInclude(c => c.Skills)
+                .FirstOrDefaultAsync(f => f.Id == request.FightId);
 
             if (playerCharacter == null || enemyCharacter == null || fight == null) throw new Exception("Invalid attack");
 
@@ -81,6 +86,8 @@ public class FightService : IFightService
             {
                 PlayerAction = new ActionDto
                 {
+                    CharacterId = playerCharacter.Id,
+                    CharacterName = playerCharacter.Name,
                     TargetCharacterId = enemyCharacter.Id,
                     TargetCharacterName = enemyCharacter.Name,
                     ActionType = ActionType.WeaponAttack,
@@ -97,6 +104,7 @@ public class FightService : IFightService
             }
 
             HandleEnemyActions(playerCharacter, fight, attackResult);
+            RegenerateEnergy(fight.Characters);
 
             await _context.SaveChangesAsync();
 
@@ -137,6 +145,8 @@ public class FightService : IFightService
             {
                 PlayerAction = new ActionDto
                 {
+                    CharacterId = playerCharacter.Id,
+                    CharacterName = playerCharacter.Name,
                     TargetCharacterId = enemyCharacter.Id,
                     TargetCharacterName = enemyCharacter.Name,
                     ActionType = ActionType.WeaponAttack,
@@ -153,6 +163,7 @@ public class FightService : IFightService
             }
 
             HandleEnemyActions(playerCharacter, fight, attackResult);
+            RegenerateEnergy(fight.Characters);
 
             await _context.SaveChangesAsync();
 
@@ -169,22 +180,16 @@ public class FightService : IFightService
 
     private static int AttackWithSkill(Character attacker, Character defender, Skill skill)
     {
-        var (damageBonus, damageReduction) = skill.DamageType switch
-        {
-            SkillDamageType.Physical => (Math.Round((decimal)attacker.Strength / 100, 2), Math.Round((decimal)defender.Armor / 100, 2)),
-            SkillDamageType.Magic => (Math.Round((decimal)attacker.Intelligence / 100, 2), Math.Round((decimal)defender.Resistance / 100, 2)),
-            _ => throw new ArgumentOutOfRangeException(nameof(skill.DamageType), "Invalid damage type")
-        };
+        if (attacker.CurrentEnergy < skill.EnergyCost) throw new Exception("Not enough energy");
 
-        var baseDamage = skill.Damage;
-        var damageMultiplier = 1 + damageBonus - damageReduction;
-        var damage = (int)Math.Round(baseDamage * damageMultiplier);
+        attacker.CurrentEnergy -= skill.EnergyCost;
 
-        // TODO: Add some randomness
+        var damage = CalculateSkillDamage(skill, attacker, defender);
 
         if (damage > 0)
         {
             defender.CurrentHitPoints -= damage;
+            if (defender.CurrentHitPoints < 0) defender.CurrentHitPoints = 0;
         }
 
         return damage;
@@ -192,15 +197,7 @@ public class FightService : IFightService
 
     private static int AttackWithWeapon(Character attacker, Character defender)
     {
-        // Weapons always deal physical damage
-        var damageBonus = Math.Round((decimal)attacker.Strength / 100, 2);
-        var damageReduction = Math.Round((decimal)defender.Armor / 100, 2);
-
-        var baseDamage = attacker.Weapon?.Damage ?? 1;
-        var damageMultiplier = 1 + damageBonus - damageReduction;
-        var damage = (int)Math.Round(baseDamage * damageMultiplier);
-
-        // TODO: Add some randomness
+        var damage = CalculateWeaponDamage(attacker, defender);
 
         if (damage > 0)
         {
@@ -238,53 +235,48 @@ public class FightService : IFightService
     {
         var allEnemyCharactersInFight = fight.Characters.Where(c => !c.IsPlayerCharacter);
         var damage = 0;
-        var enemyStatuses = new List<EnemyStatusDto>();
+        var enemyActions = new List<ActionDto>();
 
         // TODO: Add support for self & friendly targeted skills
         foreach (var enemyCharacter in allEnemyCharactersInFight)
         {
-            var enemyStatus = new EnemyStatusDto
+            var enemyAction = new ActionDto
             {
-                EnemyCharacterId = enemyCharacter.Id,
-                EnemyCharacterName = enemyCharacter.Name,
-                EnemyRemainingHitPoints = enemyCharacter.CurrentHitPoints
+                CharacterId = enemyCharacter.Id,
+                CharacterName = enemyCharacter.Name,
+                TargetCharacterId = playerCharacter.Id,
+                TargetCharacterName = playerCharacter.Name,
             };
 
             if (enemyCharacter.CurrentHitPoints > 0)
             {
-                var enemyTargetedSkills = enemyCharacter.Skills.Where(s => s.TargetType == SkillTargetType.Enemy).ToList();
+                var validSkills = enemyCharacter.Skills
+                    .Where(s => s.TargetType == SkillTargetType.Enemy && s.EnergyCost <= enemyCharacter.CurrentEnergy)
+                    .ToList();
 
                 // 50 / 50 change to do a skill attack or a weapon attack
-                if (RNG.GetBoolean(0.5) && enemyTargetedSkills.Any())
+                if (RNG.GetBoolean(0.5) && validSkills.Any())
                 {
-                    var skill = RNG.PickRandom(enemyTargetedSkills);
+                    var skill = RNG.PickRandom(validSkills);
                     damage = AttackWithSkill(enemyCharacter, playerCharacter, skill);
-                    enemyStatus.EnemyAction = new ActionDto
-                    {
-                        TargetCharacterId = playerCharacter.Id,
-                        TargetCharacterName = playerCharacter.Name,
-                        ActionType = ActionType.Skill,
-                        SkillName = skill.Name,
-                        Damage = damage,
-                        Healing = 0
-                    };
+
+                    enemyAction.ActionType = ActionType.Skill;
+                    enemyAction.SkillName = skill.Name;
+                    enemyAction.Damage = damage;
+                    enemyAction.Healing = 0;
                 }
                 else
                 {
                     damage = AttackWithWeapon(enemyCharacter, playerCharacter);
-                    enemyStatus.EnemyAction = new ActionDto
-                    {
-                        TargetCharacterId = playerCharacter.Id,
-                        TargetCharacterName = playerCharacter.Name,
-                        ActionType = ActionType.WeaponAttack,
-                        SkillName = null,
-                        Damage = damage,
-                        Healing = 0
-                    };
+
+                    enemyAction.ActionType = ActionType.WeaponAttack;
+                    enemyAction.SkillName = null;
+                    enemyAction.Damage = damage;
+                    enemyAction.Healing = 0;
                 }
             }
 
-            enemyStatuses.Add(enemyStatus);
+            enemyActions.Add(enemyAction);
         }
 
         if (playerCharacter.CurrentHitPoints <= 0)
@@ -293,7 +285,46 @@ public class FightService : IFightService
             EndFight(fight, allEnemyCharactersInFight, playerCharacter);
         }
 
-        resultDto.PlayerCharacterRemainingHitPoints = playerCharacter.CurrentHitPoints;
-        resultDto.EnemyStatuses = enemyStatuses;
+        resultDto.EnemyActions = enemyActions;
+    }
+
+    private static int CalculateSkillDamage(Skill skill, Character attacker, Character defender)
+    {
+        // TODO: Add some randomness
+        var (damageBonus, damageReduction) = skill.DamageType switch
+        {
+            DamageType.Physical => (Math.Round((decimal)attacker.Strength / 100, 2), Math.Round((decimal)defender.Armor / 100, 2)),
+            DamageType.Magic => (Math.Round((decimal)attacker.Intelligence / 100, 2), Math.Round((decimal)defender.Resistance / 100, 2)),
+            _ => throw new ArgumentOutOfRangeException(nameof(skill.DamageType), "Invalid damage type")
+        };
+
+        var baseDamage = skill.Damage;
+        var damageMultiplier = 1 + damageBonus - damageReduction;
+        var damage = (int)Math.Round(baseDamage * damageMultiplier);
+
+        return damage;
+    }
+
+    private static int CalculateWeaponDamage(Character attacker, Character defender)
+    {
+        // Weapons always deal physical damage
+        // TODO: Add some randomness
+        var damageBonus = Math.Round((decimal)attacker.Strength / 100, 2);
+        var damageReduction = Math.Round((decimal)defender.Armor / 100, 2);
+
+        var baseDamage = attacker.Weapon?.Damage ?? 1;
+        var damageMultiplier = 1 + damageBonus - damageReduction;
+        var damage = (int)Math.Round(baseDamage * damageMultiplier);
+
+        return damage;
+    }
+
+    private static void RegenerateEnergy(List<Character> allCharactersInFight)
+    {
+        foreach (var character in allCharactersInFight)
+        {
+            character.CurrentEnergy += character.Spirit;
+            if (character.CurrentEnergy > character.MaxEnergy) character.CurrentEnergy = character.MaxEnergy;
+        }
     }
 }

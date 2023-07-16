@@ -45,6 +45,7 @@ public class CharacterController : ControllerBase
         return Ok(await _characterService.AddCharacter(newCharacter));
     }
 
+    // Possibly redundant. Used for testing purposes for now. 
     [HttpPut]
     public async Task<ActionResult<ServiceResponse<GetCharacterDto>>> Update(UpdateCharacterDto updatedCharacter)
     {
@@ -65,6 +66,7 @@ public class CharacterController : ControllerBase
         return Ok(response);
     }
 
+    // TODO: Changes coming. Skills will be added through other events.
     [HttpPost("add-skill")]
     public async Task<ActionResult<ServiceResponse<List<GetCharacterDto>>>> AddSkill(AddCharacterSkillDto newCharacterSkill)
     {
