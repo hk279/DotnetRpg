@@ -81,6 +81,7 @@ public class FightService : IFightService
             if (playerCharacter == null || enemyCharacter == null || fight == null) throw new Exception("Invalid attack");
 
             var skill = playerCharacter.Skills.FirstOrDefault(s => s.Id == request.SkillId) ?? throw new Exception("Invalid skill. Attacker doesn't possess this skill.");
+            // TODO: Check that the skill is has target type "Enemy"
             var damage = AttackWithSkill(playerCharacter, enemyCharacter, skill);
             var attackResult = new PlayerActionResultDto
             {
@@ -90,8 +91,8 @@ public class FightService : IFightService
                     CharacterName = playerCharacter.Name,
                     TargetCharacterId = enemyCharacter.Id,
                     TargetCharacterName = enemyCharacter.Name,
-                    ActionType = ActionType.WeaponAttack,
-                    SkillName = null,
+                    ActionType = ActionType.Skill,
+                    SkillName = skill.Name,
                     Damage = damage,
                     Healing = 0
                 },
