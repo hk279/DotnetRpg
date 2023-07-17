@@ -80,8 +80,12 @@ public class FightService : IFightService
 
             if (playerCharacter == null || enemyCharacter == null || fight == null) throw new Exception("Invalid attack");
 
-            var skill = playerCharacter.Skills.FirstOrDefault(s => s.Id == request.SkillId) ?? throw new Exception("Invalid skill. Attacker doesn't possess this skill.");
-            // TODO: Check that the skill is has target type "Enemy"
+            var skill = playerCharacter.Skills.FirstOrDefault(s => s.Id == request.SkillId)
+                ?? throw new Exception("Invalid skill. Attacker doesn't possess this skill.");
+
+            if (skill.TargetType != SkillTargetType.Enemy) throw new Exception("Skill cannot be used on an enemy");
+            if (skill.RemainingCooldown > 0) throw new Exception("Skill is on cooldown");
+
             var damage = AttackWithSkill(playerCharacter, enemyCharacter, skill);
             var attackResult = new PlayerActionResultDto
             {
@@ -101,11 +105,22 @@ public class FightService : IFightService
 
             if (enemyCharacter.CurrentHitPoints <= 0)
             {
-                HandleEnemyDefeated(response, playerCharacter, enemyCharacter, fight, attackResult);
+                var allEnemyCharactersInFight = fight.Characters.Where(c => !c.IsPlayerCharacter);
+                var allEnemiesDefeated = allEnemyCharactersInFight.All(c => c.CurrentHitPoints <= 0);
+
+                if (allEnemiesDefeated)
+                {
+                    attackResult.FightStatus = FightStatus.Victory;
+                    EndFight(fight, allEnemyCharactersInFight, playerCharacter);
+                    response.Data = attackResult;
+                    return response;
+                };
             }
 
             HandleEnemyActions(playerCharacter, fight, attackResult);
             RegenerateEnergy(fight.Characters);
+            UpdateCooldowns(fight.Characters);
+            skill.ApplyCooldown();
 
             await _context.SaveChangesAsync();
 
@@ -160,11 +175,21 @@ public class FightService : IFightService
 
             if (enemyCharacter.CurrentHitPoints <= 0)
             {
-                HandleEnemyDefeated(response, playerCharacter, enemyCharacter, fight, attackResult);
+                var allEnemyCharactersInFight = fight.Characters.Where(c => !c.IsPlayerCharacter);
+                var allEnemiesDefeated = allEnemyCharactersInFight.All(c => c.CurrentHitPoints <= 0);
+
+                if (allEnemiesDefeated)
+                {
+                    attackResult.FightStatus = FightStatus.Victory;
+                    EndFight(fight, allEnemyCharactersInFight, playerCharacter);
+                    response.Data = attackResult;
+                    return response;
+                };
             }
 
             HandleEnemyActions(playerCharacter, fight, attackResult);
             RegenerateEnergy(fight.Characters);
+            UpdateCooldowns(fight.Characters);
 
             await _context.SaveChangesAsync();
 
@@ -209,20 +234,6 @@ public class FightService : IFightService
         return damage;
     }
 
-    private void HandleEnemyDefeated(ServiceResponse<PlayerActionResultDto> response, Character playerCharacter, Character defeatedEnemy, Fight fight, PlayerActionResultDto resultDto)
-    {
-        response.Message = $"{defeatedEnemy.Name} has been defeated!";
-
-        var allEnemyCharactersInFight = fight.Characters.Where(c => !c.IsPlayerCharacter);
-        var allEnemiesDefeated = allEnemyCharactersInFight.All(c => c.CurrentHitPoints <= 0);
-
-        if (allEnemiesDefeated)
-        {
-            resultDto.FightStatus = FightStatus.Victory;
-            EndFight(fight, allEnemyCharactersInFight, playerCharacter);
-        };
-    }
-
     private void EndFight(Fight fight, IEnumerable<Character> allEnemyCharactersInFight, Character playerCharacter)
     {
         _context.RemoveRange(allEnemyCharactersInFight);
@@ -230,6 +241,7 @@ public class FightService : IFightService
 
         playerCharacter.CurrentHitPoints = playerCharacter.MaxHitPoints;
         playerCharacter.CurrentEnergy = playerCharacter.MaxEnergy;
+        playerCharacter.Skills.ForEach(s => s.RemainingCooldown = 0);
     }
 
     private void HandleEnemyActions(Character playerCharacter, Fight fight, PlayerActionResultDto resultDto)
@@ -252,7 +264,7 @@ public class FightService : IFightService
             if (enemyCharacter.CurrentHitPoints > 0)
             {
                 var validSkills = enemyCharacter.Skills
-                    .Where(s => s.TargetType == SkillTargetType.Enemy && s.EnergyCost <= enemyCharacter.CurrentEnergy)
+                    .Where(s => s.TargetType == SkillTargetType.Enemy && s.EnergyCost <= enemyCharacter.CurrentEnergy && s.RemainingCooldown == 0)
                     .ToList();
 
                 // 50 / 50 change to do a skill attack or a weapon attack
@@ -260,6 +272,7 @@ public class FightService : IFightService
                 {
                     var skill = RNG.PickRandom(validSkills);
                     damage = AttackWithSkill(enemyCharacter, playerCharacter, skill);
+                    skill.ApplyCooldown();
 
                     enemyAction.ActionType = ActionType.Skill;
                     enemyAction.SkillName = skill.Name;
@@ -326,6 +339,17 @@ public class FightService : IFightService
         {
             character.CurrentEnergy += character.Spirit;
             if (character.CurrentEnergy > character.MaxEnergy) character.CurrentEnergy = character.MaxEnergy;
+        }
+    }
+
+    private static void UpdateCooldowns(List<Character> allCharactersInFight)
+    {
+        foreach (var character in allCharactersInFight)
+        {
+            character.Skills.ForEach(s =>
+            {
+                if (s.RemainingCooldown > 0) s.RemainingCooldown--;
+            });
         }
     }
 }

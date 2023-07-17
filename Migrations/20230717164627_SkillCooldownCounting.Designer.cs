@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using dotnet_rpg.Data;
 
@@ -11,9 +12,11 @@ using dotnet_rpg.Data;
 namespace dotnetrpg.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20230717164627_SkillCooldownCounting")]
+    partial class SkillCooldownCounting
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,6 +24,21 @@ namespace dotnetrpg.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("CharacterSkill", b =>
+                {
+                    b.Property<int>("CharactersId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SkillsId")
+                        .HasColumnType("int");
+
+                    b.HasKey("CharactersId", "SkillsId");
+
+                    b.HasIndex("SkillsId");
+
+                    b.ToTable("CharacterSkill");
+                });
 
             modelBuilder.Entity("dotnet_rpg.Models.Character", b =>
                 {
@@ -119,9 +137,6 @@ namespace dotnetrpg.Migrations
                     b.Property<int>("CharacterClass")
                         .HasColumnType("int");
 
-                    b.Property<int?>("CharacterId")
-                        .HasColumnType("int");
-
                     b.Property<int>("Cooldown")
                         .HasColumnType("int");
 
@@ -141,15 +156,10 @@ namespace dotnetrpg.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("RemainingCooldown")
-                        .HasColumnType("int");
-
                     b.Property<int>("TargetType")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("CharacterId");
 
                     b.ToTable("Skills");
 
@@ -164,7 +174,6 @@ namespace dotnetrpg.Migrations
                             EnergyCost = 15,
                             Healing = 0,
                             Name = "Charge",
-                            RemainingCooldown = 0,
                             TargetType = 3
                         },
                         new
@@ -177,7 +186,6 @@ namespace dotnetrpg.Migrations
                             EnergyCost = 10,
                             Healing = 0,
                             Name = "Rend",
-                            RemainingCooldown = 0,
                             TargetType = 3
                         },
                         new
@@ -190,7 +198,6 @@ namespace dotnetrpg.Migrations
                             EnergyCost = 10,
                             Healing = 0,
                             Name = "Enrage",
-                            RemainingCooldown = 0,
                             TargetType = 1
                         },
                         new
@@ -203,7 +210,6 @@ namespace dotnetrpg.Migrations
                             EnergyCost = 20,
                             Healing = 0,
                             Name = "Skillful Strike",
-                            RemainingCooldown = 0,
                             TargetType = 3
                         },
                         new
@@ -216,7 +222,6 @@ namespace dotnetrpg.Migrations
                             EnergyCost = 15,
                             Healing = 0,
                             Name = "Arcane Barrier",
-                            RemainingCooldown = 0,
                             TargetType = 2
                         },
                         new
@@ -229,7 +234,6 @@ namespace dotnetrpg.Migrations
                             EnergyCost = 20,
                             Healing = 0,
                             Name = "Ice Lance",
-                            RemainingCooldown = 0,
                             TargetType = 3
                         },
                         new
@@ -242,7 +246,6 @@ namespace dotnetrpg.Migrations
                             EnergyCost = 10,
                             Healing = 0,
                             Name = "Combustion",
-                            RemainingCooldown = 0,
                             TargetType = 3
                         },
                         new
@@ -255,7 +258,6 @@ namespace dotnetrpg.Migrations
                             EnergyCost = 30,
                             Healing = 0,
                             Name = "Lightning Storm",
-                            RemainingCooldown = 0,
                             TargetType = 3
                         },
                         new
@@ -268,7 +270,6 @@ namespace dotnetrpg.Migrations
                             EnergyCost = 10,
                             Healing = 0,
                             Name = "Battle Meditation",
-                            RemainingCooldown = 0,
                             TargetType = 1
                         },
                         new
@@ -281,7 +282,6 @@ namespace dotnetrpg.Migrations
                             EnergyCost = 15,
                             Healing = 20,
                             Name = "Miraclous Touch",
-                            RemainingCooldown = 0,
                             TargetType = 2
                         },
                         new
@@ -294,7 +294,6 @@ namespace dotnetrpg.Migrations
                             EnergyCost = 20,
                             Healing = 0,
                             Name = "Holy Smite",
-                            RemainingCooldown = 0,
                             TargetType = 3
                         },
                         new
@@ -307,9 +306,32 @@ namespace dotnetrpg.Migrations
                             EnergyCost = 10,
                             Healing = 0,
                             Name = "Cleansing Pain",
-                            RemainingCooldown = 0,
                             TargetType = 3
                         });
+                });
+
+            modelBuilder.Entity("dotnet_rpg.Models.SkillCooldown", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("CharacterId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RemainingCooldown")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SkillId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CharacterId");
+
+                    b.ToTable("SkillCooldown");
                 });
 
             modelBuilder.Entity("dotnet_rpg.Models.User", b =>
@@ -363,6 +385,21 @@ namespace dotnetrpg.Migrations
                     b.ToTable("Weapons");
                 });
 
+            modelBuilder.Entity("CharacterSkill", b =>
+                {
+                    b.HasOne("dotnet_rpg.Models.Character", null)
+                        .WithMany()
+                        .HasForeignKey("CharactersId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("dotnet_rpg.Models.Skill", null)
+                        .WithMany()
+                        .HasForeignKey("SkillsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("dotnet_rpg.Models.Character", b =>
                 {
                     b.HasOne("dotnet_rpg.Models.Fight", "Fight")
@@ -379,10 +416,10 @@ namespace dotnetrpg.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("dotnet_rpg.Models.Skill", b =>
+            modelBuilder.Entity("dotnet_rpg.Models.SkillCooldown", b =>
                 {
                     b.HasOne("dotnet_rpg.Models.Character", null)
-                        .WithMany("Skills")
+                        .WithMany("SkillCooldowns")
                         .HasForeignKey("CharacterId");
                 });
 
@@ -399,7 +436,7 @@ namespace dotnetrpg.Migrations
 
             modelBuilder.Entity("dotnet_rpg.Models.Character", b =>
                 {
-                    b.Navigation("Skills");
+                    b.Navigation("SkillCooldowns");
 
                     b.Navigation("Weapon");
                 });

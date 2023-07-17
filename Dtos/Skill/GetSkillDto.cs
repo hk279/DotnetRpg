@@ -8,6 +8,7 @@ public class GetSkillDto
     public int Healing { get; set; }
     public int EnergyCost { get; set; }
     public int Cooldown { get; set; }
+    public int RemainingCooldown { get; set; }
     public DamageType DamageType { get; set; }
     public SkillTargetType TargetType { get; set; }
 }
