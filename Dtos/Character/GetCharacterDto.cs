@@ -9,8 +9,8 @@ namespace dotnet_rpg.Dtos.Character
         public required string Name { get; set; }
         public required string Avatar { get; set; }
         public int Level { get; set; }
-        public int Experience { get; set; }
-        public int? NextLevelExperienceThreshold { get; set; }
+        public long CurrentLevelTotalExperience { get; set; }
+        public long ExperienceTowardsNextLevel { get; set; }
         public int Strength { get; set; }
         public int Intelligence { get; set; }
         public int Stamina { get; set; }

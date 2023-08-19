@@ -2,9 +2,10 @@ namespace dotnet_rpg.Models;
 
 public class LevelExperienceThresholds
 {
-    public static readonly Dictionary<int, int> AllThresholds =
+    public static readonly Dictionary<int, long> AllThresholds =
         new()
         {
+            { 1, 0 },
             { 2, 100 },
             { 3, 210 },
             { 4, 331 },

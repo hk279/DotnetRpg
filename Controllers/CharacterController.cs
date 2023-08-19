@@ -23,7 +23,9 @@ public class CharacterController : ControllerBase
         var response = await _characterService.GetAllCharacters();
 
         if (!response.Success)
+        {
             return BadRequest(response);
+        }
 
         return Ok(response);
     }
@@ -36,7 +38,9 @@ public class CharacterController : ControllerBase
         var response = await _characterService.GetEnemies(characterId);
 
         if (!response.Success)
+        {
             return BadRequest(response);
+        }
 
         return Ok(response);
     }
@@ -47,7 +51,9 @@ public class CharacterController : ControllerBase
         var response = await _characterService.GetCharacterById(id);
 
         if (response.Data == null)
+        {
             return NotFound(response);
+        }
 
         return Ok(await _characterService.GetCharacterById(id));
     }
@@ -60,7 +66,9 @@ public class CharacterController : ControllerBase
         var response = await _characterService.AddCharacter(newCharacter);
 
         if (!response.Success)
+        {
             return BadRequest(response);
+        }
 
         return Ok(response);
     }
@@ -71,7 +79,9 @@ public class CharacterController : ControllerBase
         var response = await _characterService.DeleteCharacter(id);
 
         if (response.Data == null)
+        {
             return NotFound(response);
+        }
 
         return Ok(response);
     }
@@ -85,7 +95,9 @@ public class CharacterController : ControllerBase
         var response = await _characterService.AddCharacterSkill(newCharacterSkill);
 
         if (response.Data == null)
+        {
             return NotFound(response);
+        }
 
         return Ok(response);
     }

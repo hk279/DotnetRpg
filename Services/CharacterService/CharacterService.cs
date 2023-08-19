@@ -50,8 +50,17 @@ public class CharacterService : ICharacterService
                     ) ?? throw new Exception("Character not found");
 
             var dto = _autoMapper.Map<GetCharacterDto>(character);
-            dto.NextLevelExperienceThreshold =
+
+            var currentLevelExperienceThreshold = LevelExperienceThresholds.AllThresholds
+                .Single(t => t.Key == character.Level)
+                .Value;
+            var nextLevelExperienceThreshold =
                 LevelExperienceThresholds.AllThresholds.GetValueOrDefault(character.Level + 1);
+
+            dto.CurrentLevelTotalExperience =
+                nextLevelExperienceThreshold - currentLevelExperienceThreshold;
+            dto.ExperienceTowardsNextLevel = character.Experience - currentLevelExperienceThreshold;
+
             response.Data = dto;
         }
         catch (Exception ex)
