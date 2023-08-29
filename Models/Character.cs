@@ -24,6 +24,7 @@ namespace dotnet_rpg.Models
         /// Bonus to physical damage type
         /// </summary>
         public int Strength { get; set; }
+
         /// <summary>
         /// Bonus to magic damage type
         /// </summary>
@@ -47,6 +48,7 @@ namespace dotnet_rpg.Models
         /// Mitigation against physical damage type
         /// </summary>
         public int Armor { get; set; }
+
         /// <summary>
         /// Mitigation against magic damage type
         /// </summary>
@@ -56,6 +58,7 @@ namespace dotnet_rpg.Models
         public User? User { get; set; }
         public Weapon? Weapon { get; set; }
         public List<Skill> Skills { get; set; } = new List<Skill>();
+        public List<Item> Inventory { get; set; } = new List<Item>();
         public Fight? Fight { get; set; }
         public int? FightId { get; set; }
     }
