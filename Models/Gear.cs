@@ -5,10 +5,10 @@ public class Gear : Item
     public required GearSlot Slot { get; set; }
     public int Armor { get; set; }
     public int Resistance { get; set; }
-    public int Strength { get; set; } = 0;
-    public int Intelligence { get; set; } = 0;
-    public int Stamina { get; set; } = 0;
-    public int Spirit { get; set; } = 0;
+    public int Strength { get; set; }
+    public int Intelligence { get; set; }
+    public int Stamina { get; set; }
+    public int Spirit { get; set; }
 }
 
 public enum GearSlot

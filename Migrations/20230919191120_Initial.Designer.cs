@@ -12,8 +12,8 @@ using dotnet_rpg.Data;
 namespace dotnetrpg.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20230708130017_SkillDamageTypeRenaming")]
-    partial class SkillDamageTypeRenaming
+    [Migration("20230919191120_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,21 +24,6 @@ namespace dotnetrpg.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("CharacterSkill", b =>
-                {
-                    b.Property<int>("CharactersId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("SkillsId")
-                        .HasColumnType("int");
-
-                    b.HasKey("CharactersId", "SkillsId");
-
-                    b.HasIndex("SkillsId");
-
-                    b.ToTable("CharacterSkill");
-                });
 
             modelBuilder.Entity("dotnet_rpg.Models.Character", b =>
                 {
@@ -73,6 +58,9 @@ namespace dotnetrpg.Migrations
                     b.Property<int>("Intelligence")
                         .HasColumnType("int");
 
+                    b.Property<int>("InventorySize")
+                        .HasColumnType("int");
+
                     b.Property<bool>("IsPlayerCharacter")
                         .HasColumnType("bit");
 
@@ -104,11 +92,16 @@ namespace dotnetrpg.Migrations
                     b.Property<int?>("UserId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("WeaponId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("FightId");
 
                     b.HasIndex("UserId");
+
+                    b.HasIndex("WeaponId");
 
                     b.ToTable("Characters");
                 });
@@ -126,6 +119,51 @@ namespace dotnetrpg.Migrations
                     b.ToTable("Fights");
                 });
 
+            modelBuilder.Entity("dotnet_rpg.Models.Item", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("CharacterId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Level")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Rarity")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Value")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Weight")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CharacterId");
+
+                    b.ToTable("Item");
+
+                    b.HasDiscriminator<int>("Type");
+
+                    b.UseTphMappingStrategy();
+                });
+
             modelBuilder.Entity("dotnet_rpg.Models.Skill", b =>
                 {
                     b.Property<int>("Id")
@@ -137,10 +175,19 @@ namespace dotnetrpg.Migrations
                     b.Property<int>("CharacterClass")
                         .HasColumnType("int");
 
+                    b.Property<int?>("CharacterId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Cooldown")
+                        .HasColumnType("int");
+
                     b.Property<int>("Damage")
                         .HasColumnType("int");
 
                     b.Property<int>("DamageType")
+                        .HasColumnType("int");
+
+                    b.Property<int>("EnergyCost")
                         .HasColumnType("int");
 
                     b.Property<int>("Healing")
@@ -150,10 +197,15 @@ namespace dotnetrpg.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("RemainingCooldown")
+                        .HasColumnType("int");
+
                     b.Property<int>("TargetType")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CharacterId");
 
                     b.ToTable("Skills");
 
@@ -162,120 +214,156 @@ namespace dotnetrpg.Migrations
                         {
                             Id = 1,
                             CharacterClass = 1,
+                            Cooldown = 5,
                             Damage = 10,
                             DamageType = 1,
+                            EnergyCost = 15,
                             Healing = 0,
                             Name = "Charge",
+                            RemainingCooldown = 0,
                             TargetType = 3
                         },
                         new
                         {
                             Id = 2,
                             CharacterClass = 1,
+                            Cooldown = 5,
                             Damage = 5,
                             DamageType = 1,
+                            EnergyCost = 10,
                             Healing = 0,
                             Name = "Rend",
+                            RemainingCooldown = 0,
                             TargetType = 3
                         },
                         new
                         {
                             Id = 3,
                             CharacterClass = 1,
+                            Cooldown = 10,
                             Damage = 0,
                             DamageType = 1,
+                            EnergyCost = 10,
                             Healing = 0,
                             Name = "Enrage",
+                            RemainingCooldown = 0,
                             TargetType = 1
                         },
                         new
                         {
                             Id = 4,
                             CharacterClass = 1,
+                            Cooldown = 2,
                             Damage = 20,
                             DamageType = 1,
+                            EnergyCost = 20,
                             Healing = 0,
                             Name = "Skillful Strike",
+                            RemainingCooldown = 0,
                             TargetType = 3
                         },
                         new
                         {
                             Id = 5,
                             CharacterClass = 2,
+                            Cooldown = 10,
                             Damage = 0,
                             DamageType = 2,
+                            EnergyCost = 15,
                             Healing = 0,
                             Name = "Arcane Barrier",
+                            RemainingCooldown = 0,
                             TargetType = 2
                         },
                         new
                         {
                             Id = 6,
                             CharacterClass = 2,
+                            Cooldown = 2,
                             Damage = 20,
                             DamageType = 2,
+                            EnergyCost = 20,
                             Healing = 0,
                             Name = "Ice Lance",
+                            RemainingCooldown = 0,
                             TargetType = 3
                         },
                         new
                         {
                             Id = 7,
                             CharacterClass = 2,
+                            Cooldown = 3,
                             Damage = 5,
                             DamageType = 2,
+                            EnergyCost = 10,
                             Healing = 0,
                             Name = "Combustion",
+                            RemainingCooldown = 0,
                             TargetType = 3
                         },
                         new
                         {
                             Id = 8,
                             CharacterClass = 2,
+                            Cooldown = 10,
                             Damage = 10,
                             DamageType = 2,
+                            EnergyCost = 30,
                             Healing = 0,
                             Name = "Lightning Storm",
+                            RemainingCooldown = 0,
                             TargetType = 3
                         },
                         new
                         {
                             Id = 9,
                             CharacterClass = 3,
+                            Cooldown = 10,
                             Damage = 0,
                             DamageType = 2,
+                            EnergyCost = 10,
                             Healing = 0,
                             Name = "Battle Meditation",
+                            RemainingCooldown = 0,
                             TargetType = 1
                         },
                         new
                         {
                             Id = 10,
                             CharacterClass = 3,
+                            Cooldown = 3,
                             Damage = 0,
                             DamageType = 2,
+                            EnergyCost = 15,
                             Healing = 20,
                             Name = "Miraclous Touch",
+                            RemainingCooldown = 0,
                             TargetType = 2
                         },
                         new
                         {
                             Id = 11,
                             CharacterClass = 3,
+                            Cooldown = 2,
                             Damage = 20,
                             DamageType = 2,
+                            EnergyCost = 20,
                             Healing = 0,
                             Name = "Holy Smite",
+                            RemainingCooldown = 0,
                             TargetType = 3
                         },
                         new
                         {
                             Id = 12,
                             CharacterClass = 3,
+                            Cooldown = 3,
                             Damage = 5,
                             DamageType = 2,
+                            EnergyCost = 10,
                             Healing = 0,
                             Name = "Cleansing Pain",
+                            RemainingCooldown = 0,
                             TargetType = 3
                         });
                 });
@@ -313,9 +401,6 @@ namespace dotnetrpg.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("CharacterId")
-                        .HasColumnType("int");
-
                     b.Property<int>("Damage")
                         .HasColumnType("int");
 
@@ -325,25 +410,51 @@ namespace dotnetrpg.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CharacterId")
-                        .IsUnique();
-
                     b.ToTable("Weapons");
                 });
 
-            modelBuilder.Entity("CharacterSkill", b =>
+            modelBuilder.Entity("dotnet_rpg.Models.Consumable", b =>
                 {
-                    b.HasOne("dotnet_rpg.Models.Character", null)
-                        .WithMany()
-                        .HasForeignKey("CharactersId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.HasBaseType("dotnet_rpg.Models.Item");
 
-                    b.HasOne("dotnet_rpg.Models.Skill", null)
-                        .WithMany()
-                        .HasForeignKey("SkillsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.Property<int>("Damage")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Healing")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TargetType")
+                        .HasColumnType("int");
+
+                    b.HasDiscriminator().HasValue(1);
+                });
+
+            modelBuilder.Entity("dotnet_rpg.Models.Gear", b =>
+                {
+                    b.HasBaseType("dotnet_rpg.Models.Item");
+
+                    b.Property<int>("Armor")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Intelligence")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Resistance")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Slot")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Spirit")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Stamina")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Strength")
+                        .HasColumnType("int");
+
+                    b.HasDiscriminator().HasValue(2);
                 });
 
             modelBuilder.Entity("dotnet_rpg.Models.Character", b =>
@@ -357,25 +468,36 @@ namespace dotnetrpg.Migrations
                         .WithMany("Characters")
                         .HasForeignKey("UserId");
 
+                    b.HasOne("dotnet_rpg.Models.Weapon", "Weapon")
+                        .WithMany()
+                        .HasForeignKey("WeaponId");
+
                     b.Navigation("Fight");
 
                     b.Navigation("User");
+
+                    b.Navigation("Weapon");
                 });
 
-            modelBuilder.Entity("dotnet_rpg.Models.Weapon", b =>
+            modelBuilder.Entity("dotnet_rpg.Models.Item", b =>
                 {
-                    b.HasOne("dotnet_rpg.Models.Character", "Character")
-                        .WithOne("Weapon")
-                        .HasForeignKey("dotnet_rpg.Models.Weapon", "CharacterId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.HasOne("dotnet_rpg.Models.Character", null)
+                        .WithMany("Inventory")
+                        .HasForeignKey("CharacterId");
+                });
 
-                    b.Navigation("Character");
+            modelBuilder.Entity("dotnet_rpg.Models.Skill", b =>
+                {
+                    b.HasOne("dotnet_rpg.Models.Character", null)
+                        .WithMany("Skills")
+                        .HasForeignKey("CharacterId");
                 });
 
             modelBuilder.Entity("dotnet_rpg.Models.Character", b =>
                 {
-                    b.Navigation("Weapon");
+                    b.Navigation("Inventory");
+
+                    b.Navigation("Skills");
                 });
 
             modelBuilder.Entity("dotnet_rpg.Models.Fight", b =>

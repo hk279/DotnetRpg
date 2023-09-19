@@ -55,6 +55,9 @@ namespace dotnetrpg.Migrations
                     b.Property<int>("Intelligence")
                         .HasColumnType("int");
 
+                    b.Property<int>("InventorySize")
+                        .HasColumnType("int");
+
                     b.Property<bool>("IsPlayerCharacter")
                         .HasColumnType("bit");
 
@@ -138,6 +141,9 @@ namespace dotnetrpg.Migrations
                     b.Property<int>("Rarity")
                         .HasColumnType("int");
 
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
                     b.Property<int>("Value")
                         .HasColumnType("int");
 
@@ -149,6 +155,10 @@ namespace dotnetrpg.Migrations
                     b.HasIndex("CharacterId");
 
                     b.ToTable("Item");
+
+                    b.HasDiscriminator<int>("Type");
+
+                    b.UseTphMappingStrategy();
                 });
 
             modelBuilder.Entity("dotnet_rpg.Models.Skill", b =>
@@ -398,6 +408,50 @@ namespace dotnetrpg.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Weapons");
+                });
+
+            modelBuilder.Entity("dotnet_rpg.Models.Consumable", b =>
+                {
+                    b.HasBaseType("dotnet_rpg.Models.Item");
+
+                    b.Property<int>("Damage")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Healing")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TargetType")
+                        .HasColumnType("int");
+
+                    b.HasDiscriminator().HasValue(1);
+                });
+
+            modelBuilder.Entity("dotnet_rpg.Models.Gear", b =>
+                {
+                    b.HasBaseType("dotnet_rpg.Models.Item");
+
+                    b.Property<int>("Armor")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Intelligence")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Resistance")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Slot")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Spirit")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Stamina")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Strength")
+                        .HasColumnType("int");
+
+                    b.HasDiscriminator().HasValue(2);
                 });
 
             modelBuilder.Entity("dotnet_rpg.Models.Character", b =>

@@ -130,6 +130,7 @@ public class CharacterService : ICharacterService
             characterToAdd.User = currentUser;
             AddStartingSkills(characterToAdd);
             AddStartingWeapon(characterToAdd);
+            AddStartingGear(characterToAdd);
 
             await _context.Characters.AddAsync(characterToAdd);
             await _context.SaveChangesAsync();
@@ -169,40 +170,6 @@ public class CharacterService : ICharacterService
                 .Where(c => c.User != null && c.User.Id == GetUserId())
                 .Select(c => _autoMapper.Map<GetCharacterDto>(c))
                 .ToList();
-        }
-        catch (Exception ex)
-        {
-            response.Success = false;
-            response.Message = ex.Message;
-        }
-
-        return response;
-    }
-
-    // TODO: Changes coming. Skills will be added through other events.
-    public async Task<ServiceResponse<GetCharacterDto>> AddCharacterSkill(
-        AddCharacterSkillDto newCharacterSkill
-    )
-    {
-        var response = new ServiceResponse<GetCharacterDto>();
-
-        try
-        {
-            var character =
-                await _context.Characters
-                    .Include(c => c.Skills)
-                    .Include(c => c.Weapon)
-                    .FirstOrDefaultAsync(
-                        c => c.Id == newCharacterSkill.CharacterId && c.User.Id == GetUserId()
-                    ) ?? throw new Exception("Character not found");
-
-            var skill =
-                await _context.Skills.FirstOrDefaultAsync(s => s.Id == newCharacterSkill.SkillId)
-                ?? throw new Exception("Skill not found");
-
-            character.Skills.Add(skill);
-            await _context.SaveChangesAsync();
-            response.Data = _autoMapper.Map<GetCharacterDto>(character);
         }
         catch (Exception ex)
         {
@@ -366,5 +333,93 @@ public class CharacterService : ICharacterService
         };
 
         character.Weapon = weapon;
+    }
+
+    private static void AddStartingGear(Character character)
+    {
+        var gear = character.Class switch
+        {
+            CharacterClass.Warrior
+                => new List<Gear>
+                {
+                    new Gear
+                    {
+                        Name = "Worn Leather Training Cuirass",
+                        Slot = GearSlot.Chest,
+                        Armor = 10,
+                        Resistance = 4,
+                        Weight = 3
+                    },
+                    new Gear
+                    {
+                        Name = "Patched Leather Pants",
+                        Slot = GearSlot.Legs,
+                        Armor = 5,
+                        Resistance = 2,
+                        Weight = 2
+                    },
+                    new Gear
+                    {
+                        Name = "Mudworn Boots",
+                        Slot = GearSlot.Feet,
+                        Armor = 3,
+                        Resistance = 1,
+                        Weight = 1
+                    },
+                },
+            CharacterClass.Mage
+                => new List<Gear>
+                {
+                    new Gear
+                    {
+                        Name = "Worn Linen Tunic",
+                        Slot = GearSlot.Chest,
+                        Armor = 4,
+                        Resistance = 4
+                    },
+                    new Gear
+                    {
+                        Name = "Linen Leggings",
+                        Slot = GearSlot.Legs,
+                        Armor = 2,
+                        Resistance = 2
+                    },
+                    new Gear
+                    {
+                        Name = "Handmade Sandals",
+                        Slot = GearSlot.Feet,
+                        Armor = 1,
+                        Resistance = 1
+                    },
+                },
+            CharacterClass.Priest
+                => new List<Gear>
+                {
+                    new Gear
+                    {
+                        Name = "Gray Novice Robe",
+                        Slot = GearSlot.Chest,
+                        Armor = 4,
+                        Resistance = 4
+                    },
+                    new Gear
+                    {
+                        Name = "Sackcloth Pants",
+                        Slot = GearSlot.Legs,
+                        Armor = 2,
+                        Resistance = 2
+                    },
+                    new Gear
+                    {
+                        Name = "Sturdy Footwraps",
+                        Slot = GearSlot.Feet,
+                        Armor = 1,
+                        Resistance = 1
+                    },
+                },
+            _ => throw new ArgumentException("Invalid character class")
+        };
+
+        character.Inventory.AddRange(gear);
     }
 }

@@ -2,6 +2,9 @@ namespace dotnet_rpg.Models;
 
 public class LevelExperienceThresholds
 {
+    /// <summary>
+    /// Key-value pair represents a level and the required experience to reach that level
+    /// </summary>
     public static readonly Dictionary<int, long> AllThresholds =
         new()
         {

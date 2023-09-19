@@ -85,20 +85,4 @@ public class CharacterController : ControllerBase
 
         return Ok(response);
     }
-
-    // TODO: Changes coming. Skills will be added through other events.
-    [HttpPost("add-skill")]
-    public async Task<ActionResult<ServiceResponse<List<GetCharacterDto>>>> AddSkill(
-        AddCharacterSkillDto newCharacterSkill
-    )
-    {
-        var response = await _characterService.AddCharacterSkill(newCharacterSkill);
-
-        if (response.Data == null)
-        {
-            return NotFound(response);
-        }
-
-        return Ok(response);
-    }
 }
