@@ -1,5 +1,4 @@
 using dotnet_rpg.Dtos.Skill;
-using dotnet_rpg.Dtos.Weapon;
 
 namespace dotnet_rpg.Dtos.Character
 {
@@ -22,7 +21,9 @@ namespace dotnet_rpg.Dtos.Character
         public int Armor { get; set; }
         public int Resistance { get; set; }
         public CharacterClass Class { get; set; }
-        public GetWeaponDto? Weapon { get; set; }
+        public int InventorySize { get; set; }
+        public EquippedWeaponDto? EquippedWeapon { get; set; }
+        public required List<EquippedArmorPieceDto> EquippedArmorPieces { get; set; }
         public required List<GetSkillDto> Skills { get; set; }
         public int? FightId { get; set; }
     }

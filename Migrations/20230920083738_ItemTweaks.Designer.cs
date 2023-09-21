@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using dotnet_rpg.Data;
 
@@ -11,9 +12,11 @@ using dotnet_rpg.Data;
 namespace dotnetrpg.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20230920083738_ItemTweaks")]
+    partial class ItemTweaks
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -30,15 +33,12 @@ namespace dotnetrpg.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("Armor")
+                        .HasColumnType("int");
+
                     b.Property<string>("Avatar")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("BaseArmor")
-                        .HasColumnType("int");
-
-                    b.Property<int>("BaseResistance")
-                        .HasColumnType("int");
 
                     b.Property<int>("Class")
                         .HasColumnType("int");
@@ -67,9 +67,18 @@ namespace dotnetrpg.Migrations
                     b.Property<int>("Level")
                         .HasColumnType("int");
 
+                    b.Property<int>("MaxEnergy")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MaxHitPoints")
+                        .HasColumnType("int");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Resistance")
+                        .HasColumnType("int");
 
                     b.Property<int>("Spirit")
                         .HasColumnType("int");
@@ -83,11 +92,16 @@ namespace dotnetrpg.Migrations
                     b.Property<int?>("UserId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("WeaponId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("FightId");
 
                     b.HasIndex("UserId");
+
+                    b.HasIndex("WeaponId");
 
                     b.ToTable("Characters");
                 });
@@ -122,9 +136,6 @@ namespace dotnetrpg.Migrations
 
                     b.Property<int>("Intelligence")
                         .HasColumnType("int");
-
-                    b.Property<bool>("IsEquipped")
-                        .HasColumnType("bit");
 
                     b.Property<int>("Level")
                         .HasColumnType("int");
@@ -182,6 +193,9 @@ namespace dotnetrpg.Migrations
                     b.Property<int>("Cooldown")
                         .HasColumnType("int");
 
+                    b.Property<int>("Damage")
+                        .HasColumnType("int");
+
                     b.Property<int>("DamageType")
                         .HasColumnType("int");
 
@@ -189,12 +203,6 @@ namespace dotnetrpg.Migrations
                         .HasColumnType("int");
 
                     b.Property<int>("Healing")
-                        .HasColumnType("int");
-
-                    b.Property<int>("MaxDamage")
-                        .HasColumnType("int");
-
-                    b.Property<int>("MinDamage")
                         .HasColumnType("int");
 
                     b.Property<string>("Name")
@@ -212,6 +220,164 @@ namespace dotnetrpg.Migrations
                     b.HasIndex("CharacterId");
 
                     b.ToTable("Skills");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CharacterClass = 1,
+                            Cooldown = 5,
+                            Damage = 10,
+                            DamageType = 1,
+                            EnergyCost = 15,
+                            Healing = 0,
+                            Name = "Charge",
+                            RemainingCooldown = 0,
+                            TargetType = 3
+                        },
+                        new
+                        {
+                            Id = 2,
+                            CharacterClass = 1,
+                            Cooldown = 5,
+                            Damage = 5,
+                            DamageType = 1,
+                            EnergyCost = 10,
+                            Healing = 0,
+                            Name = "Rend",
+                            RemainingCooldown = 0,
+                            TargetType = 3
+                        },
+                        new
+                        {
+                            Id = 3,
+                            CharacterClass = 1,
+                            Cooldown = 10,
+                            Damage = 0,
+                            DamageType = 1,
+                            EnergyCost = 10,
+                            Healing = 0,
+                            Name = "Enrage",
+                            RemainingCooldown = 0,
+                            TargetType = 1
+                        },
+                        new
+                        {
+                            Id = 4,
+                            CharacterClass = 1,
+                            Cooldown = 2,
+                            Damage = 20,
+                            DamageType = 1,
+                            EnergyCost = 20,
+                            Healing = 0,
+                            Name = "Skillful Strike",
+                            RemainingCooldown = 0,
+                            TargetType = 3
+                        },
+                        new
+                        {
+                            Id = 5,
+                            CharacterClass = 2,
+                            Cooldown = 10,
+                            Damage = 0,
+                            DamageType = 2,
+                            EnergyCost = 15,
+                            Healing = 0,
+                            Name = "Arcane Barrier",
+                            RemainingCooldown = 0,
+                            TargetType = 2
+                        },
+                        new
+                        {
+                            Id = 6,
+                            CharacterClass = 2,
+                            Cooldown = 2,
+                            Damage = 20,
+                            DamageType = 2,
+                            EnergyCost = 20,
+                            Healing = 0,
+                            Name = "Ice Lance",
+                            RemainingCooldown = 0,
+                            TargetType = 3
+                        },
+                        new
+                        {
+                            Id = 7,
+                            CharacterClass = 2,
+                            Cooldown = 3,
+                            Damage = 5,
+                            DamageType = 2,
+                            EnergyCost = 10,
+                            Healing = 0,
+                            Name = "Combustion",
+                            RemainingCooldown = 0,
+                            TargetType = 3
+                        },
+                        new
+                        {
+                            Id = 8,
+                            CharacterClass = 2,
+                            Cooldown = 10,
+                            Damage = 10,
+                            DamageType = 2,
+                            EnergyCost = 30,
+                            Healing = 0,
+                            Name = "Lightning Storm",
+                            RemainingCooldown = 0,
+                            TargetType = 3
+                        },
+                        new
+                        {
+                            Id = 9,
+                            CharacterClass = 3,
+                            Cooldown = 10,
+                            Damage = 0,
+                            DamageType = 2,
+                            EnergyCost = 10,
+                            Healing = 0,
+                            Name = "Battle Meditation",
+                            RemainingCooldown = 0,
+                            TargetType = 1
+                        },
+                        new
+                        {
+                            Id = 10,
+                            CharacterClass = 3,
+                            Cooldown = 3,
+                            Damage = 0,
+                            DamageType = 2,
+                            EnergyCost = 15,
+                            Healing = 20,
+                            Name = "Miraclous Touch",
+                            RemainingCooldown = 0,
+                            TargetType = 2
+                        },
+                        new
+                        {
+                            Id = 11,
+                            CharacterClass = 3,
+                            Cooldown = 2,
+                            Damage = 20,
+                            DamageType = 2,
+                            EnergyCost = 20,
+                            Healing = 0,
+                            Name = "Holy Smite",
+                            RemainingCooldown = 0,
+                            TargetType = 3
+                        },
+                        new
+                        {
+                            Id = 12,
+                            CharacterClass = 3,
+                            Cooldown = 3,
+                            Damage = 5,
+                            DamageType = 2,
+                            EnergyCost = 10,
+                            Healing = 0,
+                            Name = "Cleansing Pain",
+                            RemainingCooldown = 0,
+                            TargetType = 3
+                        });
                 });
 
             modelBuilder.Entity("dotnet_rpg.Models.User", b =>
@@ -279,9 +445,15 @@ namespace dotnetrpg.Migrations
                         .WithMany("Characters")
                         .HasForeignKey("UserId");
 
+                    b.HasOne("dotnet_rpg.Models.Weapon", "Weapon")
+                        .WithMany()
+                        .HasForeignKey("WeaponId");
+
                     b.Navigation("Fight");
 
                     b.Navigation("User");
+
+                    b.Navigation("Weapon");
                 });
 
             modelBuilder.Entity("dotnet_rpg.Models.Item", b =>

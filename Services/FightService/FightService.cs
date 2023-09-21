@@ -28,7 +28,9 @@ public class FightService : IFightService
                 ?? throw new Exception("Player character not found.");
 
             if (playerCharacter.FightId != null)
+            {
                 throw new Exception("Player is already in a fight.");
+            }
 
             var enemyCharacters = _enemyGeneratorService.GetEnemies(playerCharacter.Level);
 
@@ -72,7 +74,7 @@ public class FightService : IFightService
             );
             var fight = await _context.Fights
                 .Include(f => f.Characters)
-                .ThenInclude(c => c.Weapon)
+                .ThenInclude(c => c.Inventory)
                 .Include(f => f.Characters)
                 .ThenInclude(c => c.Skills)
                 .FirstOrDefaultAsync(f => f.Id == request.FightId);
@@ -148,14 +150,14 @@ public class FightService : IFightService
         try
         {
             var playerCharacter = await _context.Characters
-                .Include(c => c.Weapon)
+                .Include(c => c.Inventory)
                 .FirstOrDefaultAsync(c => c.Id == request.PlayerCharacterId);
             var enemyCharacter = await _context.Characters.FirstOrDefaultAsync(
                 c => c.Id == request.EnemyCharacterId
             );
             var fight = await _context.Fights
                 .Include(f => f.Characters)
-                .ThenInclude(c => c.Weapon)
+                .ThenInclude(c => c.Inventory)
                 .Include(f => f.Characters)
                 .ThenInclude(c => c.Skills)
                 .FirstOrDefaultAsync(f => f.Id == request.FightId);
@@ -266,8 +268,8 @@ public class FightService : IFightService
         _context.RemoveRange(allEnemyCharactersInFight);
         _context.Remove(fight);
 
-        playerCharacter.CurrentHitPoints = playerCharacter.MaxHitPoints;
-        playerCharacter.CurrentEnergy = playerCharacter.MaxEnergy;
+        playerCharacter.CurrentHitPoints = playerCharacter.GetMaxHitPoints();
+        playerCharacter.CurrentEnergy = playerCharacter.GetMaxEnergy();
         playerCharacter.Skills.ForEach(s => s.RemainingCooldown = 0);
 
         if (isVictory)
@@ -347,18 +349,17 @@ public class FightService : IFightService
 
     private static int CalculateSkillDamage(Skill skill, Character attacker, Character defender)
     {
-        // TODO: Add some randomness
         var (damageBonus, damageReduction) = skill.DamageType switch
         {
             DamageType.Physical
                 => (
-                    Math.Round((decimal)attacker.Strength / 100, 2),
-                    Math.Round((decimal)defender.Armor / 100, 2)
+                    Math.Round((decimal)attacker.GetStrength() / 100, 2),
+                    Math.Round((decimal)defender.GetArmor() / 100, 2)
                 ),
             DamageType.Magic
                 => (
-                    Math.Round((decimal)attacker.Intelligence / 100, 2),
-                    Math.Round((decimal)defender.Resistance / 100, 2)
+                    Math.Round((decimal)attacker.GetIntelligence() / 100, 2),
+                    Math.Round((decimal)defender.GetResistance() / 100, 2)
                 ),
             _
                 => throw new ArgumentOutOfRangeException(
@@ -367,7 +368,7 @@ public class FightService : IFightService
                 )
         };
 
-        var baseDamage = skill.Damage;
+        var baseDamage = RNG.GetIntInRange(skill.MinDamage, skill.MaxDamage);
         var damageMultiplier = 1 + damageBonus - damageReduction;
         var damage = (int)Math.Round(baseDamage * damageMultiplier);
 
@@ -377,11 +378,17 @@ public class FightService : IFightService
     private static int CalculateWeaponDamage(Character attacker, Character defender)
     {
         // Weapons always deal physical damage
-        // TODO: Add some randomness
-        var damageBonus = Math.Round((decimal)attacker.Strength / 100, 2);
-        var damageReduction = Math.Round((decimal)defender.Armor / 100, 2);
+        var damageBonus = Math.Round((decimal)attacker.GetStrength() / 100, 2);
+        var damageReduction = Math.Round((decimal)defender.GetArmor() / 100, 2);
+        var equippedWeapon =
+            attacker.Inventory.SingleOrDefault(
+                item => item.Type == ItemType.Weapon && item.IsEquipped
+            ) as Weapon;
 
-        var baseDamage = attacker.Weapon?.Damage ?? 1;
+        var baseDamage = RNG.GetIntInRange(
+            equippedWeapon?.MinDamage ?? 1,
+            equippedWeapon?.MaxDamage ?? 1
+        );
         var damageMultiplier = 1 + damageBonus - damageReduction;
         var damage = (int)Math.Round(baseDamage * damageMultiplier);
 
@@ -392,10 +399,10 @@ public class FightService : IFightService
     {
         foreach (var character in allCharactersInFight)
         {
-            character.CurrentEnergy += character.Spirit;
-            if (character.CurrentEnergy > character.MaxEnergy)
+            character.CurrentEnergy += character.GetSpirit();
+            if (character.CurrentEnergy > character.GetMaxEnergy())
             {
-                character.CurrentEnergy = character.MaxEnergy;
+                character.CurrentEnergy = character.GetMaxEnergy();
             }
         }
     }

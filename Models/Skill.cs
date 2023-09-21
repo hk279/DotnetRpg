@@ -1,11 +1,14 @@
+using System.Text.Json.Serialization;
+
 namespace dotnet_rpg.Models;
 
 public class Skill
 {
     public int Id { get; set; }
     public required string Name { get; set; }
-    public int Damage { get; set; } = 0;
-    public int Healing { get; set; } = 0;
+    public int MinDamage { get; set; }
+    public int MaxDamage { get; set; }
+    public int Healing { get; set; }
     public int EnergyCost { get; set; }
     public int Cooldown { get; set; }
     public int RemainingCooldown { get; set; }
@@ -17,4 +20,13 @@ public class Skill
     {
         RemainingCooldown = Cooldown;
     }
+}
+
+[JsonConverter(typeof(JsonStringEnumConverter))]
+public enum SkillTargetType
+{
+    Unknown = 0,
+    Self = 1,
+    Friendly = 2,
+    Enemy = 3
 }

@@ -2,13 +2,34 @@ namespace dotnet_rpg.Services.EnemyGeneratorService;
 
 public class EnemyGeneratorService : IEnemyGeneratorService
 {
-    private readonly List<EnemyGenerationData> _singleEnemyTemplates = new()
-    {
-        new EnemyGenerationData("Grizzly Bear", EnemyType.Single, CharacterClass.Warrior, new Weapon {Name = "Claw", Damage = 5}),
-        new EnemyGenerationData("Deranged Knight", EnemyType.Single, CharacterClass.Warrior, new Weapon {Name = "Longsword", Damage = 10}),
-        new EnemyGenerationData("Rogue Wizard", EnemyType.Single, CharacterClass.Mage, new Weapon {Name = "Ornate Staff", Damage = 4}),
-        new EnemyGenerationData("Cultist Shaman", EnemyType.Single, CharacterClass.Priest, new Weapon {Name = "Sacrificial Knife", Damage = 6}),
-    };
+    private readonly List<EnemyGenerationData> _singleEnemyTemplates =
+        new()
+        {
+            new EnemyGenerationData(
+                "Grizzly Bear",
+                EnemyType.Single,
+                CharacterClass.Warrior,
+                new Weapon { Name = "Claw", IsEquipped = true }
+            ),
+            new EnemyGenerationData(
+                "Deranged Knight",
+                EnemyType.Single,
+                CharacterClass.Warrior,
+                new Weapon { Name = "Longsword", IsEquipped = true }
+            ),
+            new EnemyGenerationData(
+                "Rogue Wizard",
+                EnemyType.Single,
+                CharacterClass.Mage,
+                new Weapon { Name = "Ornate Staff", IsEquipped = true }
+            ),
+            new EnemyGenerationData(
+                "Cultist Shaman",
+                EnemyType.Single,
+                CharacterClass.Priest,
+                new Weapon { Name = "Sacrificial Knife", IsEquipped = true }
+            ),
+        };
 
     // private readonly List<List<EnemyGenerationData>> _multiEnemyTemplates = new()
     // {
@@ -46,7 +67,10 @@ public class EnemyGeneratorService : IEnemyGeneratorService
         return new List<Character> { singleEnemy };
     }
 
-    private static Character GenerateSingleEnemyCharacter(int playerCharacterLevel, EnemyGenerationData data)
+    private static Character GenerateSingleEnemyCharacter(
+        int playerCharacterLevel,
+        EnemyGenerationData data
+    )
     {
         var enemyLevel = GetEnemyLevel(playerCharacterLevel);
         var baseAttributeValue = 5;
@@ -99,7 +123,12 @@ public class EnemyGeneratorService : IEnemyGeneratorService
             _ => throw new ArgumentException("Invalid enemy class"),
         };
 
-        return new Character(stamina, spirit)
+        var enemyWeaponDamageBase = Math.Max(RNG.GetIntInRange(enemyLevel - 2, enemyLevel + 2), 1);
+        data.Weapon.MinDamage = enemyWeaponDamageBase * 2;
+        data.Weapon.MaxDamage = enemyWeaponDamageBase * 3;
+        data.Weapon.IsEquipped = true;
+
+        var enemy = new Character
         {
             Name = data.Name,
             Class = data.EnemyClass,
@@ -107,15 +136,22 @@ public class EnemyGeneratorService : IEnemyGeneratorService
             IsPlayerCharacter = false,
             Strength = strength,
             Intelligence = intelligence,
-            Armor = armor,
-            Resistance = resistance,
-            Weapon = data.Weapon
+            Stamina = stamina,
+            Spirit = spirit,
+            BaseArmor = armor,
+            BaseResistance = resistance,
+            Inventory = new List<Item> { data.Weapon }
         };
+
+        enemy.CurrentEnergy = enemy.GetMaxEnergy();
+        enemy.CurrentHitPoints = enemy.GetMaxHitPoints();
+
+        return enemy;
     }
 
     /// <summary>
-    /// 20% probability for an enemy with -1 level compared to player character
-    /// 20% probability for an enemy with +1 level compared to player character
+    /// 20% probability of an enemy with -1 level compared to the player character.
+    /// 20% probability of an enemy with +1 level compared to the player character.
     /// </summary>
     private static int GetEnemyLevel(int playerCharacterLevel)
     {
@@ -125,16 +161,24 @@ public class EnemyGeneratorService : IEnemyGeneratorService
             return enemyLevel < 1 ? 1 : enemyLevel;
         }
 
-        if (RNG.GetBoolean(0.2)) return playerCharacterLevel + 1;
+        if (RNG.GetBoolean(0.2))
+        {
+            return playerCharacterLevel + 1;
+        }
 
         return playerCharacterLevel;
     }
 
-    private record EnemyGenerationData(string Name, EnemyType EnemyType, CharacterClass EnemyClass, Weapon Weapon);
+    private record EnemyGenerationData(
+        string Name,
+        EnemyType EnemyType,
+        CharacterClass EnemyClass,
+        Weapon Weapon
+    );
 
     private enum EnemyType
     {
-        None,
+        Unknown,
         Multi,
         Single,
         Boss

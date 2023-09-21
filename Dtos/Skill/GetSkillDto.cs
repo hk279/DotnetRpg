@@ -4,7 +4,8 @@ public class GetSkillDto
 {
     public int Id { get; set; }
     public required string Name { get; set; }
-    public int Damage { get; set; }
+    public int MinDamage { get; set; }
+    public int MaxDamage { get; set; }
     public int Healing { get; set; }
     public int EnergyCost { get; set; }
     public int Cooldown { get; set; }

@@ -6,14 +6,14 @@ public class ItemService : IItemService
 {
     const int fightRewardLevelVariance = 2;
 
-    private readonly Dictionary<GearSlot, decimal> GearSlotStatCoefficients =
+    private readonly Dictionary<ArmorSlot, decimal> ArmorSlotStatCoefficients =
         new()
         {
-            { GearSlot.Chest, 1 },
-            { GearSlot.Legs, 0.8m },
-            { GearSlot.Head, 0.6m },
-            { GearSlot.Hands, 0.4m },
-            { GearSlot.Feet, 0.4m }
+            { ArmorSlot.Chest, 1 },
+            { ArmorSlot.Legs, 0.8m },
+            { ArmorSlot.Head, 0.6m },
+            { ArmorSlot.Hands, 0.4m },
+            { ArmorSlot.Feet, 0.4m }
         };
 
     private readonly Dictionary<ItemRarity, decimal> ItemRarityStatCoefficients =
@@ -58,9 +58,9 @@ public class ItemService : IItemService
         return GenerateGearPiece(itemLevelWithVariance, playerCharacter.Class);
     }
 
-    private Gear GenerateGearPiece(int itemLevel, CharacterClass characterClass)
+    private ArmorPiece GenerateGearPiece(int itemLevel, CharacterClass characterClass)
     {
-        var allGearSlots = Enum.GetValues(typeof(GearSlot)).Cast<GearSlot>().ToList();
+        var allGearSlots = Enum.GetValues(typeof(ArmorSlot)).Cast<ArmorSlot>().ToList();
         var gearSlot = RNG.PickRandom(allGearSlots);
         var itemRarity = GetItemRarity();
 
@@ -69,7 +69,7 @@ public class ItemService : IItemService
             Math.Floor(
                 baseArmor
                     * ItemRarityStatCoefficients[itemRarity]
-                    * GearSlotStatCoefficients[gearSlot]
+                    * ArmorSlotStatCoefficients[gearSlot]
             );
 
         var baseResistance = itemLevel * 8 + (itemLevel * 3);
@@ -77,12 +77,12 @@ public class ItemService : IItemService
             Math.Floor(
                 baseResistance
                     * ItemRarityStatCoefficients[itemRarity]
-                    * GearSlotStatCoefficients[gearSlot]
+                    * ArmorSlotStatCoefficients[gearSlot]
             );
 
-        var gearPiece = new Gear()
+        var gearPiece = new ArmorPiece()
         {
-            Name = "Generated gear piece", // TODO: Add name generation
+            Name = "Generated armor piece", // TODO: Add name generation
             Level = itemLevel,
             Rarity = itemRarity,
             Weight = 2, // TODO: Generate by gear slot with some variance

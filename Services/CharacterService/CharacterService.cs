@@ -26,8 +26,6 @@ public class CharacterService : ICharacterService
     public async Task<ServiceResponse<List<GetCharacterListingDto>>> GetAllCharacters()
     {
         var allCharacters = await _context.Characters
-            .Include(c => c.Skills)
-            .Include(c => c.Weapon)
             .Where(c => c.User != null && c.User.Id == GetUserId())
             .Select(c => _autoMapper.Map<GetCharacterListingDto>(c))
             .ToListAsync();
@@ -44,7 +42,7 @@ public class CharacterService : ICharacterService
             var character =
                 await _context.Characters
                     .Include(c => c.Skills)
-                    .Include(c => c.Weapon)
+                    .Include(c => c.Inventory)
                     .FirstOrDefaultAsync(
                         c => c.Id == id && c.User != null && c.User.Id == GetUserId()
                     ) ?? throw new Exception("Character not found");
@@ -86,7 +84,7 @@ public class CharacterService : ICharacterService
             var fightId = character.FightId ?? throw new Exception("Character is not in a fight");
             var enemies = await _context.Characters
                 .Include(c => c.Skills)
-                .Include(c => c.Weapon)
+                .Include(c => c.Inventory)
                 .Where(c => c.FightId == fightId && !c.IsPlayerCharacter)
                 .Select(c => _autoMapper.Map<GetCharacterDto>(c))
                 .ToListAsync();
@@ -120,7 +118,9 @@ public class CharacterService : ICharacterService
                 + newCharacter.Spirit;
 
             if (totalAttributes > 30)
+            {
                 throw new Exception("Allowed total attribute points exceeded");
+            }
 
             var characterToAdd = _autoMapper.Map<Character>(newCharacter);
             var currentUser =
@@ -128,6 +128,8 @@ public class CharacterService : ICharacterService
                 ?? throw new Exception("User not found");
 
             characterToAdd.User = currentUser;
+
+            SetCurrentHitPointsAndEnergy(characterToAdd);
             AddStartingSkills(characterToAdd);
             AddStartingWeapon(characterToAdd);
             AddStartingGear(characterToAdd);
@@ -137,7 +139,7 @@ public class CharacterService : ICharacterService
 
             var allCharacters = await _context.Characters
                 .Include(c => c.Skills)
-                .Include(c => c.Weapon)
+                .Include(c => c.Inventory)
                 .Where(c => c.User != null && c.User.Id == GetUserId())
                 .Select(c => _autoMapper.Map<GetCharacterDto>(c))
                 .ToListAsync();
@@ -165,6 +167,7 @@ public class CharacterService : ICharacterService
                 ) ?? throw new Exception("Character not found");
 
             _context.Characters.Remove(characterToRemove);
+
             await _context.SaveChangesAsync();
             response.Data = _context.Characters
                 .Where(c => c.User != null && c.User.Id == GetUserId())
@@ -191,6 +194,12 @@ public class CharacterService : ICharacterService
         return int.Parse(userId);
     }
 
+    private static void SetCurrentHitPointsAndEnergy(Character character)
+    {
+        character.CurrentHitPoints = character.GetMaxHitPoints();
+        character.CurrentEnergy = character.GetMaxEnergy();
+    }
+
     private static void AddStartingSkills(Character character)
     {
         var skills = character.Class switch
@@ -201,7 +210,8 @@ public class CharacterService : ICharacterService
                     new Skill
                     {
                         Name = "Charge",
-                        Damage = 10,
+                        MinDamage = 8,
+                        MaxDamage = 12,
                         DamageType = DamageType.Physical,
                         CharacterClass = CharacterClass.Warrior,
                         EnergyCost = 15,
@@ -210,7 +220,8 @@ public class CharacterService : ICharacterService
                     new Skill
                     {
                         Name = "Rend",
-                        Damage = 5,
+                        MinDamage = 4,
+                        MaxDamage = 6,
                         DamageType = DamageType.Physical,
                         CharacterClass = CharacterClass.Warrior,
                         EnergyCost = 10,
@@ -228,7 +239,8 @@ public class CharacterService : ICharacterService
                     new Skill
                     {
                         Name = "Skillful Strike",
-                        Damage = 20,
+                        MinDamage = 18,
+                        MaxDamage = 22,
                         DamageType = DamageType.Physical,
                         CharacterClass = CharacterClass.Warrior,
                         EnergyCost = 20,
@@ -250,7 +262,8 @@ public class CharacterService : ICharacterService
                     new Skill
                     {
                         Name = "Ice Lance",
-                        Damage = 20,
+                        MinDamage = 18,
+                        MaxDamage = 22,
                         DamageType = DamageType.Magic,
                         CharacterClass = CharacterClass.Mage,
                         EnergyCost = 20,
@@ -259,7 +272,8 @@ public class CharacterService : ICharacterService
                     new Skill
                     {
                         Name = "Combustion",
-                        Damage = 5,
+                        MinDamage = 4,
+                        MaxDamage = 6,
                         DamageType = DamageType.Magic,
                         CharacterClass = CharacterClass.Mage,
                         EnergyCost = 10,
@@ -268,7 +282,8 @@ public class CharacterService : ICharacterService
                     new Skill
                     {
                         Name = "Lightning Storm",
-                        Damage = 10,
+                        MinDamage = 4,
+                        MaxDamage = 16,
                         DamageType = DamageType.Magic,
                         CharacterClass = CharacterClass.Mage,
                         EnergyCost = 30,
@@ -300,7 +315,8 @@ public class CharacterService : ICharacterService
                     new Skill
                     {
                         Name = "Holy Smite",
-                        Damage = 20,
+                        MinDamage = 18,
+                        MaxDamage = 22,
                         DamageType = DamageType.Magic,
                         CharacterClass = CharacterClass.Priest,
                         EnergyCost = 20,
@@ -309,7 +325,8 @@ public class CharacterService : ICharacterService
                     new Skill
                     {
                         Name = "Cleansing Pain",
-                        Damage = 5,
+                        MinDamage = 4,
+                        MaxDamage = 6,
                         DamageType = DamageType.Magic,
                         CharacterClass = CharacterClass.Priest,
                         EnergyCost = 10,
@@ -326,93 +343,113 @@ public class CharacterService : ICharacterService
     {
         var weapon = character.Class switch
         {
-            CharacterClass.Warrior => new Weapon() { Name = "Training Shortsword", Damage = 5 },
-            CharacterClass.Mage => new Weapon() { Name = "Handmade Dagger", Damage = 5 },
-            CharacterClass.Priest => new Weapon() { Name = "Traveling Staff", Damage = 5 },
+            CharacterClass.Warrior
+                => new Weapon()
+                {
+                    Name = "Training Shortsword",
+                    MinDamage = 4,
+                    MaxDamage = 5
+                },
+            CharacterClass.Mage
+                => new Weapon()
+                {
+                    Name = "Handmade Dagger",
+                    MinDamage = 4,
+                    MaxDamage = 5
+                },
+            CharacterClass.Priest
+                => new Weapon()
+                {
+                    Name = "Traveling Staff",
+                    MinDamage = 4,
+                    MaxDamage = 5
+                },
             _ => throw new ArgumentException("Invalid character class")
         };
 
-        character.Weapon = weapon;
+        weapon.IsEquipped = true;
+
+        character.Inventory.Add(weapon);
     }
 
     private static void AddStartingGear(Character character)
     {
-        var gear = character.Class switch
+        var armorPieces = character.Class switch
         {
             CharacterClass.Warrior
-                => new List<Gear>
+                => new List<ArmorPiece>
                 {
-                    new Gear
+                    new()
                     {
                         Name = "Worn Leather Training Cuirass",
-                        Slot = GearSlot.Chest,
+                        Slot = ArmorSlot.Chest,
                         Armor = 10,
                         Resistance = 4,
                         Weight = 3
                     },
-                    new Gear
+                    new()
                     {
                         Name = "Patched Leather Pants",
-                        Slot = GearSlot.Legs,
+                        Slot = ArmorSlot.Legs,
                         Armor = 5,
                         Resistance = 2,
                         Weight = 2
                     },
-                    new Gear
+                    new()
                     {
                         Name = "Mudworn Boots",
-                        Slot = GearSlot.Feet,
+                        Slot = ArmorSlot.Feet,
                         Armor = 3,
                         Resistance = 1,
                         Weight = 1
                     },
                 },
             CharacterClass.Mage
-                => new List<Gear>
+                => new List<ArmorPiece>
                 {
-                    new Gear
+                    new()
                     {
                         Name = "Worn Linen Tunic",
-                        Slot = GearSlot.Chest,
+                        Slot = ArmorSlot.Chest,
                         Armor = 4,
                         Resistance = 4
                     },
-                    new Gear
+                    new()
                     {
                         Name = "Linen Leggings",
-                        Slot = GearSlot.Legs,
+                        Slot = ArmorSlot.Legs,
                         Armor = 2,
                         Resistance = 2
                     },
-                    new Gear
+                    new()
                     {
                         Name = "Handmade Sandals",
-                        Slot = GearSlot.Feet,
+                        Slot = ArmorSlot.Feet,
                         Armor = 1,
                         Resistance = 1
                     },
                 },
             CharacterClass.Priest
-                => new List<Gear>
+                => new List<ArmorPiece>
                 {
-                    new Gear
+                    new()
                     {
                         Name = "Gray Novice Robe",
-                        Slot = GearSlot.Chest,
+                        Slot = ArmorSlot.Chest,
                         Armor = 4,
                         Resistance = 4
                     },
-                    new Gear
+                    new()
                     {
                         Name = "Sackcloth Pants",
-                        Slot = GearSlot.Legs,
+                        Slot = ArmorSlot.Legs,
                         Armor = 2,
                         Resistance = 2
                     },
-                    new Gear
+                    new()
                     {
                         Name = "Sturdy Footwraps",
-                        Slot = GearSlot.Feet,
+                        Slot = ArmorSlot.Feet,
                         Armor = 1,
                         Resistance = 1
                     },
@@ -420,6 +457,11 @@ public class CharacterService : ICharacterService
             _ => throw new ArgumentException("Invalid character class")
         };
 
-        character.Inventory.AddRange(gear);
+        foreach (var armorPiece in armorPieces)
+        {
+            armorPiece.IsEquipped = true;
+        }
+
+        character.Inventory.AddRange(armorPieces);
     }
 }

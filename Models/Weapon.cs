@@ -1,9 +1,7 @@
 namespace dotnet_rpg.Models;
 
-// TODO: Inherit from Item
-public class Weapon
+public class Weapon : Item
 {
-    public int Id { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public int Damage { get; set; }
+    public int MinDamage { get; set; }
+    public int MaxDamage { get; set; }
 }
