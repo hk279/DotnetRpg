@@ -1,6 +1,6 @@
 namespace dotnet_rpg.Dtos.Character;
 
-public class EquippedArmorPieceDto : EquippedItemDto
+public class GetEquippedArmorPieceDto : GetEquippedItemDto
 {
     public required ArmorSlot Slot { get; set; }
     public int Armor { get; set; }

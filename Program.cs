@@ -11,6 +11,7 @@ using Microsoft.OpenApi.Models;
 using dotnet_rpg.Services.FightService;
 using dotnet_rpg.Services.EnemyGeneratorService;
 using dotnet_rpg.Services.ItemService;
+using dotnet_rpg;
 
 var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -56,6 +57,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IFightService, FightService>();
 builder.Services.AddScoped<IEnemyGeneratorService, EnemyGeneratorService>();
 builder.Services.AddScoped<IItemService, ItemService>();
+builder.Services.AddTransient<GlobalExceptionHandlerMiddleware>();
 
 var app = builder.Build();
 
@@ -74,6 +76,8 @@ if (app.Environment.IsDevelopment())
                 .AllowCredentials()
     );
 }
+
+app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
 app.UseHttpsRedirection();
 

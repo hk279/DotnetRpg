@@ -4,12 +4,12 @@ using dotnet_rpg.Dtos.Character;
 namespace dotnet_rpg.AutoMapper;
 
 public class EquippedArmorPiecesResolver
-    : IValueResolver<Character, GetCharacterDto, List<EquippedArmorPieceDto>>
+    : IValueResolver<Character, GetCharacterDto, List<GetEquippedArmorPieceDto>>
 {
-    public List<EquippedArmorPieceDto> Resolve(
+    public List<GetEquippedArmorPieceDto> Resolve(
         Character source,
         GetCharacterDto destination,
-        List<EquippedArmorPieceDto> destMember,
+        List<GetEquippedArmorPieceDto> destMember,
         ResolutionContext context
     )
     {
@@ -18,7 +18,7 @@ public class EquippedArmorPiecesResolver
             .Where(item => item.Type == ItemType.ArmorPiece && item.IsEquipped)
             .Select(
                 armorPiece =>
-                    new EquippedArmorPieceDto
+                    new GetEquippedArmorPieceDto
                     {
                         Id = armorPiece.Id,
                         Name = armorPiece.Name,

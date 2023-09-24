@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using dotnet_rpg.Data;
+using dotnet_rpg.Models.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
@@ -23,44 +24,31 @@ public class AuthService : IAuthService
     {
         var response = new ServiceResponse<LoginDetails>();
 
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Username.ToLower().Equals(username.ToLower()));
+        var user =
+            await _context.Users.FirstOrDefaultAsync(
+                u => u.Username.ToLower().Equals(username.ToLower())
+            ) ?? throw new UnauthorizedException("Login failed. User not found.");
 
-        if (user == null)
+        if (!VerifyPasswordHash(password, user.PasswordHash, user.PasswordSalt))
         {
-            response.Success = false;
-            response.Message = "User not found.";
+            throw new UnauthorizedException("Login failed. Incorrect password");
         }
-        else if (!VerifyPasswordHash(password, user.PasswordHash, user.PasswordSalt))
-        {
-            response.Success = false;
-            response.Message = "Incorrect password.";
-        }
-        else
-        {
-            try
-            {
-                response.Data = new LoginDetails(user.Username, CreateToken(user));
-            }
-            catch (Exception ex)
-            {
-                response.Success = false;
-                response.Message = "Server error. " + ex.Message;
-            }
-        }
+
+        response.Data = new LoginDetails(user.Username, CreateToken(user));
 
         return response;
     }
 
-    public async Task<ServiceResponse<int>> Register(User user, string password)
+    public async Task<ServiceResponse<int>> Register(string userName, string password)
     {
         var response = new ServiceResponse<int>();
 
-        if (await UserExists(user.Username))
+        if (await UserExists(userName))
         {
-            response.Success = false;
-            response.Message = "User already exists";
-            return response;
+            throw new ConflictException("Username is taken");
         }
+
+        var user = new User { Username = userName };
 
         CreatePasswordHash(password, out byte[] passwordHash, out byte[] passwordSalt);
         user.PasswordHash = passwordHash;
@@ -75,18 +63,28 @@ public class AuthService : IAuthService
 
     public async Task<bool> UserExists(string username)
     {
-        var userExists = await _context.Users.AnyAsync(u => u.Username.ToLower() == username.ToLower());
+        var userExists = await _context.Users.AnyAsync(
+            u => u.Username.ToLower() == username.ToLower()
+        );
         return userExists;
     }
 
-    private static void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
+    private static void CreatePasswordHash(
+        string password,
+        out byte[] passwordHash,
+        out byte[] passwordSalt
+    )
     {
         using var hmac = new HMACSHA512();
         passwordSalt = hmac.Key;
         passwordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(password));
     }
 
-    private static bool VerifyPasswordHash(string password, byte[] passwordHash, byte[] passwordSalt)
+    private static bool VerifyPasswordHash(
+        string password,
+        byte[] passwordHash,
+        byte[] passwordSalt
+    )
     {
         using var hmac = new HMACSHA512(passwordSalt);
         var computeHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(password));
@@ -95,14 +93,20 @@ public class AuthService : IAuthService
 
     private string CreateToken(User user)
     {
-        var claims = new List<Claim> {
-            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new Claim(ClaimTypes.Name, user.Username)
+        var claims = new List<Claim>
+        {
+            new(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new(ClaimTypes.Name, user.Username)
         };
 
-        var tokenSecret = _config.GetSection("TokenSettings:Secret").Value ?? throw new ArgumentException("Token secret not found");
+        var tokenSecret =
+            _config.GetSection("TokenSettings:Secret").Value
+            ?? throw new ArgumentException("Token secret not found");
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(tokenSecret));
-        var signingCredentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
+        var signingCredentials = new SigningCredentials(
+            key,
+            SecurityAlgorithms.HmacSha512Signature
+        );
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(claims),

@@ -22,8 +22,8 @@ namespace dotnet_rpg.Dtos.Character
         public int Resistance { get; set; }
         public CharacterClass Class { get; set; }
         public int InventorySize { get; set; }
-        public EquippedWeaponDto? EquippedWeapon { get; set; }
-        public required List<EquippedArmorPieceDto> EquippedArmorPieces { get; set; }
+        public GetEquippedWeaponDto? EquippedWeapon { get; set; }
+        public required List<GetEquippedArmorPieceDto> EquippedArmorPieces { get; set; }
         public required List<GetSkillDto> Skills { get; set; }
         public int? FightId { get; set; }
     }

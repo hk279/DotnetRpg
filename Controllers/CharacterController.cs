@@ -21,12 +21,6 @@ public class CharacterController : ControllerBase
     public async Task<ActionResult<ServiceResponse<List<GetCharacterListingDto>>>> GetAll()
     {
         var response = await _characterService.GetAllCharacters();
-
-        if (!response.Success)
-        {
-            return BadRequest(response);
-        }
-
         return Ok(response);
     }
 
@@ -36,12 +30,6 @@ public class CharacterController : ControllerBase
     )
     {
         var response = await _characterService.GetEnemies(characterId);
-
-        if (!response.Success)
-        {
-            return BadRequest(response);
-        }
-
         return Ok(response);
     }
 
@@ -49,13 +37,7 @@ public class CharacterController : ControllerBase
     public async Task<ActionResult<ServiceResponse<GetCharacterDto>>> GetSingle(int id)
     {
         var response = await _characterService.GetCharacterById(id);
-
-        if (response.Data == null)
-        {
-            return NotFound(response);
-        }
-
-        return Ok(await _characterService.GetCharacterById(id));
+        return Ok(response);
     }
 
     [HttpPost]
@@ -64,12 +46,6 @@ public class CharacterController : ControllerBase
     )
     {
         var response = await _characterService.AddCharacter(newCharacter);
-
-        if (!response.Success)
-        {
-            return BadRequest(response);
-        }
-
         return Ok(response);
     }
 
@@ -77,12 +53,13 @@ public class CharacterController : ControllerBase
     public async Task<ActionResult<ServiceResponse<List<GetCharacterDto>>>> Delete(int id)
     {
         var response = await _characterService.DeleteCharacter(id);
+        return Ok(response);
+    }
 
-        if (response.Data == null)
-        {
-            return NotFound(response);
-        }
-
+    [HttpGet("{characterId}/inventory")]
+    public async Task<ActionResult<ServiceResponse<List<GetItemDto>>>> GetInventory(int characterId)
+    {
+        var response = await _characterService.GetInventory(characterId);
         return Ok(response);
     }
 }

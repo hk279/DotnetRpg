@@ -29,5 +29,7 @@ public class AutoMapperProfile : Profile
         CreateMap<AddCharacterDto, Character>();
         CreateMap<UpdateCharacterDto, Character>();
         CreateMap<Skill, GetSkillDto>();
+        CreateMap<Weapon, GetItemDto>();
+        CreateMap<ArmorPiece, GetItemDto>();
     }
 }

@@ -3,12 +3,13 @@ using dotnet_rpg.Dtos.Character;
 
 namespace dotnet_rpg.AutoMapper;
 
-public class EquippedWeaponResolver : IValueResolver<Character, GetCharacterDto, EquippedWeaponDto?>
+public class EquippedWeaponResolver
+    : IValueResolver<Character, GetCharacterDto, GetEquippedWeaponDto?>
 {
-    public EquippedWeaponDto? Resolve(
+    public GetEquippedWeaponDto? Resolve(
         Character source,
         GetCharacterDto destination,
-        EquippedWeaponDto? destMember,
+        GetEquippedWeaponDto? destMember,
         ResolutionContext context
     )
     {
@@ -18,7 +19,7 @@ public class EquippedWeaponResolver : IValueResolver<Character, GetCharacterDto,
 
         if (equippedWeapon != null)
         {
-            return new EquippedWeaponDto
+            return new GetEquippedWeaponDto
             {
                 Id = equippedWeapon.Id,
                 Name = equippedWeapon.Name,
