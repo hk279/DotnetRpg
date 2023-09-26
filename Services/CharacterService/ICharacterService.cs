@@ -1,4 +1,5 @@
 using dotnet_rpg.Dtos.Character;
+using dotnet_rpg.Dtos.Item;
 
 namespace dotnet_rpg.Services.CharacterService
 {

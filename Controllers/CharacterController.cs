@@ -1,4 +1,5 @@
 using dotnet_rpg.Dtos.Character;
+using dotnet_rpg.Dtos.Item;
 using dotnet_rpg.Services.CharacterService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

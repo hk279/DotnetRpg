@@ -4,6 +4,7 @@ using dotnet_rpg.Data;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using dotnet_rpg.Models.Exceptions;
+using dotnet_rpg.Dtos.Item;
 
 namespace dotnet_rpg.Services.CharacterService;
 

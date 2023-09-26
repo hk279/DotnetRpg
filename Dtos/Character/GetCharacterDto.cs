@@ -1,3 +1,4 @@
+using dotnet_rpg.Dtos.Item;
 using dotnet_rpg.Dtos.Skill;
 
 namespace dotnet_rpg.Dtos.Character
