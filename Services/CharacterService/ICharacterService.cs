@@ -1,5 +1,4 @@
 using dotnet_rpg.Dtos.Character;
-using dotnet_rpg.Dtos.Item;
 
 namespace dotnet_rpg.Services.CharacterService
 {
@@ -10,6 +9,5 @@ namespace dotnet_rpg.Services.CharacterService
         Task<ServiceResponse<List<GetCharacterDto>>> GetEnemies(int characterId);
         Task<ServiceResponse<List<GetCharacterDto>>> AddCharacter(AddCharacterDto newCharacter);
         Task<ServiceResponse<List<GetCharacterDto>>> DeleteCharacter(int id);
-        Task<ServiceResponse<List<GetItemDto>>> GetInventory(int characterId);
     }
 }

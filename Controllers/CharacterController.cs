@@ -1,5 +1,4 @@
 using dotnet_rpg.Dtos.Character;
-using dotnet_rpg.Dtos.Item;
 using dotnet_rpg.Services.CharacterService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -54,13 +53,6 @@ public class CharacterController : ControllerBase
     public async Task<ActionResult<ServiceResponse<List<GetCharacterDto>>>> Delete(int id)
     {
         var response = await _characterService.DeleteCharacter(id);
-        return Ok(response);
-    }
-
-    [HttpGet("{characterId}/inventory")]
-    public async Task<ActionResult<ServiceResponse<List<GetItemDto>>>> GetInventory(int characterId)
-    {
-        var response = await _characterService.GetInventory(characterId);
         return Ok(response);
     }
 }

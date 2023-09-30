@@ -4,7 +4,6 @@ using dotnet_rpg.Data;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using dotnet_rpg.Models.Exceptions;
-using dotnet_rpg.Dtos.Item;
 
 namespace dotnet_rpg.Services.CharacterService;
 
@@ -115,7 +114,7 @@ public class CharacterService : ICharacterService
 
         characterToAdd.User = currentUser;
 
-        SetCurrentHitPointsAndEnergy(characterToAdd);
+        ResetHitPointsAndEnergy(characterToAdd);
         AddStartingSkills(characterToAdd);
         AddStartingWeapon(characterToAdd);
         AddStartingGear(characterToAdd);
@@ -167,7 +166,7 @@ public class CharacterService : ICharacterService
         return int.Parse(userId);
     }
 
-    private static void SetCurrentHitPointsAndEnergy(Character character)
+    private static void ResetHitPointsAndEnergy(Character character)
     {
         character.CurrentHitPoints = character.GetMaxHitPoints();
         character.CurrentEnergy = character.GetMaxEnergy();
@@ -436,23 +435,5 @@ public class CharacterService : ICharacterService
         }
 
         character.Inventory.AddRange(armorPieces);
-    }
-
-    public async Task<ServiceResponse<List<GetItemDto>>> GetInventory(int characterId)
-    {
-        var response = new ServiceResponse<List<GetItemDto>>();
-
-        var character =
-            await _context.Characters
-                .Include(c => c.Inventory)
-                .FirstOrDefaultAsync(
-                    c => c.Id == characterId && c.User != null && c.User.Id == GetUserId()
-                ) ?? throw new NotFoundException("Character not found");
-
-        response.Data = character.Inventory
-            .Select(item => _autoMapper.Map<GetItemDto>(item))
-            .ToList();
-
-        return response;
     }
 }
