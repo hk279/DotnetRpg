@@ -106,6 +106,8 @@ public class InventoryService : IInventoryService
         }
 
         itemToEquip.IsEquipped = true;
+
+        await _context.SaveChangesAsync();
     }
 
     public Task UnequipItem(int characterId, int itemId)
