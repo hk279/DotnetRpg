@@ -4,12 +4,12 @@ namespace dotnet_rpg.Dtos.Fight;
 
 public class PlayerActionResultDto
 {
-    public required ActionDto PlayerAction { get; set; }
-    public List<ActionDto> EnemyActions { get; set; } = new List<ActionDto>();
+    public required ActionResultDto PlayerAction { get; set; }
+    public List<ActionResultDto> EnemyActions { get; set; } = new List<ActionResultDto>();
     public FightStatus FightStatus { get; set; }
 }
 
-public class ActionDto
+public class ActionResultDto
 {
     public int CharacterId { get; set; }
     public required string CharacterName { get; set; }

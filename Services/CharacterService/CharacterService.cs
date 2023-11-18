@@ -174,141 +174,123 @@ public class CharacterService : ICharacterService
 
     private static void AddStartingSkills(Character character)
     {
-        var skills = character.Class switch
-        {
-            CharacterClass.Warrior
-                => new[]
-                {
-                    new Skill
-                    {
-                        Name = "Charge",
-                        MinDamage = 8,
-                        MaxDamage = 12,
-                        DamageType = DamageType.Physical,
-                        CharacterClass = CharacterClass.Warrior,
-                        EnergyCost = 15,
-                        Cooldown = 5
-                    },
-                    new Skill
-                    {
-                        Name = "Rend",
-                        MinDamage = 4,
-                        MaxDamage = 6,
-                        DamageType = DamageType.Physical,
-                        CharacterClass = CharacterClass.Warrior,
-                        EnergyCost = 10,
-                        Cooldown = 5
-                    },
-                    new Skill
-                    {
-                        Name = "Enrage",
-                        DamageType = DamageType.Physical,
-                        TargetType = SkillTargetType.Self,
-                        CharacterClass = CharacterClass.Warrior,
-                        EnergyCost = 10,
-                        Cooldown = 10
-                    },
-                    new Skill
-                    {
-                        Name = "Skillful Strike",
-                        MinDamage = 18,
-                        MaxDamage = 22,
-                        DamageType = DamageType.Physical,
-                        CharacterClass = CharacterClass.Warrior,
-                        EnergyCost = 20,
-                        Cooldown = 2
-                    },
-                },
-            CharacterClass.Mage
-                => new[]
-                {
-                    new Skill
-                    {
-                        Name = "Arcane Barrier",
-                        DamageType = DamageType.Magic,
-                        TargetType = SkillTargetType.Friendly,
-                        CharacterClass = CharacterClass.Mage,
-                        EnergyCost = 15,
-                        Cooldown = 10
-                    },
-                    new Skill
-                    {
-                        Name = "Ice Lance",
-                        MinDamage = 18,
-                        MaxDamage = 22,
-                        DamageType = DamageType.Magic,
-                        CharacterClass = CharacterClass.Mage,
-                        EnergyCost = 20,
-                        Cooldown = 2
-                    },
-                    new Skill
-                    {
-                        Name = "Combustion",
-                        MinDamage = 4,
-                        MaxDamage = 6,
-                        DamageType = DamageType.Magic,
-                        CharacterClass = CharacterClass.Mage,
-                        EnergyCost = 10,
-                        Cooldown = 3
-                    },
-                    new Skill
-                    {
-                        Name = "Lightning Storm",
-                        MinDamage = 4,
-                        MaxDamage = 16,
-                        DamageType = DamageType.Magic,
-                        CharacterClass = CharacterClass.Mage,
-                        EnergyCost = 30,
-                        Cooldown = 10
-                    },
-                },
-            CharacterClass.Priest
-                => new[]
-                {
-                    new Skill
-                    {
-                        Name = "Battle Meditation",
-                        DamageType = DamageType.Magic,
-                        TargetType = SkillTargetType.Self,
-                        CharacterClass = CharacterClass.Priest,
-                        EnergyCost = 10,
-                        Cooldown = 10
-                    },
-                    new Skill
-                    {
-                        Name = "Miraclous Touch",
-                        Healing = 20,
-                        DamageType = DamageType.Magic,
-                        TargetType = SkillTargetType.Friendly,
-                        CharacterClass = CharacterClass.Priest,
-                        EnergyCost = 15,
-                        Cooldown = 3
-                    },
-                    new Skill
-                    {
-                        Name = "Holy Smite",
-                        MinDamage = 18,
-                        MaxDamage = 22,
-                        DamageType = DamageType.Magic,
-                        CharacterClass = CharacterClass.Priest,
-                        EnergyCost = 20,
-                        Cooldown = 2
-                    },
-                    new Skill
-                    {
-                        Name = "Cleansing Pain",
-                        MinDamage = 4,
-                        MaxDamage = 6,
-                        DamageType = DamageType.Magic,
-                        CharacterClass = CharacterClass.Priest,
-                        EnergyCost = 10,
-                        Cooldown = 3
-                    }
-                },
-            _ => throw new ArgumentException("Invalid character class")
-        };
+        // var skills = character.Class switch
+        // {
+        //     CharacterClass.Warrior
+        //         => new[]
+        //         {
+        //             new Skill
+        //             {
+        //                 CharacterClass = CharacterClass.Warrior,
+        //                 Name = "Charge",
+        //                 MinDamage = 8,
+        //                 MaxDamage = 12,
+        //                 DamageType = DamageType.Physical,
+        //                 EnergyCost = 15,
+        //                 Cooldown = 5,
+        //                 StatusEffect = new StatusEffect
+        //                 {
+        //                     Duration = 1,
+        //                     IncreasedDamageTakenPercentage = 20
+        //                 }
+        //             },
+        //             new Skill
+        //             {
+        //                 CharacterClass = CharacterClass.Warrior,
+        //                 Name = "Rend",
+        //                 WeaponDamagePercentage = 50,
+        //                 DamageType = DamageType.Physical,
+        //                 EnergyCost = 10,
+        //                 Cooldown = 5
+        //             },
+        //             new Skill
+        //             {
+        //                 CharacterClass = CharacterClass.Warrior,
+        //                 Name = "Battle Cry",
+        //                 DamageType = DamageType.Physical,
+        //                 TargetType = SkillTargetType.Self,
+        //                 EnergyCost = 10,
+        //                 Cooldown = 10,
+        //                 StatusEffect = new StatusEffect
+        //                 {
+        //                     Duration = 3,
+        //                     IncreasedDamagePercentage = 20,
+        //                     DecreasedDamageTakenPercentage = 20
+        //                 }
+        //             }
+        //         },
+        //     CharacterClass.Mage
+        //         => new[]
+        //         {
+        //             new Skill
+        //             {
+        //                 CharacterClass = CharacterClass.Mage,
+        //                 Name = "Ice Lance",
+        //                 MinDamage = 18,
+        //                 MaxDamage = 22,
+        //                 DamageType = DamageType.Magic,
+        //                 EnergyCost = 20,
+        //                 Cooldown = 2
+        //             },
+        //             new Skill
+        //             {
+        //                 CharacterClass = CharacterClass.Mage,
+        //                 Name = "Combustion",
+        //                 MinDamage = 4,
+        //                 MaxDamage = 6,
+        //                 DamageType = DamageType.Magic,
+        //                 EnergyCost = 10,
+        //                 Cooldown = 3
+        //             },
+        //             new Skill
+        //             {
+        //                 CharacterClass = CharacterClass.Mage,
+        //                 Name = "Lightning Storm",
+        //                 MinDamage = 4,
+        //                 MaxDamage = 16,
+        //                 DamageType = DamageType.Magic,
+        //                 TargetType = SkillTargetType.AllEnemies,
+        //                 EnergyCost = 30,
+        //                 Cooldown = 10
+        //             },
+        //         },
+        //     CharacterClass.Priest
+        //         => new[]
+        //         {
+        //             new Skill
+        //             {
+        //                 Name = "Battle Meditation",
+        //                 DamageType = DamageType.Magic,
+        //                 TargetType = SkillTargetType.Self,
+        //                 CharacterClass = CharacterClass.Priest,
+        //                 EnergyCost = 10,
+        //                 Cooldown = 10
+        //             },
+        //             new Skill
+        //             {
+        //                 Name = "Miraclous Touch",
+        //                 Healing = 20,
+        //                 DamageType = DamageType.Magic,
+        //                 TargetType = SkillTargetType.Friendly,
+        //                 CharacterClass = CharacterClass.Priest,
+        //                 EnergyCost = 15,
+        //                 Cooldown = 3
+        //             },
+        //             new Skill
+        //             {
+        //                 Name = "Holy Smite",
+        //                 MinDamage = 18,
+        //                 MaxDamage = 22,
+        //                 DamageType = DamageType.Magic,
+        //                 CharacterClass = CharacterClass.Priest,
+        //                 EnergyCost = 20,
+        //                 Cooldown = 2
+        //             }
+        //         },
+        //     _ => throw new ArgumentException("Invalid character class")
+        // };
 
-        character.Skills.AddRange(skills);
+        // character.Skills.AddRange(skills);
     }
 
     private static void AddStartingWeapon(Character character)

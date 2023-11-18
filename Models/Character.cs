@@ -21,6 +21,8 @@ public class Character
     public int CurrentHitPoints { get; set; }
     public int CurrentEnergy { get; set; }
 
+    public List<StatusEffect> StatusEffects { get; set; } = new List<StatusEffect>();
+
     public CharacterClass Class { get; set; }
     public User? User { get; set; }
     public List<Skill> Skills { get; set; } = new List<Skill>();

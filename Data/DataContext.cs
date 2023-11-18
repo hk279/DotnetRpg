@@ -21,6 +21,8 @@ namespace dotnet_rpg.Data
                 .HasDiscriminator(i => i.Type)
                 .HasValue<ArmorPiece>(ItemType.ArmorPiece)
                 .HasValue<Weapon>(ItemType.Weapon);
+
+            modelBuilder.Entity<Skill>().HasOne(s => s.StatusEffect).WithOne();
         }
 
         public DbSet<Character> Characters { get; set; }

@@ -1,13 +1,13 @@
 namespace dotnet_rpg.Dtos.Fight;
 
-public class AttackDto
+public class PlayerActionDto
 {
     public int FightId { get; set; }
     public int PlayerCharacterId { get; set; }
-    public int EnemyCharacterId { get; set; }
+    public int? TargetCharacterId { get; set; }
 }
 
-public class SkillAttackDto : AttackDto
+public class PlayerSkillActionDto : PlayerActionDto
 {
     public int SkillId { get; set; }
 }
