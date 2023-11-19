@@ -21,7 +21,11 @@ var tokenSecret =
 
 // Add services to the container.
 builder.Services.AddControllers();
-builder.Services.AddDbContext<DataContext>(options => options.UseSqlServer(connectionString));
+builder.Services.AddDbContext<DataContext>(options =>
+{
+    options.UseSqlServer(connectionString);
+    options.EnableSensitiveDataLogging();
+});
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {

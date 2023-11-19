@@ -7,10 +7,11 @@ public class StatusEffect
     public StatusEffect(
         string name,
         int duration,
+        int skillId,
         int damagePerTurn = 0,
         int increasedDamagePercentage = 0,
         int increasedDamageTakenPercentage = 0,
-        int stunned = 0,
+        bool isStunned = false,
         int reducedStrengthPercentage = 0,
         int reducedArmorPercentage = 0,
         int increasedStrengthPercentage = 0,
@@ -19,10 +20,11 @@ public class StatusEffect
     {
         Name = name;
         Duration = duration;
+        SkillId = skillId;
         DamagePerTurn = damagePerTurn;
         IncreasedDamagePercentage = increasedDamagePercentage;
         IncreasedDamageTakenPercentage = increasedDamageTakenPercentage;
-        Stunned = stunned;
+        IsStunned = isStunned;
         ReducedStrengthPercentage = reducedStrengthPercentage;
         ReducedArmorPercentage = reducedArmorPercentage;
         IncreasedStrengthPercentage = increasedStrengthPercentage;
@@ -42,7 +44,7 @@ public class StatusEffect
     public int IncreasedDamageTakenPercentage { get; set; }
     public int DecreasedDamageTakenPercentage { get; set; }
 
-    public int Stunned { get; set; }
+    public bool IsStunned { get; set; }
 
     public int ReducedStrengthPercentage { get; set; }
     public int ReducedIntelligencePercentage { get; set; }
@@ -53,4 +55,10 @@ public class StatusEffect
     public int IncreasedIntelligencePercentage { get; set; }
     public int IncreasedArmorPercentage { get; set; }
     public int IncreasedResistancePercentage { get; set; }
+
+    public List<StatusEffectInstance> StatusEffectInstances { get; set; } =
+        new List<StatusEffectInstance>();
+
+    public Skill Skill { get; set; } = null!;
+    public int SkillId { get; set; }
 }

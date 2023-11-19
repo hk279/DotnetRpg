@@ -1,3 +1,4 @@
+using dotnet_rpg.Data.Seeding;
 using Microsoft.EntityFrameworkCore;
 
 namespace dotnet_rpg.Data
@@ -22,7 +23,33 @@ namespace dotnet_rpg.Data
                 .HasValue<ArmorPiece>(ItemType.ArmorPiece)
                 .HasValue<Weapon>(ItemType.Weapon);
 
-            modelBuilder.Entity<Skill>().HasOne(s => s.StatusEffect).WithOne();
+            modelBuilder
+                .Entity<Character>()
+                .HasMany(c => c.SkillInstances)
+                .WithOne(c => c.Character);
+
+            modelBuilder
+                .Entity<Character>()
+                .HasMany(c => c.StatusEffectInstances)
+                .WithOne(c => c.Character);
+
+            modelBuilder
+                .Entity<StatusEffect>()
+                .HasMany(s => s.StatusEffectInstances)
+                .WithOne(s => s.StatusEffect);
+
+            modelBuilder
+                .Entity<Skill>()
+                .HasOne(s => s.StatusEffect)
+                .WithOne(s => s.Skill)
+                .HasForeignKey<StatusEffect>(s => s.SkillId);
+
+            // Seed skills
+            // TODO: Add other classes
+            var (warriorSkills, warriorSkillStatusEffects) = SkillDataSeeder.GetWarriorSkills();
+
+            modelBuilder.Entity<Skill>().HasData(warriorSkills);
+            modelBuilder.Entity<StatusEffect>().HasData(warriorSkillStatusEffects);
         }
 
         public DbSet<Character> Characters { get; set; }

@@ -21,11 +21,12 @@ public class Character
     public int CurrentHitPoints { get; set; }
     public int CurrentEnergy { get; set; }
 
-    public List<StatusEffect> StatusEffects { get; set; } = new List<StatusEffect>();
+    public List<StatusEffectInstance> StatusEffectInstances { get; set; } =
+        new List<StatusEffectInstance>();
 
     public CharacterClass Class { get; set; }
     public User? User { get; set; }
-    public List<Skill> Skills { get; set; } = new List<Skill>();
+    public List<SkillInstance> SkillInstances { get; set; } = new List<SkillInstance>();
     public int InventorySize { get; set; } = 10;
     public List<Item> Inventory { get; set; } = new List<Item>();
     public Fight? Fight { get; set; }

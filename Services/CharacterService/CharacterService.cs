@@ -40,12 +40,23 @@ public class CharacterService : ICharacterService
 
         var character =
             await _context.Characters
-                .Include(c => c.Skills)
+                .AsSplitQuery()
+                .Include(c => c.SkillInstances)
+                .ThenInclude(s => s.Skill)
                 .Include(c => c.Inventory)
                 .FirstOrDefaultAsync(c => c.Id == id && c.User != null && c.User.Id == GetUserId())
             ?? throw new NotFoundException("Character not found");
 
         var dto = _autoMapper.Map<GetCharacterDto>(character);
+
+        // Parse level-scaled skill base damage values for the UI
+        dto.Skills.ForEach(s =>
+        {
+            var skill = character.SkillInstances.Single(s => s.Skill.Id == s.Id).Skill;
+
+            s.MinBaseDamage = character.Level * (skill.MinBaseDamageFactor / 10);
+            s.MaxBaseDamage = character.Level * (skill.MaxBaseDamageFactor / 10);
+        });
 
         var currentLevelExperienceThreshold = LevelExperienceThresholds.AllThresholds
             .Single(t => t.Key == character.Level)
@@ -74,7 +85,7 @@ public class CharacterService : ICharacterService
         var fightId =
             character.FightId ?? throw new BadRequestException("Character is not in a fight");
         var enemies = await _context.Characters
-            .Include(c => c.Skills)
+            .Include(c => c.SkillInstances)
             .Include(c => c.Inventory)
             .Where(c => c.FightId == fightId && !c.IsPlayerCharacter)
             .Select(c => _autoMapper.Map<GetCharacterDto>(c))
@@ -122,15 +133,6 @@ public class CharacterService : ICharacterService
         await _context.Characters.AddAsync(characterToAdd);
         await _context.SaveChangesAsync();
 
-        var allCharacters = await _context.Characters
-            .Include(c => c.Skills)
-            .Include(c => c.Inventory)
-            .Where(c => c.User != null && c.User.Id == GetUserId())
-            .Select(c => _autoMapper.Map<GetCharacterDto>(c))
-            .ToListAsync();
-
-        response.Data = allCharacters;
-
         return response;
     }
 
@@ -172,125 +174,30 @@ public class CharacterService : ICharacterService
         character.CurrentEnergy = character.GetMaxEnergy();
     }
 
-    private static void AddStartingSkills(Character character)
+    private void AddStartingSkills(Character character)
     {
-        // var skills = character.Class switch
-        // {
-        //     CharacterClass.Warrior
-        //         => new[]
-        //         {
-        //             new Skill
-        //             {
-        //                 CharacterClass = CharacterClass.Warrior,
-        //                 Name = "Charge",
-        //                 MinDamage = 8,
-        //                 MaxDamage = 12,
-        //                 DamageType = DamageType.Physical,
-        //                 EnergyCost = 15,
-        //                 Cooldown = 5,
-        //                 StatusEffect = new StatusEffect
-        //                 {
-        //                     Duration = 1,
-        //                     IncreasedDamageTakenPercentage = 20
-        //                 }
-        //             },
-        //             new Skill
-        //             {
-        //                 CharacterClass = CharacterClass.Warrior,
-        //                 Name = "Rend",
-        //                 WeaponDamagePercentage = 50,
-        //                 DamageType = DamageType.Physical,
-        //                 EnergyCost = 10,
-        //                 Cooldown = 5
-        //             },
-        //             new Skill
-        //             {
-        //                 CharacterClass = CharacterClass.Warrior,
-        //                 Name = "Battle Cry",
-        //                 DamageType = DamageType.Physical,
-        //                 TargetType = SkillTargetType.Self,
-        //                 EnergyCost = 10,
-        //                 Cooldown = 10,
-        //                 StatusEffect = new StatusEffect
-        //                 {
-        //                     Duration = 3,
-        //                     IncreasedDamagePercentage = 20,
-        //                     DecreasedDamageTakenPercentage = 20
-        //                 }
-        //             }
-        //         },
-        //     CharacterClass.Mage
-        //         => new[]
-        //         {
-        //             new Skill
-        //             {
-        //                 CharacterClass = CharacterClass.Mage,
-        //                 Name = "Ice Lance",
-        //                 MinDamage = 18,
-        //                 MaxDamage = 22,
-        //                 DamageType = DamageType.Magic,
-        //                 EnergyCost = 20,
-        //                 Cooldown = 2
-        //             },
-        //             new Skill
-        //             {
-        //                 CharacterClass = CharacterClass.Mage,
-        //                 Name = "Combustion",
-        //                 MinDamage = 4,
-        //                 MaxDamage = 6,
-        //                 DamageType = DamageType.Magic,
-        //                 EnergyCost = 10,
-        //                 Cooldown = 3
-        //             },
-        //             new Skill
-        //             {
-        //                 CharacterClass = CharacterClass.Mage,
-        //                 Name = "Lightning Storm",
-        //                 MinDamage = 4,
-        //                 MaxDamage = 16,
-        //                 DamageType = DamageType.Magic,
-        //                 TargetType = SkillTargetType.AllEnemies,
-        //                 EnergyCost = 30,
-        //                 Cooldown = 10
-        //             },
-        //         },
-        //     CharacterClass.Priest
-        //         => new[]
-        //         {
-        //             new Skill
-        //             {
-        //                 Name = "Battle Meditation",
-        //                 DamageType = DamageType.Magic,
-        //                 TargetType = SkillTargetType.Self,
-        //                 CharacterClass = CharacterClass.Priest,
-        //                 EnergyCost = 10,
-        //                 Cooldown = 10
-        //             },
-        //             new Skill
-        //             {
-        //                 Name = "Miraclous Touch",
-        //                 Healing = 20,
-        //                 DamageType = DamageType.Magic,
-        //                 TargetType = SkillTargetType.Friendly,
-        //                 CharacterClass = CharacterClass.Priest,
-        //                 EnergyCost = 15,
-        //                 Cooldown = 3
-        //             },
-        //             new Skill
-        //             {
-        //                 Name = "Holy Smite",
-        //                 MinDamage = 18,
-        //                 MaxDamage = 22,
-        //                 DamageType = DamageType.Magic,
-        //                 CharacterClass = CharacterClass.Priest,
-        //                 EnergyCost = 20,
-        //                 Cooldown = 2
-        //             }
-        //         },
-        //     _ => throw new ArgumentException("Invalid character class")
-        // };
+        switch (character.Class)
+        {
+            case CharacterClass.Warrior:
+                var warriorStartingSkills = _context.Skills
+                    .Include(s => s.StatusEffect)
+                    .Where(
+                        s =>
+                            s.CharacterClass == CharacterClass.Warrior
+                            && s.Rank == 1
+                            && (s.Name == "Charge" || s.Name == "Rend")
+                    )
+                    .Select(s => new SkillInstance(s, 0))
+                    .ToList();
 
-        // character.Skills.AddRange(skills);
+                character.SkillInstances.AddRange(warriorStartingSkills);
+
+                return;
+            case CharacterClass.Mage:
+            case CharacterClass.Priest:
+            default:
+                return;
+        }
     }
 
     private static void AddStartingWeapon(Character character)

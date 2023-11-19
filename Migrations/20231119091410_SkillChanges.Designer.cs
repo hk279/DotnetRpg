@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using dotnet_rpg.Data;
 
@@ -11,9 +12,11 @@ using dotnet_rpg.Data;
 namespace dotnetrpg.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20231119091410_SkillChanges")]
+    partial class SkillChanges
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -179,6 +182,9 @@ namespace dotnetrpg.Migrations
                     b.Property<int>("CharacterClass")
                         .HasColumnType("int");
 
+                    b.Property<int?>("CharacterId")
+                        .HasColumnType("int");
+
                     b.Property<int>("Cooldown")
                         .HasColumnType("int");
 
@@ -208,6 +214,12 @@ namespace dotnetrpg.Migrations
                     b.Property<int>("Rank")
                         .HasColumnType("int");
 
+                    b.Property<int>("RemainingCooldown")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("StatusEffectId")
+                        .HasColumnType("int");
+
                     b.Property<int>("TargetType")
                         .HasColumnType("int");
 
@@ -216,86 +228,11 @@ namespace dotnetrpg.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Skills");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            BaseDamageAttributeScalingFactor = 90,
-                            CharacterClass = 1,
-                            Cooldown = 0,
-                            DamageType = 1,
-                            Description = "Violently charge the enemy.",
-                            EnergyCost = 5,
-                            Healing = 15,
-                            MaxBaseDamageFactor = 40,
-                            MinBaseDamageFactor = 30,
-                            Name = "Charge",
-                            Rank = 1,
-                            TargetType = 3,
-                            WeaponDamagePercentage = 10
-                        },
-                        new
-                        {
-                            Id = 2,
-                            BaseDamageAttributeScalingFactor = 90,
-                            CharacterClass = 1,
-                            Cooldown = 0,
-                            DamageType = 1,
-                            Description = "Violently charge the enemy.",
-                            EnergyCost = 5,
-                            Healing = 15,
-                            MaxBaseDamageFactor = 50,
-                            MinBaseDamageFactor = 40,
-                            Name = "Charge",
-                            Rank = 2,
-                            TargetType = 3,
-                            WeaponDamagePercentage = 20
-                        },
-                        new
-                        {
-                            Id = 3,
-                            BaseDamageAttributeScalingFactor = 90,
-                            CharacterClass = 1,
-                            Cooldown = 0,
-                            DamageType = 1,
-                            Description = "Violently charge the enemy.",
-                            EnergyCost = 5,
-                            Healing = 15,
-                            MaxBaseDamageFactor = 50,
-                            MinBaseDamageFactor = 40,
-                            Name = "Charge",
-                            Rank = 3,
-                            TargetType = 3,
-                            WeaponDamagePercentage = 30
-                        });
-                });
-
-            modelBuilder.Entity("dotnet_rpg.Models.SkillInstance", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("CharacterId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("RemainingCooldown")
-                        .HasColumnType("int");
-
-                    b.Property<int>("SkillId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
                     b.HasIndex("CharacterId");
 
-                    b.HasIndex("SkillId");
+                    b.HasIndex("StatusEffectId");
 
-                    b.ToTable("SkillInstance");
+                    b.ToTable("Skills");
                 });
 
             modelBuilder.Entity("dotnet_rpg.Models.StatusEffect", b =>
@@ -305,6 +242,9 @@ namespace dotnetrpg.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("CharacterId")
+                        .HasColumnType("int");
 
                     b.Property<int>("DamagePerTurn")
                         .HasColumnType("int");
@@ -339,9 +279,6 @@ namespace dotnetrpg.Migrations
                     b.Property<int>("IncreasedStrengthPercentage")
                         .HasColumnType("int");
 
-                    b.Property<bool>("IsStunned")
-                        .HasColumnType("bit");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -358,109 +295,14 @@ namespace dotnetrpg.Migrations
                     b.Property<int>("ReducedStrengthPercentage")
                         .HasColumnType("int");
 
-                    b.Property<int>("SkillId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("SkillId")
-                        .IsUnique();
-
-                    b.ToTable("StatusEffect");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            DamagePerTurn = 0,
-                            DecreasedDamagePercentage = 0,
-                            DecreasedDamageTakenPercentage = 0,
-                            Duration = 1,
-                            HealingPerTurn = 0,
-                            IncreasedArmorPercentage = 0,
-                            IncreasedDamagePercentage = 0,
-                            IncreasedDamageTakenPercentage = 0,
-                            IncreasedIntelligencePercentage = 0,
-                            IncreasedResistancePercentage = 0,
-                            IncreasedStrengthPercentage = 0,
-                            IsStunned = true,
-                            Name = "Charge Stun",
-                            ReducedArmorPercentage = 0,
-                            ReducedIntelligencePercentage = 0,
-                            ReducedResistancePercentage = 0,
-                            ReducedStrengthPercentage = 0,
-                            SkillId = 1
-                        },
-                        new
-                        {
-                            Id = 2,
-                            DamagePerTurn = 0,
-                            DecreasedDamagePercentage = 0,
-                            DecreasedDamageTakenPercentage = 0,
-                            Duration = 1,
-                            HealingPerTurn = 0,
-                            IncreasedArmorPercentage = 0,
-                            IncreasedDamagePercentage = 0,
-                            IncreasedDamageTakenPercentage = 0,
-                            IncreasedIntelligencePercentage = 0,
-                            IncreasedResistancePercentage = 0,
-                            IncreasedStrengthPercentage = 0,
-                            IsStunned = true,
-                            Name = "Charge Stun",
-                            ReducedArmorPercentage = 0,
-                            ReducedIntelligencePercentage = 0,
-                            ReducedResistancePercentage = 0,
-                            ReducedStrengthPercentage = 0,
-                            SkillId = 2
-                        },
-                        new
-                        {
-                            Id = 3,
-                            DamagePerTurn = 0,
-                            DecreasedDamagePercentage = 0,
-                            DecreasedDamageTakenPercentage = 0,
-                            Duration = 1,
-                            HealingPerTurn = 0,
-                            IncreasedArmorPercentage = 0,
-                            IncreasedDamagePercentage = 0,
-                            IncreasedDamageTakenPercentage = 0,
-                            IncreasedIntelligencePercentage = 0,
-                            IncreasedResistancePercentage = 0,
-                            IncreasedStrengthPercentage = 0,
-                            IsStunned = true,
-                            Name = "Charge Stun",
-                            ReducedArmorPercentage = 0,
-                            ReducedIntelligencePercentage = 0,
-                            ReducedResistancePercentage = 0,
-                            ReducedStrengthPercentage = 0,
-                            SkillId = 3
-                        });
-                });
-
-            modelBuilder.Entity("dotnet_rpg.Models.StatusEffectInstance", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("CharacterId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("RemainingDuration")
-                        .HasColumnType("int");
-
-                    b.Property<int>("StatusEffectId")
+                    b.Property<int>("Stunned")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.HasIndex("CharacterId");
 
-                    b.HasIndex("StatusEffectId");
-
-                    b.ToTable("StatusEffectInstance");
+                    b.ToTable("StatusEffect");
                 });
 
             modelBuilder.Entity("dotnet_rpg.Models.User", b =>
@@ -540,77 +382,38 @@ namespace dotnetrpg.Migrations
                         .HasForeignKey("CharacterId");
                 });
 
-            modelBuilder.Entity("dotnet_rpg.Models.SkillInstance", b =>
+            modelBuilder.Entity("dotnet_rpg.Models.Skill", b =>
                 {
-                    b.HasOne("dotnet_rpg.Models.Character", "Character")
-                        .WithMany("SkillInstances")
-                        .HasForeignKey("CharacterId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.HasOne("dotnet_rpg.Models.Character", null)
+                        .WithMany("Skills")
+                        .HasForeignKey("CharacterId");
 
-                    b.HasOne("dotnet_rpg.Models.Skill", "Skill")
+                    b.HasOne("dotnet_rpg.Models.StatusEffect", "StatusEffect")
                         .WithMany()
-                        .HasForeignKey("SkillId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("StatusEffectId");
 
-                    b.Navigation("Character");
-
-                    b.Navigation("Skill");
+                    b.Navigation("StatusEffect");
                 });
 
             modelBuilder.Entity("dotnet_rpg.Models.StatusEffect", b =>
                 {
-                    b.HasOne("dotnet_rpg.Models.Skill", "Skill")
-                        .WithOne("StatusEffect")
-                        .HasForeignKey("dotnet_rpg.Models.StatusEffect", "SkillId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Skill");
-                });
-
-            modelBuilder.Entity("dotnet_rpg.Models.StatusEffectInstance", b =>
-                {
-                    b.HasOne("dotnet_rpg.Models.Character", "Character")
-                        .WithMany("StatusEffectInstances")
-                        .HasForeignKey("CharacterId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("dotnet_rpg.Models.StatusEffect", "StatusEffect")
-                        .WithMany("StatusEffectInstances")
-                        .HasForeignKey("StatusEffectId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Character");
-
-                    b.Navigation("StatusEffect");
+                    b.HasOne("dotnet_rpg.Models.Character", null)
+                        .WithMany("StatusEffects")
+                        .HasForeignKey("CharacterId");
                 });
 
             modelBuilder.Entity("dotnet_rpg.Models.Character", b =>
                 {
                     b.Navigation("Inventory");
 
-                    b.Navigation("SkillInstances");
+                    b.Navigation("Skills");
 
-                    b.Navigation("StatusEffectInstances");
+                    b.Navigation("StatusEffects");
                 });
 
             modelBuilder.Entity("dotnet_rpg.Models.Fight", b =>
                 {
                     b.Navigation("Characters");
-                });
-
-            modelBuilder.Entity("dotnet_rpg.Models.Skill", b =>
-                {
-                    b.Navigation("StatusEffect");
-                });
-
-            modelBuilder.Entity("dotnet_rpg.Models.StatusEffect", b =>
-                {
-                    b.Navigation("StatusEffectInstances");
                 });
 
             modelBuilder.Entity("dotnet_rpg.Models.User", b =>
