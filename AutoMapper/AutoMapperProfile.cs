@@ -45,6 +45,7 @@ public class AutoMapperProfile : Profile
             .ForMember(dest => dest.EnergyCost, opt => opt.MapFrom(src => src.Skill.EnergyCost))
             .ForMember(dest => dest.Cooldown, opt => opt.MapFrom(src => src.Skill.Cooldown));
         CreateMap<StatusEffect, StatusEffectDto>();
+        // TODO: Map status effect instance
         CreateMap<Weapon, GetItemDto>();
         CreateMap<ArmorPiece, GetItemDto>();
     }
