@@ -85,8 +85,9 @@ public class CharacterService : ICharacterService
         var fightId =
             character.FightId ?? throw new BadRequestException("Character is not in a fight");
         var enemies = await _context.Characters
-            .Include(c => c.SkillInstances)
             .Include(c => c.Inventory)
+            .Include(c => c.StatusEffectInstances)
+            .ThenInclude(s => s.StatusEffect)
             .Where(c => c.FightId == fightId && !c.IsPlayerCharacter)
             .Select(c => _autoMapper.Map<GetCharacterDto>(c))
             .ToListAsync();
