@@ -109,9 +109,10 @@ public class FightService : IFightService
 
         HandleEnemyActions(fight, playerCharacter, allEnemyCharacters, attackResult);
         RegenerateEnergy(fight.Characters);
-        UpdateStatusEffects(fight.Characters);
-        UpdateCooldowns(fight.Characters);
+        UpdateStatusEffectCooldowns(fight.Characters);
+        UpdateSkillCooldowns(fight.Characters);
 
+        ApplyStatusEffect(skillInstance.Skill, targetCharacter);
         skillInstance.ApplyCooldown();
 
         await _context.SaveChangesAsync();
@@ -161,8 +162,8 @@ public class FightService : IFightService
 
         HandleEnemyActions(fight, playerCharacter, allEnemyCharacters, attackResult);
         RegenerateEnergy(fight.Characters);
-        UpdateStatusEffects(fight.Characters);
-        UpdateCooldowns(fight.Characters);
+        UpdateStatusEffectCooldowns(fight.Characters);
+        UpdateSkillCooldowns(fight.Characters);
 
         await _context.SaveChangesAsync();
 
@@ -178,16 +179,6 @@ public class FightService : IFightService
             throw new BadRequestException(
                 $"Invalid action. Target character with ID {defender.Id} has already been defeated"
             );
-        }
-
-        // Apply status effect
-        if (skill.StatusEffect != null)
-        {
-            var statusEffectInstance = new StatusEffectInstance(
-                skill.StatusEffect,
-                skill.StatusEffect.Duration
-            );
-            defender.StatusEffectInstances.Add(statusEffectInstance);
         }
 
         var damage = CalculateSkillDamage(skill, attacker, defender);
@@ -409,7 +400,7 @@ public class FightService : IFightService
         }
     }
 
-    private static void UpdateCooldowns(List<Character> allCharactersInFight)
+    private static void UpdateSkillCooldowns(List<Character> allCharactersInFight)
     {
         foreach (var character in allCharactersInFight)
         {
@@ -423,7 +414,7 @@ public class FightService : IFightService
         }
     }
 
-    private static void UpdateStatusEffects(List<Character> allCharactersInFight)
+    private static void UpdateStatusEffectCooldowns(List<Character> allCharactersInFight)
     {
         foreach (var character in allCharactersInFight)
         {
@@ -435,6 +426,16 @@ public class FightService : IFightService
             {
                 s.RemainingDuration--;
             });
+        }
+    }
+
+    private static void ApplyStatusEffect(Skill skill, Character targetCharacter)
+    {
+        if (skill.StatusEffect != null)
+        {
+            targetCharacter.StatusEffectInstances.Add(
+                new StatusEffectInstance(skill.StatusEffect, skill.StatusEffect.Duration)
+            );
         }
     }
 
@@ -491,6 +492,7 @@ public class FightService : IFightService
                 .Include(f => f.Characters)
                 .ThenInclude(c => c.SkillInstances)
                 .ThenInclude(s => s.Skill)
+                .ThenInclude(s => s.StatusEffect)
                 .Include(f => f.Characters)
                 .ThenInclude(c => c.StatusEffectInstances)
                 .ThenInclude(s => s.StatusEffect)

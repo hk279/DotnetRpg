@@ -1,7 +1,6 @@
 namespace dotnet_rpg.Dtos.Skill;
 
-public class GetSkillInstanceDto
+public class GetSkillInstanceDto : GetSkillDto
 {
-    public GetSkillDto Skill { get; set; } = null!;
     public int RemainingCooldown { get; set; }
 }

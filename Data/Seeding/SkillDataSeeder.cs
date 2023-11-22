@@ -93,12 +93,12 @@ public class SkillDataSeeder
             DamageType.Physical,
             SkillTargetType.Enemy,
             rank,
+            energyCost,
+            cooldown,
             weaponDamagePercentage,
             minBaseDamageFactor,
             maxBaseDamageFactor,
-            baseDamageAttributeScalingFactor,
-            energyCost,
-            cooldown
+            baseDamageAttributeScalingFactor
         );
     }
 }

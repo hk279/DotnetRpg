@@ -13,13 +13,12 @@ public class Skill
         DamageType damageType,
         SkillTargetType targetType,
         int rank,
-        int weaponDamagePercentage = 0,
-        int minBaseDamageFactor = 0,
-        int maxBaseDamageFactor = 0,
-        int baseDamageAttributeScalingFactor = 0,
-        int healing = 0,
-        int energyCost = 0,
-        int cooldown = 0,
+        int energyCost,
+        int cooldown,
+        int weaponDamagePercentage,
+        int minBaseDamageFactor,
+        int maxBaseDamageFactor,
+        int baseDamageAttributeScalingFactor,
         StatusEffect? statusEffect = null
     )
     {
@@ -28,14 +27,13 @@ public class Skill
         Description = description;
         DamageType = damageType;
         TargetType = targetType;
-        WeaponDamagePercentage = weaponDamagePercentage;
-        MinBaseDamageFactor = minBaseDamageFactor;
         Rank = rank;
-        MaxBaseDamageFactor = maxBaseDamageFactor;
-        BaseDamageAttributeScalingFactor = baseDamageAttributeScalingFactor;
-        Healing = healing;
         EnergyCost = energyCost;
         Cooldown = cooldown;
+        WeaponDamagePercentage = weaponDamagePercentage;
+        MinBaseDamageFactor = minBaseDamageFactor;
+        MaxBaseDamageFactor = maxBaseDamageFactor;
+        BaseDamageAttributeScalingFactor = baseDamageAttributeScalingFactor;
         StatusEffect = statusEffect;
     }
 
@@ -43,9 +41,12 @@ public class Skill
     public CharacterClass CharacterClass { get; set; }
     public string Name { get; set; } = null!;
     public string Description { get; set; } = null!;
+
     public DamageType DamageType { get; set; }
     public SkillTargetType TargetType { get; set; }
     public int Rank { get; set; } = 1;
+    public int EnergyCost { get; set; }
+    public int Cooldown { get; set; }
 
     /// <summary>
     /// Determines how much of the equipped weapon damage is included in the total damage of the skill.
@@ -61,9 +62,6 @@ public class Skill
     public int Healing { get; set; } // TODO: Implement healing
 
     public StatusEffect? StatusEffect { get; set; }
-
-    public int EnergyCost { get; set; }
-    public int Cooldown { get; set; }
 }
 
 [JsonConverter(typeof(JsonStringEnumConverter))]

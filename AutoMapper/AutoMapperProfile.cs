@@ -31,7 +31,7 @@ public class AutoMapperProfile : Profile
         CreateMap<Character, GetCharacterListingDto>();
         CreateMap<AddCharacterDto, Character>();
         CreateMap<UpdateCharacterDto, Character>();
-        CreateMap<SkillInstance, GetSkillDto>()
+        CreateMap<SkillInstance, GetSkillInstanceDto>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Skill.Id))
             .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Skill.Name))
             .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Skill.Description))
@@ -45,7 +45,7 @@ public class AutoMapperProfile : Profile
             .ForMember(dest => dest.EnergyCost, opt => opt.MapFrom(src => src.Skill.EnergyCost))
             .ForMember(dest => dest.Cooldown, opt => opt.MapFrom(src => src.Skill.Cooldown));
         CreateMap<StatusEffect, StatusEffectDto>();
-        // TODO: Map status effect instance
+        CreateMap<StatusEffectInstance, StatusEffectInstanceDto>();
         CreateMap<Weapon, GetItemDto>();
         CreateMap<ArmorPiece, GetItemDto>();
     }

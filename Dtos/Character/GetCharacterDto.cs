@@ -1,5 +1,6 @@
 using dotnet_rpg.Dtos.Item;
 using dotnet_rpg.Dtos.Skill;
+using dotnet_rpg.Dtos.StatusEffect;
 
 namespace dotnet_rpg.Dtos.Character
 {
@@ -32,7 +33,8 @@ namespace dotnet_rpg.Dtos.Character
         public GetEquippedWeaponDto? EquippedWeapon { get; set; }
         public required List<GetEquippedArmorPieceDto> EquippedArmorPieces { get; set; }
 
-        public required List<GetSkillDto> Skills { get; set; }
+        public required List<GetSkillInstanceDto> Skills { get; set; }
+        public required List<StatusEffectInstanceDto> StatusEffects { get; set; }
 
         public int? FightId { get; set; }
     }
