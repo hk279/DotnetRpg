@@ -7,8 +7,10 @@ public class StatusEffect
     public StatusEffect(
         string name,
         int duration,
+        StatusEffectType type,
         int skillId,
-        int damagePerTurn = 0,
+        int damagePerTurnFactor = 0,
+        int healingPerTurnFactor = 0,
         int increasedDamagePercentage = 0,
         int increasedDamageTakenPercentage = 0,
         bool isStunned = false,
@@ -20,8 +22,10 @@ public class StatusEffect
     {
         Name = name;
         Duration = duration;
+        Type = type;
         SkillId = skillId;
-        DamagePerTurn = damagePerTurn;
+        DamagePerTurnFactor = damagePerTurnFactor;
+        HealingPerTurnFactor = healingPerTurnFactor;
         IncreasedDamagePercentage = increasedDamagePercentage;
         IncreasedDamageTakenPercentage = increasedDamageTakenPercentage;
         IsStunned = isStunned;
@@ -35,8 +39,13 @@ public class StatusEffect
     public string Name { get; set; } = null!;
     public int Duration { get; set; }
 
-    public int DamagePerTurn { get; set; }
-    public int HealingPerTurn { get; set; }
+    /// <summary>
+    /// Determines which attribute (STR / INT) will scale the damage and healing over time
+    /// </summary>
+    public StatusEffectType Type { get; set; }
+
+    public int DamagePerTurnFactor { get; set; } // 0-100
+    public int HealingPerTurnFactor { get; set; } // 0-100
 
     public int IncreasedDamagePercentage { get; set; }
     public int DecreasedDamagePercentage { get; set; }
@@ -61,4 +70,11 @@ public class StatusEffect
 
     public Skill Skill { get; set; } = null!;
     public int SkillId { get; set; }
+}
+
+public enum StatusEffectType
+{
+    Unknown,
+    Physical,
+    Magic
 }

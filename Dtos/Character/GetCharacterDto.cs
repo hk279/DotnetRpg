@@ -33,8 +33,8 @@ namespace dotnet_rpg.Dtos.Character
         public GetEquippedWeaponDto? EquippedWeapon { get; set; }
         public required List<GetEquippedArmorPieceDto> EquippedArmorPieces { get; set; }
 
-        public required List<GetSkillInstanceDto> Skills { get; set; }
-        public required List<GetStatusEffectInstanceDto> StatusEffects { get; set; }
+        public required List<GetSkillInstanceDto> SkillInstances { get; set; }
+        public required List<GetStatusEffectInstanceDto> StatusEffectInstances { get; set; }
 
         public int? FightId { get; set; }
     }

@@ -15,5 +15,5 @@ public class GetSkillDto
     public int MaxBaseDamage { get; set; }
     public int EnergyCost { get; set; }
     public int Cooldown { get; set; }
-    public StatusEffectDto? StatusEffect { get; set; }
+    public GetStatusEffectDto? StatusEffect { get; set; }
 }

@@ -2,6 +2,11 @@ namespace dotnet_rpg.Data.Seeding;
 
 public class SkillDataSeeder
 {
+    /// <summary>
+    /// Two-step seeding:
+    /// 1. Generate skills and give them IDs
+    /// 2. Generate status effects for skills and connect them to skills using the skill ID
+    /// </summary>
     public static (List<Skill>, List<StatusEffect>) GetWarriorSkills()
     {
         var warriorSkills = new List<Skill>();
@@ -9,7 +14,10 @@ public class SkillDataSeeder
 
         // TODO: Add other skills
         var chargeSkills = GetChargeSkills();
+        var rendSkills = GetRendSkills();
+
         warriorSkills.AddRange(chargeSkills);
+        warriorSkills.AddRange(rendSkills);
 
         // Apply skill IDs
         warriorSkills = warriorSkills
@@ -23,10 +31,8 @@ public class SkillDataSeeder
             .ToList();
 
         // TODO: Add status effects for other skills
-        var chargeSkillStatusEffects = chargeSkills.Select(
-            s => new StatusEffect("Charge Stun", duration: 1, skillId: s.Id, isStunned: true)
-        );
-        warriorSkillStatusEffects.AddRange(chargeSkillStatusEffects);
+        warriorSkillStatusEffects.AddRange(GetChargeSkillStatusEffects(chargeSkills));
+        warriorSkillStatusEffects.AddRange(GetRendSkillStatusEffects(rendSkills));
 
         // Apply status effect IDs
         warriorSkillStatusEffects = warriorSkillStatusEffects
@@ -76,6 +82,73 @@ public class SkillDataSeeder
         };
     }
 
+    private static List<StatusEffect> GetChargeSkillStatusEffects(List<Skill> chargeSkills)
+    {
+        return chargeSkills
+            .Select(
+                s =>
+                    new StatusEffect(
+                        "Charge Stun",
+                        duration: 1,
+                        StatusEffectType.Physical,
+                        skillId: s.Id,
+                        isStunned: true
+                    )
+            )
+            .ToList();
+    }
+
+    private static List<Skill> GetRendSkills()
+    {
+        return new List<Skill>()
+        {
+            CreateRendSkill(1, 30, 40, 50, 50, 20, 4),
+            CreateRendSkill(2, 50, 40, 50, 50, 20, 4),
+            CreateRendSkill(3, 50, 40, 50, 50, 20, 4),
+        };
+    }
+
+    private static List<StatusEffect> GetRendSkillStatusEffects(List<Skill> rendSkills)
+    {
+        return rendSkills
+            .Select(s =>
+            {
+                return s.Rank switch
+                {
+                    1
+                        => new StatusEffect(
+                            "Bleed",
+                            duration: 3,
+                            StatusEffectType.Physical,
+                            s.Id,
+                            damagePerTurnFactor: 30
+                        ),
+                    2
+                        => new StatusEffect(
+                            "Bleed",
+                            duration: 3,
+                            StatusEffectType.Physical,
+                            s.Id,
+                            damagePerTurnFactor: 30
+                        ),
+                    3
+                        => new StatusEffect(
+                            "Bleed",
+                            duration: 4,
+                            StatusEffectType.Physical,
+                            s.Id,
+                            damagePerTurnFactor: 30
+                        ),
+                    _
+                        => throw new ArgumentOutOfRangeException(
+                            nameof(s.Rank),
+                            $"Unexpected skill rank value: {s.Rank}"
+                        ),
+                };
+            })
+            .ToList();
+    }
+
     private static Skill CreateChargeSkill(
         int rank,
         int weaponDamagePercentage,
@@ -90,6 +163,32 @@ public class SkillDataSeeder
             CharacterClass.Warrior,
             "Charge",
             "Violently charge the enemy.",
+            DamageType.Physical,
+            SkillTargetType.Enemy,
+            rank,
+            energyCost,
+            cooldown,
+            weaponDamagePercentage,
+            minBaseDamageFactor,
+            maxBaseDamageFactor,
+            baseDamageAttributeScalingFactor
+        );
+    }
+
+    private static Skill CreateRendSkill(
+        int rank,
+        int weaponDamagePercentage,
+        int minBaseDamageFactor,
+        int maxBaseDamageFactor,
+        int baseDamageAttributeScalingFactor,
+        int energyCost,
+        int cooldown
+    )
+    {
+        return new Skill(
+            CharacterClass.Warrior,
+            "Rend",
+            "Slash at your opponent, causing a grievous wound.",
             DamageType.Physical,
             SkillTargetType.Enemy,
             rank,

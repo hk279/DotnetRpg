@@ -26,28 +26,17 @@ public class AutoMapperProfile : Profile
             .ForMember(dest => dest.Armor, opt => opt.MapFrom(src => src.GetArmor()))
             .ForMember(dest => dest.Resistance, opt => opt.MapFrom(src => src.GetResistance()))
             .ForMember(dest => dest.MaxEnergy, opt => opt.MapFrom(src => src.GetMaxEnergy()))
-            .ForMember(dest => dest.MaxHitPoints, opt => opt.MapFrom(src => src.GetMaxHitPoints()))
-            .ForMember(dest => dest.Skills, opt => opt.MapFrom(src => src.SkillInstances))
-            .ForMember(
-                dest => dest.StatusEffects,
-                opt => opt.MapFrom(src => src.StatusEffectInstances)
-            );
+            .ForMember(dest => dest.MaxHitPoints, opt => opt.MapFrom(src => src.GetMaxHitPoints()));
+
         CreateMap<Character, GetCharacterListingDto>();
         CreateMap<AddCharacterDto, Character>();
         CreateMap<UpdateCharacterDto, Character>();
 
-        // Flatten SkillInstance
-        CreateMap<SkillInstance, GetSkillInstanceDto>()
-            .AfterMap((src, dest, context) => context.Mapper.Map(src.Skill, dest));
-        CreateMap<Skill, GetSkillInstanceDto>();
+        CreateMap<SkillInstance, GetSkillInstanceDto>();
+        CreateMap<Skill, GetSkillDto>();
 
-        // Flatten StatusEffectInstance
-        CreateMap<StatusEffectInstance, GetStatusEffectInstanceDto>()
-            .AfterMap((src, dest, context) => context.Mapper.Map(src.StatusEffect, dest));
-        CreateMap<StatusEffect, GetStatusEffectInstanceDto>();
-
-        // TODO: Map skill status effect correctly
-        // If tricky to do here at the same time with flattening, just return the structured data
+        CreateMap<StatusEffectInstance, GetStatusEffectInstanceDto>();
+        CreateMap<StatusEffect, GetStatusEffectDto>();
 
         CreateMap<Weapon, GetItemDto>();
         CreateMap<ArmorPiece, GetItemDto>();

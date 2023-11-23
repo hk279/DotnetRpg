@@ -43,6 +43,7 @@ public class CharacterService : ICharacterService
                 .AsSplitQuery()
                 .Include(c => c.SkillInstances)
                 .ThenInclude(s => s.Skill)
+                .ThenInclude(s => s.StatusEffect)
                 .Include(c => c.Inventory)
                 .FirstOrDefaultAsync(c => c.Id == id && c.User != null && c.User.Id == GetUserId())
             ?? throw new NotFoundException("Character not found");
@@ -50,12 +51,12 @@ public class CharacterService : ICharacterService
         var dto = _autoMapper.Map<GetCharacterDto>(character);
 
         // Parse level-scaled skill base damage values for the UI
-        dto.Skills.ForEach(s =>
+        dto.SkillInstances.ForEach(s =>
         {
             var skill = character.SkillInstances.Single(s => s.Skill.Id == s.Id).Skill;
 
-            s.MinBaseDamage = character.Level * (skill.MinBaseDamageFactor / 10);
-            s.MaxBaseDamage = character.Level * (skill.MaxBaseDamageFactor / 10);
+            s.Skill.MinBaseDamage = character.Level * (skill.MinBaseDamageFactor / 10);
+            s.Skill.MaxBaseDamage = character.Level * (skill.MaxBaseDamageFactor / 10);
         });
 
         var currentLevelExperienceThreshold = LevelExperienceThresholds.AllThresholds

@@ -1,9 +1,10 @@
 namespace dotnet_rpg.Dtos.StatusEffect;
 
-public class StatusEffectDto
+public class GetStatusEffectDto
 {
     public required string Name { get; set; }
     public int Duration { get; set; }
+    public StatusEffectType Type { get; set; }
 
     public int DamagePerTurn { get; set; }
     public int HealingPerTurn { get; set; }
