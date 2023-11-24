@@ -26,6 +26,7 @@ builder.Services.AddDbContext<DataContext>(options =>
     options.UseSqlServer(connectionString);
     options.EnableSensitiveDataLogging();
 });
+builder.Services.AddHttpLogging(o => { });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -81,6 +82,8 @@ if (app.Environment.IsDevelopment())
                 .AllowCredentials()
     );
 }
+
+app.UseHttpLogging();
 
 app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 

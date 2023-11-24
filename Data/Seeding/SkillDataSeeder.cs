@@ -88,7 +88,7 @@ public class SkillDataSeeder
             .Select(
                 s =>
                     new StatusEffect(
-                        "Charge Stun",
+                        "Stunned",
                         duration: 1,
                         StatusEffectType.Physical,
                         skillId: s.Id,
@@ -117,7 +117,7 @@ public class SkillDataSeeder
                 {
                     1
                         => new StatusEffect(
-                            "Bleed",
+                            "Bleeding",
                             duration: 3,
                             StatusEffectType.Physical,
                             s.Id,
@@ -125,7 +125,7 @@ public class SkillDataSeeder
                         ),
                     2
                         => new StatusEffect(
-                            "Bleed",
+                            "Bleeding",
                             duration: 3,
                             StatusEffectType.Physical,
                             s.Id,
@@ -133,7 +133,7 @@ public class SkillDataSeeder
                         ),
                     3
                         => new StatusEffect(
-                            "Bleed",
+                            "Bleeding",
                             duration: 4,
                             StatusEffectType.Physical,
                             s.Id,
