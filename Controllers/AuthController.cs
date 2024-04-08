@@ -1,8 +1,8 @@
-using dotnet_rpg.Dtos.User;
-using dotnet_rpg.Services.AuthService;
+using DotnetRpg.Dtos.User;
+using DotnetRpg.Services.AuthService;
 using Microsoft.AspNetCore.Mvc;
 
-namespace dotnet_rpg.Controllers;
+namespace DotnetRpg.Controllers;
 
 [ApiController]
 [Route("[controller]")]

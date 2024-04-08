@@ -1,4 +1,4 @@
-namespace dotnet_rpg.Dtos.Character;
+namespace DotnetRpg.Dtos.Character;
 
 // TODO: Changes coming. Skills will be added through other events.
 public class AddCharacterSkillDto

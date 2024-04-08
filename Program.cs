@@ -1,17 +1,17 @@
-global using dotnet_rpg.Models;
+global using DotnetRpg.Models;
 using System.Text;
-using dotnet_rpg.Data;
-using dotnet_rpg.Services.AuthService;
-using dotnet_rpg.Services.CharacterService;
+using DotnetRpg.Data;
+using DotnetRpg.Services.AuthService;
+using DotnetRpg.Services.CharacterService;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Swashbuckle.AspNetCore.Filters;
 using Microsoft.OpenApi.Models;
-using dotnet_rpg.Services.FightService;
-using dotnet_rpg.Services.EnemyGeneratorService;
-using dotnet_rpg.Services.ItemService;
-using dotnet_rpg;
+using DotnetRpg.Services.FightService;
+using DotnetRpg.Services.EnemyGeneratorService;
+using DotnetRpg.Services.ItemService;
+using DotnetRpg;
 
 var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");

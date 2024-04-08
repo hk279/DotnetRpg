@@ -1,4 +1,4 @@
-namespace dotnet_rpg.Dtos.User;
+namespace DotnetRpg.Dtos.User;
 
 public class UserLoginDto
 {

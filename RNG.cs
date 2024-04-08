@@ -1,4 +1,4 @@
-namespace dotnet_rpg;
+namespace DotnetRpg;
 
 public static class RNG
 {

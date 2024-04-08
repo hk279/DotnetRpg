@@ -1,6 +1,6 @@
-using dotnet_rpg.Dtos.Item;
+using DotnetRpg.Dtos.Item;
 
-namespace dotnet_rpg.Services.ItemService;
+namespace DotnetRpg.Services.ItemService;
 
 public interface IInventoryService
 {

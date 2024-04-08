@@ -1,8 +1,8 @@
-using dotnet_rpg.Dtos.Item;
-using dotnet_rpg.Dtos.Skill;
-using dotnet_rpg.Dtos.StatusEffect;
+using DotnetRpg.Dtos.Item;
+using DotnetRpg.Dtos.Skill;
+using DotnetRpg.Dtos.StatusEffect;
 
-namespace dotnet_rpg.Dtos.Character
+namespace DotnetRpg.Dtos.Character
 {
     public class GetCharacterDto
     {

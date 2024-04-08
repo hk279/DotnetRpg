@@ -1,4 +1,4 @@
-namespace dotnet_rpg.Dtos.Character;
+namespace DotnetRpg.Dtos.Character;
 
 public class GetCharacterListingDto
 {

@@ -1,4 +1,4 @@
-namespace dotnet_rpg.Models
+namespace DotnetRpg.Models
 {
     // TODO: Remove - should not be necessary anymore
     public class ServiceResponse<T>

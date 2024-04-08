@@ -1,4 +1,4 @@
-namespace dotnet_rpg.Dtos.Fight;
+namespace DotnetRpg.Dtos.Fight;
 
 public class PlayerActionDto
 {

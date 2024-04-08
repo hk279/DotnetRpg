@@ -1,4 +1,4 @@
-namespace dotnet_rpg.Services.EnemyGeneratorService;
+namespace DotnetRpg.Services.EnemyGeneratorService;
 
 public class EnemyGeneratorService : IEnemyGeneratorService
 {

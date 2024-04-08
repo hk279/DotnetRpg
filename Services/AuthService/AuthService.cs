@@ -2,12 +2,12 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using dotnet_rpg.Data;
-using dotnet_rpg.Models.Exceptions;
+using DotnetRpg.Data;
+using DotnetRpg.Models.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
-namespace dotnet_rpg.Services.AuthService;
+namespace DotnetRpg.Services.AuthService;
 
 public class AuthService : IAuthService
 {

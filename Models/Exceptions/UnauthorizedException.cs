@@ -1,4 +1,4 @@
-namespace dotnet_rpg.Models.Exceptions;
+namespace DotnetRpg.Models.Exceptions;
 
 public class UnauthorizedException : Exception
 {

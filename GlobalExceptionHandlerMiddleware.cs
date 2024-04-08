@@ -1,8 +1,8 @@
 using System.Net;
 using System.Text.Json;
-using dotnet_rpg.Models.Exceptions;
+using DotnetRpg.Models.Exceptions;
 
-namespace dotnet_rpg;
+namespace DotnetRpg;
 
 public class GlobalExceptionHandlerMiddleware : IMiddleware
 {

@@ -1,4 +1,4 @@
-namespace dotnet_rpg.Services.AuthService;
+namespace DotnetRpg.Services.AuthService;
 
 public interface IAuthService
 {

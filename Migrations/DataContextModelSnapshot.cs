@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using dotnet_rpg.Data;
+using DotnetRpg.Data;
 
 #nullable disable
 
@@ -22,7 +22,7 @@ namespace dotnetrpg.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("dotnet_rpg.Models.Character", b =>
+            modelBuilder.Entity("DotnetRpg.Models.Character", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -92,7 +92,7 @@ namespace dotnetrpg.Migrations
                     b.ToTable("Characters");
                 });
 
-            modelBuilder.Entity("dotnet_rpg.Models.Fight", b =>
+            modelBuilder.Entity("DotnetRpg.Models.Fight", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -105,7 +105,7 @@ namespace dotnetrpg.Migrations
                     b.ToTable("Fights");
                 });
 
-            modelBuilder.Entity("dotnet_rpg.Models.Item", b =>
+            modelBuilder.Entity("DotnetRpg.Models.Item", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -165,7 +165,7 @@ namespace dotnetrpg.Migrations
                     b.UseTphMappingStrategy();
                 });
 
-            modelBuilder.Entity("dotnet_rpg.Models.Skill", b =>
+            modelBuilder.Entity("DotnetRpg.Models.Skill", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -323,7 +323,7 @@ namespace dotnetrpg.Migrations
                         });
                 });
 
-            modelBuilder.Entity("dotnet_rpg.Models.SkillInstance", b =>
+            modelBuilder.Entity("DotnetRpg.Models.SkillInstance", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -349,7 +349,7 @@ namespace dotnetrpg.Migrations
                     b.ToTable("SkillInstance");
                 });
 
-            modelBuilder.Entity("dotnet_rpg.Models.StatusEffect", b =>
+            modelBuilder.Entity("DotnetRpg.Models.StatusEffect", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -563,7 +563,7 @@ namespace dotnetrpg.Migrations
                         });
                 });
 
-            modelBuilder.Entity("dotnet_rpg.Models.StatusEffectInstance", b =>
+            modelBuilder.Entity("DotnetRpg.Models.StatusEffectInstance", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -589,7 +589,7 @@ namespace dotnetrpg.Migrations
                     b.ToTable("StatusEffectInstance");
                 });
 
-            modelBuilder.Entity("dotnet_rpg.Models.User", b =>
+            modelBuilder.Entity("DotnetRpg.Models.User", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -614,9 +614,9 @@ namespace dotnetrpg.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("dotnet_rpg.Models.ArmorPiece", b =>
+            modelBuilder.Entity("DotnetRpg.Models.ArmorPiece", b =>
                 {
-                    b.HasBaseType("dotnet_rpg.Models.Item");
+                    b.HasBaseType("DotnetRpg.Models.Item");
 
                     b.Property<int>("Armor")
                         .HasColumnType("int");
@@ -630,9 +630,9 @@ namespace dotnetrpg.Migrations
                     b.HasDiscriminator().HasValue(2);
                 });
 
-            modelBuilder.Entity("dotnet_rpg.Models.Weapon", b =>
+            modelBuilder.Entity("DotnetRpg.Models.Weapon", b =>
                 {
-                    b.HasBaseType("dotnet_rpg.Models.Item");
+                    b.HasBaseType("DotnetRpg.Models.Item");
 
                     b.Property<int>("MaxDamage")
                         .HasColumnType("int");
@@ -643,14 +643,14 @@ namespace dotnetrpg.Migrations
                     b.HasDiscriminator().HasValue(1);
                 });
 
-            modelBuilder.Entity("dotnet_rpg.Models.Character", b =>
+            modelBuilder.Entity("DotnetRpg.Models.Character", b =>
                 {
-                    b.HasOne("dotnet_rpg.Models.Fight", "Fight")
+                    b.HasOne("DotnetRpg.Models.Fight", "Fight")
                         .WithMany("Characters")
                         .HasForeignKey("FightId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("dotnet_rpg.Models.User", "User")
+                    b.HasOne("DotnetRpg.Models.User", "User")
                         .WithMany("Characters")
                         .HasForeignKey("UserId");
 
@@ -659,22 +659,22 @@ namespace dotnetrpg.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("dotnet_rpg.Models.Item", b =>
+            modelBuilder.Entity("DotnetRpg.Models.Item", b =>
                 {
-                    b.HasOne("dotnet_rpg.Models.Character", null)
+                    b.HasOne("DotnetRpg.Models.Character", null)
                         .WithMany("Inventory")
                         .HasForeignKey("CharacterId");
                 });
 
-            modelBuilder.Entity("dotnet_rpg.Models.SkillInstance", b =>
+            modelBuilder.Entity("DotnetRpg.Models.SkillInstance", b =>
                 {
-                    b.HasOne("dotnet_rpg.Models.Character", "Character")
+                    b.HasOne("DotnetRpg.Models.Character", "Character")
                         .WithMany("SkillInstances")
                         .HasForeignKey("CharacterId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("dotnet_rpg.Models.Skill", "Skill")
+                    b.HasOne("DotnetRpg.Models.Skill", "Skill")
                         .WithMany()
                         .HasForeignKey("SkillId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -685,26 +685,26 @@ namespace dotnetrpg.Migrations
                     b.Navigation("Skill");
                 });
 
-            modelBuilder.Entity("dotnet_rpg.Models.StatusEffect", b =>
+            modelBuilder.Entity("DotnetRpg.Models.StatusEffect", b =>
                 {
-                    b.HasOne("dotnet_rpg.Models.Skill", "Skill")
+                    b.HasOne("DotnetRpg.Models.Skill", "Skill")
                         .WithOne("StatusEffect")
-                        .HasForeignKey("dotnet_rpg.Models.StatusEffect", "SkillId")
+                        .HasForeignKey("DotnetRpg.Models.StatusEffect", "SkillId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Skill");
                 });
 
-            modelBuilder.Entity("dotnet_rpg.Models.StatusEffectInstance", b =>
+            modelBuilder.Entity("DotnetRpg.Models.StatusEffectInstance", b =>
                 {
-                    b.HasOne("dotnet_rpg.Models.Character", "Character")
+                    b.HasOne("DotnetRpg.Models.Character", "Character")
                         .WithMany("StatusEffectInstances")
                         .HasForeignKey("CharacterId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("dotnet_rpg.Models.StatusEffect", "StatusEffect")
+                    b.HasOne("DotnetRpg.Models.StatusEffect", "StatusEffect")
                         .WithMany("StatusEffectInstances")
                         .HasForeignKey("StatusEffectId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -715,7 +715,7 @@ namespace dotnetrpg.Migrations
                     b.Navigation("StatusEffect");
                 });
 
-            modelBuilder.Entity("dotnet_rpg.Models.Character", b =>
+            modelBuilder.Entity("DotnetRpg.Models.Character", b =>
                 {
                     b.Navigation("Inventory");
 
@@ -724,22 +724,22 @@ namespace dotnetrpg.Migrations
                     b.Navigation("StatusEffectInstances");
                 });
 
-            modelBuilder.Entity("dotnet_rpg.Models.Fight", b =>
+            modelBuilder.Entity("DotnetRpg.Models.Fight", b =>
                 {
                     b.Navigation("Characters");
                 });
 
-            modelBuilder.Entity("dotnet_rpg.Models.Skill", b =>
+            modelBuilder.Entity("DotnetRpg.Models.Skill", b =>
                 {
                     b.Navigation("StatusEffect");
                 });
 
-            modelBuilder.Entity("dotnet_rpg.Models.StatusEffect", b =>
+            modelBuilder.Entity("DotnetRpg.Models.StatusEffect", b =>
                 {
                     b.Navigation("StatusEffectInstances");
                 });
 
-            modelBuilder.Entity("dotnet_rpg.Models.User", b =>
+            modelBuilder.Entity("DotnetRpg.Models.User", b =>
                 {
                     b.Navigation("Characters");
                 });

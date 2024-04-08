@@ -1,6 +1,6 @@
-using dotnet_rpg.Dtos.Fight;
+using DotnetRpg.Dtos.Fight;
 
-namespace dotnet_rpg.Services.FightService;
+namespace DotnetRpg.Services.FightService;
 
 public interface IFightService
 {

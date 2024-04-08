@@ -1,11 +1,11 @@
 using System.Security.Claims;
 using AutoMapper;
-using dotnet_rpg.Data;
-using dotnet_rpg.Dtos.Item;
-using dotnet_rpg.Models.Exceptions;
+using DotnetRpg.Data;
+using DotnetRpg.Dtos.Item;
+using DotnetRpg.Models.Exceptions;
 using Microsoft.EntityFrameworkCore;
 
-namespace dotnet_rpg.Services.ItemService;
+namespace DotnetRpg.Services.ItemService;
 
 public class InventoryService : IInventoryService
 {

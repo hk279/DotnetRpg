@@ -1,9 +1,9 @@
-using dotnet_rpg.Dtos.Item;
-using dotnet_rpg.Services.ItemService;
+using DotnetRpg.Dtos.Item;
+using DotnetRpg.Services.ItemService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace dotnet_rpg.Controllers;
+namespace DotnetRpg.Controllers;
 
 [Authorize]
 [ApiController]

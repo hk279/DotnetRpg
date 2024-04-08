@@ -1,6 +1,6 @@
-using dotnet_rpg.Dtos.Character;
+using DotnetRpg.Dtos.Character;
 
-namespace dotnet_rpg.Services.CharacterService
+namespace DotnetRpg.Services.CharacterService
 {
     public interface ICharacterService
     {

@@ -9,7 +9,7 @@
     }
   },
   "profiles": {
-    "dotnet_rpg": {
+    "DotnetRpg": {
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,

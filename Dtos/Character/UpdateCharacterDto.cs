@@ -1,4 +1,4 @@
-namespace dotnet_rpg.Dtos.Character
+namespace DotnetRpg.Dtos.Character
 {
     // Possibly redundant. Used for testing purposes for now. 
     public class UpdateCharacterDto

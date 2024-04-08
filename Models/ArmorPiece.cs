@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace dotnet_rpg.Models;
+namespace DotnetRpg.Models;
 
 public class ArmorPiece : Item
 {

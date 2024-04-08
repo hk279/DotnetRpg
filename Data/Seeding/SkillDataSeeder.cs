@@ -1,4 +1,4 @@
-namespace dotnet_rpg.Data.Seeding;
+namespace DotnetRpg.Data.Seeding;
 
 public class SkillDataSeeder
 {

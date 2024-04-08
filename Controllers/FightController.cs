@@ -1,9 +1,9 @@
-using dotnet_rpg.Dtos.Fight;
-using dotnet_rpg.Services.FightService;
+using DotnetRpg.Dtos.Fight;
+using DotnetRpg.Services.FightService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace dotnet_rpg.Controllers;
+namespace DotnetRpg.Controllers;
 
 [Authorize]
 [ApiController]

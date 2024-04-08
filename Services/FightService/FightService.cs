@@ -1,10 +1,10 @@
-using dotnet_rpg.Data;
-using dotnet_rpg.Dtos.Fight;
-using dotnet_rpg.Models.Exceptions;
-using dotnet_rpg.Services.EnemyGeneratorService;
+using DotnetRpg.Data;
+using DotnetRpg.Dtos.Fight;
+using DotnetRpg.Models.Exceptions;
+using DotnetRpg.Services.EnemyGeneratorService;
 using Microsoft.EntityFrameworkCore;
 
-namespace dotnet_rpg.Services.FightService;
+namespace DotnetRpg.Services.FightService;
 
 public class FightService : IFightService
 {
@@ -525,18 +525,4 @@ public record PlayerActionReferenceData(
     Character PlayerCharacter,
     Character TargetCharacter,
     List<Character> AllEnemyCharacters
-)
-{
-    public void Deconstruct(
-        out Fight fight,
-        out Character playerCharacter,
-        out Character targetCharacter,
-        List<Character> allEnemyCharacters
-    )
-    {
-        fight = Fight;
-        playerCharacter = PlayerCharacter;
-        targetCharacter = TargetCharacter;
-        allEnemyCharacters = AllEnemyCharacters;
-    }
-}
+);

@@ -1,4 +1,4 @@
-namespace dotnet_rpg.Models;
+namespace DotnetRpg.Models;
 
 public class StatusEffectInstance
 {

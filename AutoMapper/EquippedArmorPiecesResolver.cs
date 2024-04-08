@@ -1,8 +1,8 @@
 using AutoMapper;
-using dotnet_rpg.Dtos.Character;
-using dotnet_rpg.Dtos.Item;
+using DotnetRpg.Dtos.Character;
+using DotnetRpg.Dtos.Item;
 
-namespace dotnet_rpg.AutoMapper;
+namespace DotnetRpg.AutoMapper;
 
 public class EquippedArmorPiecesResolver
     : IValueResolver<Character, GetCharacterDto, List<GetEquippedArmorPieceDto>>

@@ -1,7 +1,7 @@
-using dotnet_rpg.Data.Seeding;
+using DotnetRpg.Data.Seeding;
 using Microsoft.EntityFrameworkCore;
 
-namespace dotnet_rpg.Data
+namespace DotnetRpg.Data
 {
     public class DataContext : DbContext
     {

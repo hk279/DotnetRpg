@@ -1,4 +1,4 @@
-namespace dotnet_rpg.Dtos.Skill;
+namespace DotnetRpg.Dtos.Skill;
 
 public class GetSkillInstanceDto
 {

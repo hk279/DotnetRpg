@@ -1,10 +1,10 @@
 using AutoMapper;
-using dotnet_rpg.Dtos.Character;
-using dotnet_rpg.Dtos.Item;
-using dotnet_rpg.Dtos.Skill;
-using dotnet_rpg.Dtos.StatusEffect;
+using DotnetRpg.Dtos.Character;
+using DotnetRpg.Dtos.Item;
+using DotnetRpg.Dtos.Skill;
+using DotnetRpg.Dtos.StatusEffect;
 
-namespace dotnet_rpg.AutoMapper;
+namespace DotnetRpg.AutoMapper;
 
 public class AutoMapperProfile : Profile
 {

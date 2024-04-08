@@ -1,9 +1,9 @@
-using dotnet_rpg.Dtos.Character;
-using dotnet_rpg.Services.CharacterService;
+using DotnetRpg.Dtos.Character;
+using DotnetRpg.Services.CharacterService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace dotnet_rpg.Controllers;
+namespace DotnetRpg.Controllers;
 
 [Authorize]
 [ApiController]

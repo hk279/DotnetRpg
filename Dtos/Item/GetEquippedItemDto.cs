@@ -1,4 +1,4 @@
-namespace dotnet_rpg.Dtos.Item;
+namespace DotnetRpg.Dtos.Item;
 
 public class GetEquippedItemDto
 {

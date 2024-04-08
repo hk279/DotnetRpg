@@ -1,11 +1,11 @@
-using dotnet_rpg.Dtos.Character;
+using DotnetRpg.Dtos.Character;
 using AutoMapper;
-using dotnet_rpg.Data;
+using DotnetRpg.Data;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
-using dotnet_rpg.Models.Exceptions;
+using DotnetRpg.Models.Exceptions;
 
-namespace dotnet_rpg.Services.CharacterService;
+namespace DotnetRpg.Services.CharacterService;
 
 public class CharacterService : ICharacterService
 {

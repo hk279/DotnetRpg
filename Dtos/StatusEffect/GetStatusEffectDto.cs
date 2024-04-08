@@ -1,4 +1,4 @@
-namespace dotnet_rpg.Dtos.StatusEffect;
+namespace DotnetRpg.Dtos.StatusEffect;
 
 public class GetStatusEffectDto
 {
