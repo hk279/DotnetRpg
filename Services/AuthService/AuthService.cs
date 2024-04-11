@@ -11,6 +11,11 @@ namespace DotnetRpg.Services.AuthService;
 
 public class AuthService : IAuthService
 {
+    public const int userNameMinLength = 3;
+    public const int userNameMaxLength = 12;
+    public const int passwordMinLength = 5;
+    public const int passwordMaxLength = 16;
+
     public readonly DataContext _context;
     public readonly IConfiguration _config;
 
@@ -43,10 +48,7 @@ public class AuthService : IAuthService
     {
         var response = new ServiceResponse<int>();
 
-        if (await UserExists(userName))
-        {
-            throw new ConflictException("Username is taken");
-        }
+        await ValidateRegistration(userName, password);
 
         var user = new User { Username = userName };
 
@@ -118,5 +120,23 @@ public class AuthService : IAuthService
         var token = tokenHandler.CreateToken(tokenDescriptor);
 
         return tokenHandler.WriteToken(token);
+    }
+
+    private async Task ValidateRegistration(string userName, string password)
+    {
+        if (userName.Length < userNameMinLength || userName.Length > userNameMaxLength)
+        {
+            throw new BadRequestException("Username has to be between 3 and 12 characters long");
+        }
+
+        if (password.Length < passwordMinLength || password.Length > passwordMaxLength)
+        {
+            throw new BadRequestException("Password has to be between 5 and 16 characters long");
+        }
+
+        if (await UserExists(userName))
+        {
+            throw new ConflictException("Username is taken");
+        }
     }
 }
