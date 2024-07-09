@@ -66,7 +66,7 @@ public class FightService : IFightService
                 "Invalid action. Player character does not possess this skill"
             );
 
-        ValidateSkillAction(skillInstance, playerCharacter);
+        ValidatePlayerSkillAction(skillInstance, playerCharacter);
 
         playerCharacter.CurrentEnergy -= skillInstance.Skill.EnergyCost;
 
@@ -93,9 +93,9 @@ public class FightService : IFightService
             FightStatus = FightStatus.Ongoing,
         };
 
-        if (targetCharacter.CurrentHitPoints <= 0)
+        if (targetCharacter.IsDead)
         {
-            var allEnemiesDefeated = allEnemyCharacters.All(c => c.CurrentHitPoints <= 0);
+            var allEnemiesDefeated = allEnemyCharacters.All(c => c.IsDead);
 
             if (allEnemiesDefeated)
             {
@@ -146,9 +146,9 @@ public class FightService : IFightService
             FightStatus = FightStatus.Ongoing,
         };
 
-        if (targetCharacter.CurrentHitPoints <= 0)
+        if (targetCharacter.IsDead)
         {
-            var allEnemiesDefeated = allEnemyCharacters.All(c => c.CurrentHitPoints <= 0);
+            var allEnemiesDefeated = allEnemyCharacters.All(c => c.IsDead);
 
             if (allEnemiesDefeated)
             {
@@ -174,7 +174,7 @@ public class FightService : IFightService
 
     private static int AttackWithSkill(Character attacker, Character defender, Skill skill)
     {
-        if (defender.CurrentHitPoints <= 0)
+        if (defender.IsDead)
         {
             throw new BadRequestException(
                 $"Invalid action. Target character with ID {defender.Id} has already been defeated"
@@ -182,41 +182,24 @@ public class FightService : IFightService
         }
 
         var damage = CalculateSkillDamage(skill, attacker, defender);
-
-        // Apply damage
-        if (damage > 0)
-        {
-            defender.CurrentHitPoints -= damage;
-
-            if (defender.CurrentHitPoints < 0)
-            {
-                defender.CurrentHitPoints = 0;
-            }
-        }
+        
+        defender.CurrentHitPoints = Math.Max(defender.CurrentHitPoints - damage, 0);
 
         return damage;
     }
 
     private static int AttackWithWeapon(Character attacker, Character defender)
     {
-        if (defender.CurrentHitPoints <= 0)
+        if (defender.IsDead)
         {
             throw new BadRequestException(
-                "Invalid Attack. Target character has already been defeated"
+                $"Invalid Attack. Target character with ID {defender.Id} has already been defeated"
             );
         }
 
         var damage = CalculateWeaponDamage(attacker, defender);
 
-        if (damage > 0)
-        {
-            defender.CurrentHitPoints -= damage;
-
-            if (defender.CurrentHitPoints < 0)
-            {
-                defender.CurrentHitPoints = 0;
-            }
-        }
+        defender.CurrentHitPoints = Math.Max(defender.CurrentHitPoints - damage, 0);
 
         return damage;
     }
@@ -264,7 +247,7 @@ public class FightService : IFightService
                 TargetCharacterName = playerCharacter.Name,
             };
 
-            if (enemyCharacter.CurrentHitPoints > 0)
+            if (enemyCharacter.IsAlive)
             {
                 var validSkills = enemyCharacter.SkillInstances
                     .Where(
@@ -301,7 +284,7 @@ public class FightService : IFightService
             enemyActions.Add(enemyAction);
         }
 
-        if (playerCharacter.CurrentHitPoints <= 0)
+        if (playerCharacter.IsDead)
         {
             resultDto.FightStatus = FightStatus.Defeat;
             EndFight(fight, allEnemyCharacters, playerCharacter, false);
@@ -356,10 +339,7 @@ public class FightService : IFightService
             DamageType.Physical => Math.Round((decimal)defender.GetArmor() / 100, 2),
             DamageType.Magic => Math.Round((decimal)defender.GetResistance() / 100, 2),
             _
-                => throw new ArgumentOutOfRangeException(
-                    nameof(skill.DamageType),
-                    "Invalid damage type"
-                )
+                => throw new ArgumentOutOfRangeException(nameof(skill.DamageType), "Invalid damage type")
         };
         var damageReductionFactor = 1 - damageReduction;
 
@@ -387,16 +367,14 @@ public class FightService : IFightService
         return damage;
     }
 
+    /// <summary>
+    /// Energy regenerates by the amount equal to the spirit-attribute every turn.
+    /// </summary>
     private static void RegenerateEnergy(List<Character> allCharactersInFight)
     {
         foreach (var character in allCharactersInFight)
         {
-            character.CurrentEnergy += character.GetSpirit();
-
-            if (character.CurrentEnergy > character.GetMaxEnergy())
-            {
-                character.CurrentEnergy = character.GetMaxEnergy();
-            }
+            character.CurrentEnergy = Math.Min(character.CurrentEnergy + character.GetSpirit(), character.GetMaxEnergy());
         }
     }
 
@@ -419,7 +397,7 @@ public class FightService : IFightService
         foreach (var character in allCharactersInFight)
         {
             // Remove expiring status effects
-            character.StatusEffectInstances.RemoveAll(s => s.RemainingDuration == 1);
+            character.StatusEffectInstances.RemoveAll(s => s.RemainingDuration <= 1);
 
             // Decrement remaining durations
             character.StatusEffectInstances.ForEach(s =>
@@ -431,7 +409,7 @@ public class FightService : IFightService
 
     private static void ApplyStatusEffect(Skill skill, Character targetCharacter)
     {
-        if (skill.StatusEffect != null)
+        if (skill.StatusEffect is not null)
         {
             targetCharacter.StatusEffectInstances.Add(
                 new StatusEffectInstance(skill.StatusEffect, skill.StatusEffect.Duration)
@@ -444,6 +422,7 @@ public class FightService : IFightService
         IEnumerable<Character> enemyCharacters
     )
     {
+        // Max level
         if (playerCharacter.Level == 50)
         {
             return;
@@ -461,15 +440,15 @@ public class FightService : IFightService
         playerCharacter.Level = newLevel;
     }
 
-    private static void ValidateSkillAction(SkillInstance skillInstance, Character character)
+    private static void ValidatePlayerSkillAction(SkillInstance skillInstance, Character playerCharacter)
     {
-        if (
-            character.StatusEffectInstances.Any(
+        var playerCharacterIsStunned = playerCharacter.StatusEffectInstances.Any(
                 s => s.StatusEffect.IsStunned && s.RemainingDuration > 0
-            )
-        )
+            );
+
+        if (playerCharacterIsStunned)
         {
-            throw new BadRequestException("Invalid action. Character is stunned");
+            throw new BadRequestException("Invalid action. Player character is stunned");
         }
 
         if (skillInstance.RemainingCooldown > 0)
@@ -477,7 +456,7 @@ public class FightService : IFightService
             throw new BadRequestException("Invalid action. Skill is on cooldown");
         }
 
-        if (character.CurrentEnergy < skillInstance.Skill.EnergyCost)
+        if (playerCharacter.CurrentEnergy < skillInstance.Skill.EnergyCost)
         {
             throw new BadRequestException("Invalid action. Not enough energy to use this skill");
         }
@@ -489,6 +468,7 @@ public class FightService : IFightService
     {
         var fight =
             await _context.Fights
+                .AsSplitQuery()
                 .Include(f => f.Characters)
                 .ThenInclude(c => c.SkillInstances)
                 .ThenInclude(s => s.Skill)

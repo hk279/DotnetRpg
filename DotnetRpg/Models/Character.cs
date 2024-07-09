@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace DotnetRpg.Models;
 
 public class Character
@@ -31,6 +33,12 @@ public class Character
     public List<Item> Inventory { get; set; } = new List<Item>();
     public Fight? Fight { get; set; }
     public int? FightId { get; set; }
+
+    [NotMapped]
+    public bool IsAlive => CurrentHitPoints > 0;
+
+    [NotMapped]
+    public bool IsDead => CurrentHitPoints <= 0;
 
     /// <summary>
     /// Strength increases physical damage
