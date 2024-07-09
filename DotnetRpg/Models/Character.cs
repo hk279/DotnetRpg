@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace DotnetRpg.Models;
@@ -5,12 +6,14 @@ namespace DotnetRpg.Models;
 public class Character
 {
     public int Id { get; set; }
+    [MaxLength(32)]
     public string Name { get; set; } = string.Empty;
     public string Avatar { get; set; } = string.Empty;
     public bool IsPlayerCharacter { get; set; } = true;
 
     public int Level { get; set; } = 1;
-    public long Experience { get; set; }
+    public int Experience { get; set; }
+    public int UnassignedAttributePoints { get; set; } = 0;
 
     public int Strength { get; set; }
     public int Intelligence { get; set; }

@@ -34,7 +34,7 @@ public class CharacterService : ICharacterService
         return new ServiceResponse<List<GetCharacterListingDto>> { Data = allCharacters };
     }
 
-    public async Task<ServiceResponse<GetCharacterDto>> GetCharacterById(int id)
+    public async Task<ServiceResponse<GetCharacterDto>> GetCharacterById(int characterId)
     {
         var response = new ServiceResponse<GetCharacterDto>();
 
@@ -45,7 +45,7 @@ public class CharacterService : ICharacterService
                 .ThenInclude(s => s.Skill)
                 .ThenInclude(s => s.StatusEffect)
                 .Include(c => c.Inventory)
-                .FirstOrDefaultAsync(c => c.Id == id && c.User != null && c.User.Id == GetUserId())
+                .FirstOrDefaultAsync(c => c.Id == characterId && c.User != null && c.User.Id == GetUserId())
             ?? throw new NotFoundException("Character not found");
 
         var dto = _autoMapper.Map<GetCharacterDto>(character);
@@ -138,14 +138,14 @@ public class CharacterService : ICharacterService
         return response;
     }
 
-    public async Task<ServiceResponse<List<GetCharacterDto>>> DeleteCharacter(int id)
+    public async Task<ServiceResponse<List<GetCharacterDto>>> DeleteCharacter(int characterId)
     {
         var response = new ServiceResponse<List<GetCharacterDto>>();
 
         var characterToRemove =
             await _context.Characters.FirstOrDefaultAsync(
-                c => c.Id == id && c.User != null && c.User.Id == GetUserId()
-            ) ?? throw new NotFoundException("Character not found");
+                c => c.Id == characterId && c.User != null && c.User.Id == GetUserId()
+            ) ?? throw new NotFoundException($"Character not found with ID {characterId}");
 
         _context.Characters.Remove(characterToRemove);
 

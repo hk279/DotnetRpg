@@ -429,15 +429,21 @@ public class FightService : IFightService
         }
 
         var averageEnemyLevel = enemyCharacters.Average(s => s.Level);
-        var experienceReward = (long)Math.Round(10 * averageEnemyLevel);
+        var experienceReward = (int)Math.Round(10 * averageEnemyLevel);
         var newExperienceTotal = playerCharacter.Experience + experienceReward;
+        playerCharacter.Experience = newExperienceTotal;
+
         var newLevel = LevelExperienceThresholds.AllThresholds
             .Where(t => newExperienceTotal >= t.Value)
             .MaxBy(t => t.Value)
             .Key;
 
-        playerCharacter.Experience = newExperienceTotal;
-        playerCharacter.Level = newLevel;
+        if (newLevel > playerCharacter.Level)
+        {
+            playerCharacter.Level = newLevel;
+            playerCharacter.UnassignedAttributePoints++;
+        }
+
     }
 
     private static void ValidatePlayerSkillAction(SkillInstance skillInstance, Character playerCharacter)
