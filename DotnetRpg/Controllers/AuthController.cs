@@ -28,4 +28,11 @@ public class AuthController : ControllerBase
         var response = await _authService.Login(loginDetails.Username, loginDetails.Password);
         return Ok(response);
     }
+
+    [HttpGet("current-user")]
+    public async Task<ActionResult<ServiceResponse<string>>> GetUserName()
+    {
+        var response = await _authService.GetUserName();
+        return Ok(response);
+    }
 }

@@ -18,11 +18,26 @@ public class AuthService : IAuthService
 
     public readonly DataContext _context;
     public readonly IConfiguration _config;
+    public readonly IHttpContextAccessor _httpContextAccessor;
 
-    public AuthService(DataContext context, IConfiguration config)
+    public AuthService(DataContext context, IConfiguration config, IHttpContextAccessor httpContextAccessor)
     {
         _context = context;
         _config = config;
+        _httpContextAccessor = httpContextAccessor;
+    }
+
+    public async Task<ServiceResponse<string>> GetUserName()
+    {
+        var response = new ServiceResponse<string>();
+
+        var userId = GetUserId();
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId)
+            ?? throw new NotFoundException($"User not found with ID {userId}");
+
+        response.Data = user.Username;
+
+        return response;
     }
 
     public async Task<ServiceResponse<LoginDetails>> Login(string username, string password)
@@ -32,7 +47,7 @@ public class AuthService : IAuthService
         var user =
             await _context.Users.FirstOrDefaultAsync(
                 u => u.Username.ToLower().Equals(username.ToLower())
-            ) ?? throw new UnauthorizedException("Login failed. User not found.");
+            ) ?? throw new UnauthorizedException($"Login failed. User not found with name '{username}'.");
 
         if (!VerifyPasswordHash(password, user.PasswordHash, user.PasswordSalt))
         {
@@ -69,6 +84,18 @@ public class AuthService : IAuthService
             u => u.Username.ToLower() == username.ToLower()
         );
         return userExists;
+    }
+
+    // TODO: Handle the user ID check in EF query filter
+    private int GetUserId()
+    {
+        var httpContext =
+            _httpContextAccessor.HttpContext
+            ?? throw new ArgumentNullException(nameof(_httpContextAccessor.HttpContext));
+        var userId =
+            httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier)
+            ?? throw new UnauthorizedException("User not identified");
+        return int.Parse(userId);
     }
 
     private static void CreatePasswordHash(
