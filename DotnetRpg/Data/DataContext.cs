@@ -1,13 +1,23 @@
 using DotnetRpg.Data.Seeding;
+using DotnetRpg.Services.UserProvider;
 using Microsoft.EntityFrameworkCore;
 
 namespace DotnetRpg.Data
 {
     public class DataContext : DbContext
     {
-        public DataContext(DbContextOptions<DataContext> options)
-            : base(options) { }
-
+        private readonly IUserProvider _userProvider;
+        
+        public DataContext(DbContextOptions<DataContext> options, IUserProvider userProvider)
+            : base(options)
+        {
+            _userProvider = userProvider;
+        }
+        
+        // TODO: Move EntityConfigurations to separate classes
+        // TODO: Apply user filter for everything
+        // TODO: Create a base entity class with Id and UserId
+        
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder
@@ -51,7 +61,8 @@ namespace DotnetRpg.Data
             modelBuilder.Entity<Skill>().HasData(warriorSkills);
             modelBuilder.Entity<StatusEffect>().HasData(warriorSkillStatusEffects);
         }
-
+        
+        public int UserId => _userProvider.GetUserId();
         public DbSet<Character> Characters { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<Skill> Skills { get; set; }

@@ -12,6 +12,7 @@ using DotnetRpg.Services.FightService;
 using DotnetRpg.Services.EnemyGeneratorService;
 using DotnetRpg.Services.ItemService;
 using DotnetRpg;
+using DotnetRpg.Services.UserProvider;
 
 var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -63,6 +64,8 @@ builder.Services.AddScoped<IFightService, FightService>();
 builder.Services.AddScoped<IEnemyGeneratorService, EnemyGeneratorService>();
 builder.Services.AddScoped<IInventoryService, InventoryService>();
 
+builder.Services.AddScoped<IUserProvider, AuthenticatedUserProvider>();
+
 builder.Services.AddTransient<GlobalExceptionHandlerMiddleware>();
 
 var app = builder.Build();
@@ -74,8 +77,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 
     app.UseCors(
-        builder =>
-            builder
+        corsPolicyBuilder =>
+            corsPolicyBuilder
                 .WithOrigins("http://localhost:3000")
                 .AllowAnyHeader()
                 .AllowAnyMethod()

@@ -1,5 +1,6 @@
 ﻿using DotnetRpg.Models.Exceptions;
 using DotnetRpg.Services.AuthService;
+using DotnetRpg.Services.UserProvider;
 using Microsoft.Extensions.Configuration;
 
 namespace DotnetRpg.Tests;
@@ -15,6 +16,7 @@ public class AuthServiceTests
     {
         var mockConfiguration = new Mock<IConfiguration>();
         var mockSection = new Mock<IConfigurationSection>();
+        var mockUserProvider = new Mock<IUserProvider>();
         
         mockSection.Setup(section => section["TokenSettings:Secret"]).Returns("SomeValue");
         mockConfiguration.Setup(config => config.GetSection("SectionKey")).Returns(mockSection.Object);
@@ -23,7 +25,7 @@ public class AuthServiceTests
             .UseInMemoryDatabase(databaseName: "TestDatabase")
             .Options;
 
-        _dbContext = new DataContext(dbContextOptions);
+        _dbContext = new DataContext(dbContextOptions, mockUserProvider.Object);
         _sut = new AuthService(_dbContext, mockConfiguration.Object);
     }
 
@@ -53,8 +55,8 @@ public class AuthServiceTests
     [Test]
     public async Task Register_ExistingUser_ThrowsConflictException()
     {
-        var userName = GetStringWithLength(AuthService.userNameMinLength);
-        var password = GetStringWithLength(AuthService.passwordMinLength);
+        var userName = GetStringWithLength(AuthService.UserNameMinLength);
+        var password = GetStringWithLength(AuthService.PasswordMinLength);
 
         await _sut.Register(userName, password);
 
@@ -64,8 +66,8 @@ public class AuthServiceTests
     [Test]
     public void Register_UserNameTooShort_ThrowsBadRequestException()
     {
-        var userName = GetStringWithLength(AuthService.userNameMinLength - 1); ;
-        var password = GetStringWithLength(AuthService.passwordMinLength);
+        var userName = GetStringWithLength(AuthService.UserNameMinLength - 1);
+        var password = GetStringWithLength(AuthService.PasswordMinLength);
 
         Assert.ThrowsAsync<BadRequestException>(async () => await _sut.Register(userName, password));
     }
@@ -73,8 +75,8 @@ public class AuthServiceTests
     [Test]
     public void Register_UserNameTooLong_ThrowsBadRequestException()
     {
-        var userName = GetStringWithLength(AuthService.userNameMaxLength + 1);
-        var password = GetStringWithLength(AuthService.passwordMinLength);
+        var userName = GetStringWithLength(AuthService.UserNameMaxLength + 1);
+        var password = GetStringWithLength(AuthService.PasswordMinLength);
 
         Assert.ThrowsAsync<BadRequestException>(async () => await _sut.Register(userName, password));
     }
@@ -82,8 +84,8 @@ public class AuthServiceTests
     [Test]
     public void Register_PasswordTooShort_ThrowsBadRequestException()
     {
-        var userName = GetStringWithLength(AuthService.userNameMinLength);
-        var password = GetStringWithLength(AuthService.passwordMinLength - 1);
+        var userName = GetStringWithLength(AuthService.UserNameMinLength);
+        var password = GetStringWithLength(AuthService.PasswordMinLength - 1);
 
         Assert.ThrowsAsync<BadRequestException>(async () => await _sut.Register(userName, password));
     }
@@ -91,8 +93,8 @@ public class AuthServiceTests
     [Test]
     public void Register_PasswordTooLong_ThrowsBadRequestException()
     {
-        var userName = GetStringWithLength(AuthService.userNameMinLength);
-        var password = GetStringWithLength(AuthService.passwordMaxLength + 1);
+        var userName = GetStringWithLength(AuthService.UserNameMinLength);
+        var password = GetStringWithLength(AuthService.PasswordMaxLength + 1);
 
         Assert.ThrowsAsync<BadRequestException>(async () => await _sut.Register(userName, password));
     }
@@ -102,8 +104,8 @@ public class AuthServiceTests
     {
         Assert.Multiple(() =>
         {
-            Assert.That(AuthService.userNameMinLength, Is.LessThanOrEqualTo(AuthService.userNameMaxLength));
-            Assert.That(AuthService.passwordMinLength, Is.LessThanOrEqualTo(AuthService.passwordMaxLength));
+            Assert.That(AuthService.UserNameMinLength, Is.LessThanOrEqualTo(AuthService.UserNameMaxLength));
+            Assert.That(AuthService.PasswordMinLength, Is.LessThanOrEqualTo(AuthService.PasswordMaxLength));
         });
     }
 

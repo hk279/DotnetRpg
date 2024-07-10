@@ -4,6 +4,7 @@ using System.Security.Cryptography;
 using System.Text;
 using DotnetRpg.Data;
 using DotnetRpg.Models.Exceptions;
+using DotnetRpg.Services.UserProvider;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
@@ -11,27 +12,27 @@ namespace DotnetRpg.Services.AuthService;
 
 public class AuthService : IAuthService
 {
-    public const int userNameMinLength = 3;
-    public const int userNameMaxLength = 12;
-    public const int passwordMinLength = 5;
-    public const int passwordMaxLength = 16;
+    public const int UserNameMinLength = 3;
+    public const int UserNameMaxLength = 12;
+    public const int PasswordMinLength = 5;
+    public const int PasswordMaxLength = 16;
 
-    public readonly DataContext _context;
-    public readonly IConfiguration _config;
-    public readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly DataContext _context;
+    private readonly IConfiguration _config;
+    private readonly IUserProvider _userProvider;
 
-    public AuthService(DataContext context, IConfiguration config, IHttpContextAccessor httpContextAccessor)
+    public AuthService(DataContext context, IConfiguration config, IUserProvider userProvider)
     {
         _context = context;
         _config = config;
-        _httpContextAccessor = httpContextAccessor;
+        _userProvider = userProvider;
     }
 
     public async Task<ServiceResponse<string>> GetUserName()
     {
         var response = new ServiceResponse<string>();
 
-        var userId = GetUserId();
+        var userId = _userProvider.GetUserId();
         var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId)
             ?? throw new NotFoundException($"User not found with ID {userId}");
 
@@ -67,7 +68,7 @@ public class AuthService : IAuthService
 
         var user = new User { Username = userName };
 
-        CreatePasswordHash(password, out byte[] passwordHash, out byte[] passwordSalt);
+        CreatePasswordHash(password, out var passwordHash, out var passwordSalt);
         user.PasswordHash = passwordHash;
         user.PasswordSalt = passwordSalt;
 
@@ -84,18 +85,6 @@ public class AuthService : IAuthService
             u => u.Username.ToLower() == username.ToLower()
         );
         return userExists;
-    }
-
-    // TODO: Handle the user ID check in EF query filter
-    private int GetUserId()
-    {
-        var httpContext =
-            _httpContextAccessor.HttpContext
-            ?? throw new ArgumentNullException(nameof(_httpContextAccessor.HttpContext));
-        var userId =
-            httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier)
-            ?? throw new UnauthorizedException("User not identified");
-        return int.Parse(userId);
     }
 
     private static void CreatePasswordHash(
@@ -151,14 +140,16 @@ public class AuthService : IAuthService
 
     private async Task ValidateRegistration(string userName, string password)
     {
-        if (userName.Length < userNameMinLength || userName.Length > userNameMaxLength)
+        if (userName.Length is < UserNameMinLength or > UserNameMaxLength)
         {
-            throw new BadRequestException("Username has to be between 3 and 12 characters long");
+            throw new BadRequestException(
+                $"Username has to be between {UserNameMinLength} and {UserNameMaxLength} characters long");
         }
 
-        if (password.Length < passwordMinLength || password.Length > passwordMaxLength)
+        if (password.Length is < PasswordMinLength or > PasswordMaxLength)
         {
-            throw new BadRequestException("Password has to be between 5 and 16 characters long");
+            throw new BadRequestException(
+                $"Password has to be between {PasswordMinLength} and {PasswordMaxLength} characters long");
         }
 
         if (await UserExists(userName))
