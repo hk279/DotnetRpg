@@ -34,6 +34,7 @@ public class Character : BaseEntity
     public List<Item> Inventory { get; set; } = new List<Item>();
     public Fight? Fight { get; set; }
 
+
     [NotMapped]
     public bool IsAlive => CurrentHitPoints > 0;
 

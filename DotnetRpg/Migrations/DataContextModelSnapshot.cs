@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace dotnetrpg.Migrations
+namespace DotnetRpg.Migrations
 {
     [DbContext(typeof(DataContext))]
     partial class DataContextModelSnapshot : ModelSnapshot
@@ -84,7 +84,7 @@ namespace dotnetrpg.Migrations
                     b.Property<int>("UnassignedAttributePoints")
                         .HasColumnType("int");
 
-                    b.Property<int?>("UserId")
+                    b.Property<int>("UserId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -93,7 +93,7 @@ namespace dotnetrpg.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Characters", (string)null);
+                    b.ToTable("Characters");
                 });
 
             modelBuilder.Entity("DotnetRpg.Models.Fight", b =>
@@ -104,9 +104,14 @@ namespace dotnetrpg.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
-                    b.ToTable("Fights", (string)null);
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Fights");
                 });
 
             modelBuilder.Entity("DotnetRpg.Models.Item", b =>
@@ -152,6 +157,9 @@ namespace dotnetrpg.Migrations
                     b.Property<int>("Type")
                         .HasColumnType("int");
 
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
                     b.Property<int>("Value")
                         .HasColumnType("int");
 
@@ -162,7 +170,9 @@ namespace dotnetrpg.Migrations
 
                     b.HasIndex("CharacterId");
 
-                    b.ToTable("Item", (string)null);
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Item");
 
                     b.HasDiscriminator<int>("Type");
 
@@ -212,6 +222,9 @@ namespace dotnetrpg.Migrations
                     b.Property<int>("Rank")
                         .HasColumnType("int");
 
+                    b.Property<int?>("StatusEffectId")
+                        .HasColumnType("int");
+
                     b.Property<int>("TargetType")
                         .HasColumnType("int");
 
@@ -220,111 +233,11 @@ namespace dotnetrpg.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Skills", (string)null);
+                    b.HasIndex("StatusEffectId")
+                        .IsUnique()
+                        .HasFilter("[StatusEffectId] IS NOT NULL");
 
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            BaseDamageAttributeScalingFactor = 90,
-                            CharacterClass = 1,
-                            Cooldown = 5,
-                            DamageType = 1,
-                            Description = "Violently charge the enemy.",
-                            EnergyCost = 15,
-                            Healing = 0,
-                            MaxBaseDamageFactor = 40,
-                            MinBaseDamageFactor = 30,
-                            Name = "Charge",
-                            Rank = 1,
-                            TargetType = 3,
-                            WeaponDamagePercentage = 10
-                        },
-                        new
-                        {
-                            Id = 2,
-                            BaseDamageAttributeScalingFactor = 90,
-                            CharacterClass = 1,
-                            Cooldown = 5,
-                            DamageType = 1,
-                            Description = "Violently charge the enemy.",
-                            EnergyCost = 15,
-                            Healing = 0,
-                            MaxBaseDamageFactor = 50,
-                            MinBaseDamageFactor = 40,
-                            Name = "Charge",
-                            Rank = 2,
-                            TargetType = 3,
-                            WeaponDamagePercentage = 20
-                        },
-                        new
-                        {
-                            Id = 3,
-                            BaseDamageAttributeScalingFactor = 90,
-                            CharacterClass = 1,
-                            Cooldown = 5,
-                            DamageType = 1,
-                            Description = "Violently charge the enemy.",
-                            EnergyCost = 15,
-                            Healing = 0,
-                            MaxBaseDamageFactor = 50,
-                            MinBaseDamageFactor = 40,
-                            Name = "Charge",
-                            Rank = 3,
-                            TargetType = 3,
-                            WeaponDamagePercentage = 30
-                        },
-                        new
-                        {
-                            Id = 4,
-                            BaseDamageAttributeScalingFactor = 50,
-                            CharacterClass = 1,
-                            Cooldown = 4,
-                            DamageType = 1,
-                            Description = "Slash at your opponent, causing a grievous wound.",
-                            EnergyCost = 20,
-                            Healing = 0,
-                            MaxBaseDamageFactor = 50,
-                            MinBaseDamageFactor = 40,
-                            Name = "Rend",
-                            Rank = 1,
-                            TargetType = 3,
-                            WeaponDamagePercentage = 30
-                        },
-                        new
-                        {
-                            Id = 5,
-                            BaseDamageAttributeScalingFactor = 50,
-                            CharacterClass = 1,
-                            Cooldown = 4,
-                            DamageType = 1,
-                            Description = "Slash at your opponent, causing a grievous wound.",
-                            EnergyCost = 20,
-                            Healing = 0,
-                            MaxBaseDamageFactor = 50,
-                            MinBaseDamageFactor = 40,
-                            Name = "Rend",
-                            Rank = 2,
-                            TargetType = 3,
-                            WeaponDamagePercentage = 50
-                        },
-                        new
-                        {
-                            Id = 6,
-                            BaseDamageAttributeScalingFactor = 50,
-                            CharacterClass = 1,
-                            Cooldown = 4,
-                            DamageType = 1,
-                            Description = "Slash at your opponent, causing a grievous wound.",
-                            EnergyCost = 20,
-                            Healing = 0,
-                            MaxBaseDamageFactor = 50,
-                            MinBaseDamageFactor = 40,
-                            Name = "Rend",
-                            Rank = 3,
-                            TargetType = 3,
-                            WeaponDamagePercentage = 50
-                        });
+                    b.ToTable("Skills");
                 });
 
             modelBuilder.Entity("DotnetRpg.Models.SkillInstance", b =>
@@ -344,13 +257,18 @@ namespace dotnetrpg.Migrations
                     b.Property<int>("SkillId")
                         .HasColumnType("int");
 
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CharacterId");
 
                     b.HasIndex("SkillId");
 
-                    b.ToTable("SkillInstance", (string)null);
+                    b.HasIndex("UserId");
+
+                    b.ToTable("SkillInstance");
                 });
 
             modelBuilder.Entity("DotnetRpg.Models.StatusEffect", b =>
@@ -413,158 +331,12 @@ namespace dotnetrpg.Migrations
                     b.Property<int>("ReducedStrengthPercentage")
                         .HasColumnType("int");
 
-                    b.Property<int>("SkillId")
-                        .HasColumnType("int");
-
                     b.Property<int>("Type")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("SkillId")
-                        .IsUnique();
-
-                    b.ToTable("StatusEffect", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            DamagePerTurnFactor = 0,
-                            DecreasedDamagePercentage = 0,
-                            DecreasedDamageTakenPercentage = 0,
-                            Duration = 1,
-                            HealingPerTurnFactor = 0,
-                            IncreasedArmorPercentage = 0,
-                            IncreasedDamagePercentage = 0,
-                            IncreasedDamageTakenPercentage = 0,
-                            IncreasedIntelligencePercentage = 0,
-                            IncreasedResistancePercentage = 0,
-                            IncreasedStrengthPercentage = 0,
-                            IsStunned = true,
-                            Name = "Stunned",
-                            ReducedArmorPercentage = 0,
-                            ReducedIntelligencePercentage = 0,
-                            ReducedResistancePercentage = 0,
-                            ReducedStrengthPercentage = 0,
-                            SkillId = 1,
-                            Type = 1
-                        },
-                        new
-                        {
-                            Id = 2,
-                            DamagePerTurnFactor = 0,
-                            DecreasedDamagePercentage = 0,
-                            DecreasedDamageTakenPercentage = 0,
-                            Duration = 1,
-                            HealingPerTurnFactor = 0,
-                            IncreasedArmorPercentage = 0,
-                            IncreasedDamagePercentage = 0,
-                            IncreasedDamageTakenPercentage = 0,
-                            IncreasedIntelligencePercentage = 0,
-                            IncreasedResistancePercentage = 0,
-                            IncreasedStrengthPercentage = 0,
-                            IsStunned = true,
-                            Name = "Stunned",
-                            ReducedArmorPercentage = 0,
-                            ReducedIntelligencePercentage = 0,
-                            ReducedResistancePercentage = 0,
-                            ReducedStrengthPercentage = 0,
-                            SkillId = 2,
-                            Type = 1
-                        },
-                        new
-                        {
-                            Id = 3,
-                            DamagePerTurnFactor = 0,
-                            DecreasedDamagePercentage = 0,
-                            DecreasedDamageTakenPercentage = 0,
-                            Duration = 1,
-                            HealingPerTurnFactor = 0,
-                            IncreasedArmorPercentage = 0,
-                            IncreasedDamagePercentage = 0,
-                            IncreasedDamageTakenPercentage = 0,
-                            IncreasedIntelligencePercentage = 0,
-                            IncreasedResistancePercentage = 0,
-                            IncreasedStrengthPercentage = 0,
-                            IsStunned = true,
-                            Name = "Stunned",
-                            ReducedArmorPercentage = 0,
-                            ReducedIntelligencePercentage = 0,
-                            ReducedResistancePercentage = 0,
-                            ReducedStrengthPercentage = 0,
-                            SkillId = 3,
-                            Type = 1
-                        },
-                        new
-                        {
-                            Id = 4,
-                            DamagePerTurnFactor = 30,
-                            DecreasedDamagePercentage = 0,
-                            DecreasedDamageTakenPercentage = 0,
-                            Duration = 3,
-                            HealingPerTurnFactor = 0,
-                            IncreasedArmorPercentage = 0,
-                            IncreasedDamagePercentage = 0,
-                            IncreasedDamageTakenPercentage = 0,
-                            IncreasedIntelligencePercentage = 0,
-                            IncreasedResistancePercentage = 0,
-                            IncreasedStrengthPercentage = 0,
-                            IsStunned = false,
-                            Name = "Bleeding",
-                            ReducedArmorPercentage = 0,
-                            ReducedIntelligencePercentage = 0,
-                            ReducedResistancePercentage = 0,
-                            ReducedStrengthPercentage = 0,
-                            SkillId = 4,
-                            Type = 1
-                        },
-                        new
-                        {
-                            Id = 5,
-                            DamagePerTurnFactor = 30,
-                            DecreasedDamagePercentage = 0,
-                            DecreasedDamageTakenPercentage = 0,
-                            Duration = 3,
-                            HealingPerTurnFactor = 0,
-                            IncreasedArmorPercentage = 0,
-                            IncreasedDamagePercentage = 0,
-                            IncreasedDamageTakenPercentage = 0,
-                            IncreasedIntelligencePercentage = 0,
-                            IncreasedResistancePercentage = 0,
-                            IncreasedStrengthPercentage = 0,
-                            IsStunned = false,
-                            Name = "Bleeding",
-                            ReducedArmorPercentage = 0,
-                            ReducedIntelligencePercentage = 0,
-                            ReducedResistancePercentage = 0,
-                            ReducedStrengthPercentage = 0,
-                            SkillId = 5,
-                            Type = 1
-                        },
-                        new
-                        {
-                            Id = 6,
-                            DamagePerTurnFactor = 30,
-                            DecreasedDamagePercentage = 0,
-                            DecreasedDamageTakenPercentage = 0,
-                            Duration = 4,
-                            HealingPerTurnFactor = 0,
-                            IncreasedArmorPercentage = 0,
-                            IncreasedDamagePercentage = 0,
-                            IncreasedDamageTakenPercentage = 0,
-                            IncreasedIntelligencePercentage = 0,
-                            IncreasedResistancePercentage = 0,
-                            IncreasedStrengthPercentage = 0,
-                            IsStunned = false,
-                            Name = "Bleeding",
-                            ReducedArmorPercentage = 0,
-                            ReducedIntelligencePercentage = 0,
-                            ReducedResistancePercentage = 0,
-                            ReducedStrengthPercentage = 0,
-                            SkillId = 6,
-                            Type = 1
-                        });
+                    b.ToTable("StatusEffect");
                 });
 
             modelBuilder.Entity("DotnetRpg.Models.StatusEffectInstance", b =>
@@ -584,13 +356,18 @@ namespace dotnetrpg.Migrations
                     b.Property<int>("StatusEffectId")
                         .HasColumnType("int");
 
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CharacterId");
 
                     b.HasIndex("StatusEffectId");
 
-                    b.ToTable("StatusEffectInstance", (string)null);
+                    b.HasIndex("UserId");
+
+                    b.ToTable("StatusEffectInstance");
                 });
 
             modelBuilder.Entity("DotnetRpg.Models.User", b =>
@@ -615,7 +392,7 @@ namespace dotnetrpg.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Users", (string)null);
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("DotnetRpg.Models.ArmorPiece", b =>
@@ -652,15 +429,24 @@ namespace dotnetrpg.Migrations
                     b.HasOne("DotnetRpg.Models.Fight", "Fight")
                         .WithMany("Characters")
                         .HasForeignKey("FightId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.NoAction);
 
-                    b.HasOne("DotnetRpg.Models.User", "User")
-                        .WithMany("Characters")
-                        .HasForeignKey("UserId");
+                    b.HasOne("DotnetRpg.Models.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Fight");
+                });
 
-                    b.Navigation("User");
+            modelBuilder.Entity("DotnetRpg.Models.Fight", b =>
+                {
+                    b.HasOne("DotnetRpg.Models.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("DotnetRpg.Models.Item", b =>
@@ -668,6 +454,21 @@ namespace dotnetrpg.Migrations
                     b.HasOne("DotnetRpg.Models.Character", null)
                         .WithMany("Inventory")
                         .HasForeignKey("CharacterId");
+
+                    b.HasOne("DotnetRpg.Models.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("DotnetRpg.Models.Skill", b =>
+                {
+                    b.HasOne("DotnetRpg.Models.StatusEffect", "StatusEffect")
+                        .WithOne()
+                        .HasForeignKey("DotnetRpg.Models.Skill", "StatusEffectId");
+
+                    b.Navigation("StatusEffect");
                 });
 
             modelBuilder.Entity("DotnetRpg.Models.SkillInstance", b =>
@@ -675,7 +476,7 @@ namespace dotnetrpg.Migrations
                     b.HasOne("DotnetRpg.Models.Character", "Character")
                         .WithMany("SkillInstances")
                         .HasForeignKey("CharacterId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("DotnetRpg.Models.Skill", "Skill")
@@ -684,18 +485,13 @@ namespace dotnetrpg.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Character");
-
-                    b.Navigation("Skill");
-                });
-
-            modelBuilder.Entity("DotnetRpg.Models.StatusEffect", b =>
-                {
-                    b.HasOne("DotnetRpg.Models.Skill", "Skill")
-                        .WithOne("StatusEffect")
-                        .HasForeignKey("DotnetRpg.Models.StatusEffect", "SkillId")
+                    b.HasOne("DotnetRpg.Models.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Character");
 
                     b.Navigation("Skill");
                 });
@@ -705,12 +501,18 @@ namespace dotnetrpg.Migrations
                     b.HasOne("DotnetRpg.Models.Character", "Character")
                         .WithMany("StatusEffectInstances")
                         .HasForeignKey("CharacterId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("DotnetRpg.Models.StatusEffect", "StatusEffect")
-                        .WithMany("StatusEffectInstances")
+                        .WithMany()
                         .HasForeignKey("StatusEffectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DotnetRpg.Models.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -729,21 +531,6 @@ namespace dotnetrpg.Migrations
                 });
 
             modelBuilder.Entity("DotnetRpg.Models.Fight", b =>
-                {
-                    b.Navigation("Characters");
-                });
-
-            modelBuilder.Entity("DotnetRpg.Models.Skill", b =>
-                {
-                    b.Navigation("StatusEffect");
-                });
-
-            modelBuilder.Entity("DotnetRpg.Models.StatusEffect", b =>
-                {
-                    b.Navigation("StatusEffectInstances");
-                });
-
-            modelBuilder.Entity("DotnetRpg.Models.User", b =>
                 {
                     b.Navigation("Characters");
                 });

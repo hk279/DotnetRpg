@@ -16,6 +16,6 @@ public class FightEntityTypeConfiguration : IEntityTypeConfiguration<Fight>
     public void Configure(EntityTypeBuilder<Fight> builder)
     {
         builder.ConfigureBaseEntity(_filterExpression);
-        builder.HasMany(f => f.Characters).WithOne(c => c.Fight).OnDelete(DeleteBehavior.SetNull);
+        builder.HasMany(f => f.Characters).WithOne(c => c.Fight).OnDelete(DeleteBehavior.NoAction);
     }
 }

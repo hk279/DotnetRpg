@@ -100,7 +100,7 @@ app.UseAuthorization();
 app.MapControllers();
 
 var optionsBuilder = new DbContextOptionsBuilder<DataContext>();
-optionsBuilder.UseSqlServer();
+optionsBuilder.UseSqlServer(connectionString);
 optionsBuilder.EnableSensitiveDataLogging();
 
 var context = new DataContext(optionsBuilder.Options, new MockUserProvider());

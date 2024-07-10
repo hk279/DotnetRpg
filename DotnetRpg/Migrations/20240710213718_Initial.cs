@@ -2,9 +2,7 @@
 
 #nullable disable
 
-#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
-
-namespace dotnetrpg.Migrations
+namespace DotnetRpg.Migrations
 {
     /// <inheritdoc />
     public partial class Initial : Migration
@@ -13,15 +11,48 @@ namespace dotnetrpg.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Fights",
+                name: "StatusEffect",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1")
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Duration = table.Column<int>(type: "int", nullable: false),
+                    Type = table.Column<int>(type: "int", nullable: false),
+                    DamagePerTurnFactor = table.Column<int>(type: "int", nullable: false),
+                    HealingPerTurnFactor = table.Column<int>(type: "int", nullable: false),
+                    IncreasedDamagePercentage = table.Column<int>(type: "int", nullable: false),
+                    DecreasedDamagePercentage = table.Column<int>(type: "int", nullable: false),
+                    IncreasedDamageTakenPercentage = table.Column<int>(type: "int", nullable: false),
+                    DecreasedDamageTakenPercentage = table.Column<int>(type: "int", nullable: false),
+                    IsStunned = table.Column<bool>(type: "bit", nullable: false),
+                    ReducedStrengthPercentage = table.Column<int>(type: "int", nullable: false),
+                    ReducedIntelligencePercentage = table.Column<int>(type: "int", nullable: false),
+                    ReducedArmorPercentage = table.Column<int>(type: "int", nullable: false),
+                    ReducedResistancePercentage = table.Column<int>(type: "int", nullable: false),
+                    IncreasedStrengthPercentage = table.Column<int>(type: "int", nullable: false),
+                    IncreasedIntelligencePercentage = table.Column<int>(type: "int", nullable: false),
+                    IncreasedArmorPercentage = table.Column<int>(type: "int", nullable: false),
+                    IncreasedResistancePercentage = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Fights", x => x.Id);
+                    table.PrimaryKey("PK_StatusEffect", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Users",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Username = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    PasswordHash = table.Column<byte[]>(type: "varbinary(max)", nullable: false),
+                    PasswordSalt = table.Column<byte[]>(type: "varbinary(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Users", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -42,60 +73,34 @@ namespace dotnetrpg.Migrations
                     MinBaseDamageFactor = table.Column<int>(type: "int", nullable: false),
                     MaxBaseDamageFactor = table.Column<int>(type: "int", nullable: false),
                     BaseDamageAttributeScalingFactor = table.Column<int>(type: "int", nullable: false),
-                    Healing = table.Column<int>(type: "int", nullable: false)
+                    Healing = table.Column<int>(type: "int", nullable: false),
+                    StatusEffectId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Skills", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Users",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Username = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    PasswordHash = table.Column<byte[]>(type: "varbinary(max)", nullable: false),
-                    PasswordSalt = table.Column<byte[]>(type: "varbinary(max)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Users", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "StatusEffect",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Duration = table.Column<int>(type: "int", nullable: false),
-                    DamagePerTurn = table.Column<int>(type: "int", nullable: false),
-                    HealingPerTurn = table.Column<int>(type: "int", nullable: false),
-                    IncreasedDamagePercentage = table.Column<int>(type: "int", nullable: false),
-                    DecreasedDamagePercentage = table.Column<int>(type: "int", nullable: false),
-                    IncreasedDamageTakenPercentage = table.Column<int>(type: "int", nullable: false),
-                    DecreasedDamageTakenPercentage = table.Column<int>(type: "int", nullable: false),
-                    IsStunned = table.Column<bool>(type: "bit", nullable: false),
-                    ReducedStrengthPercentage = table.Column<int>(type: "int", nullable: false),
-                    ReducedIntelligencePercentage = table.Column<int>(type: "int", nullable: false),
-                    ReducedArmorPercentage = table.Column<int>(type: "int", nullable: false),
-                    ReducedResistancePercentage = table.Column<int>(type: "int", nullable: false),
-                    IncreasedStrengthPercentage = table.Column<int>(type: "int", nullable: false),
-                    IncreasedIntelligencePercentage = table.Column<int>(type: "int", nullable: false),
-                    IncreasedArmorPercentage = table.Column<int>(type: "int", nullable: false),
-                    IncreasedResistancePercentage = table.Column<int>(type: "int", nullable: false),
-                    SkillId = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_StatusEffect", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_StatusEffect_Skills_SkillId",
-                        column: x => x.SkillId,
-                        principalTable: "Skills",
+                        name: "FK_Skills_StatusEffect_StatusEffectId",
+                        column: x => x.StatusEffectId,
+                        principalTable: "StatusEffect",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Fights",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UserId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Fights", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Fights_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -106,11 +111,12 @@ namespace dotnetrpg.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(32)", maxLength: 32, nullable: false),
                     Avatar = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     IsPlayerCharacter = table.Column<bool>(type: "bit", nullable: false),
                     Level = table.Column<int>(type: "int", nullable: false),
-                    Experience = table.Column<long>(type: "bigint", nullable: false),
+                    Experience = table.Column<int>(type: "int", nullable: false),
+                    UnassignedAttributePoints = table.Column<int>(type: "int", nullable: false),
                     Strength = table.Column<int>(type: "int", nullable: false),
                     Intelligence = table.Column<int>(type: "int", nullable: false),
                     Stamina = table.Column<int>(type: "int", nullable: false),
@@ -120,9 +126,9 @@ namespace dotnetrpg.Migrations
                     CurrentHitPoints = table.Column<int>(type: "int", nullable: false),
                     CurrentEnergy = table.Column<int>(type: "int", nullable: false),
                     Class = table.Column<int>(type: "int", nullable: false),
-                    UserId = table.Column<int>(type: "int", nullable: true),
                     InventorySize = table.Column<int>(type: "int", nullable: false),
-                    FightId = table.Column<int>(type: "int", nullable: true)
+                    FightId = table.Column<int>(type: "int", nullable: true),
+                    UserId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -131,13 +137,13 @@ namespace dotnetrpg.Migrations
                         name: "FK_Characters_Fights_FightId",
                         column: x => x.FightId,
                         principalTable: "Fights",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.SetNull);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Characters_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -163,7 +169,8 @@ namespace dotnetrpg.Migrations
                     Armor = table.Column<int>(type: "int", nullable: true),
                     Resistance = table.Column<int>(type: "int", nullable: true),
                     MinDamage = table.Column<int>(type: "int", nullable: true),
-                    MaxDamage = table.Column<int>(type: "int", nullable: true)
+                    MaxDamage = table.Column<int>(type: "int", nullable: true),
+                    UserId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -173,6 +180,12 @@ namespace dotnetrpg.Migrations
                         column: x => x.CharacterId,
                         principalTable: "Characters",
                         principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Item_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -183,7 +196,8 @@ namespace dotnetrpg.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     SkillId = table.Column<int>(type: "int", nullable: false),
                     CharacterId = table.Column<int>(type: "int", nullable: false),
-                    RemainingCooldown = table.Column<int>(type: "int", nullable: false)
+                    RemainingCooldown = table.Column<int>(type: "int", nullable: false),
+                    UserId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -192,12 +206,17 @@ namespace dotnetrpg.Migrations
                         name: "FK_SkillInstance_Characters_CharacterId",
                         column: x => x.CharacterId,
                         principalTable: "Characters",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_SkillInstance_Skills_SkillId",
                         column: x => x.SkillId,
                         principalTable: "Skills",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_SkillInstance_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -210,7 +229,8 @@ namespace dotnetrpg.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     StatusEffectId = table.Column<int>(type: "int", nullable: false),
                     CharacterId = table.Column<int>(type: "int", nullable: false),
-                    RemainingDuration = table.Column<int>(type: "int", nullable: false)
+                    RemainingDuration = table.Column<int>(type: "int", nullable: false),
+                    UserId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -219,34 +239,19 @@ namespace dotnetrpg.Migrations
                         name: "FK_StatusEffectInstance_Characters_CharacterId",
                         column: x => x.CharacterId,
                         principalTable: "Characters",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_StatusEffectInstance_StatusEffect_StatusEffectId",
                         column: x => x.StatusEffectId,
                         principalTable: "StatusEffect",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.InsertData(
-                table: "Skills",
-                columns: new[] { "Id", "BaseDamageAttributeScalingFactor", "CharacterClass", "Cooldown", "DamageType", "Description", "EnergyCost", "Healing", "MaxBaseDamageFactor", "MinBaseDamageFactor", "Name", "Rank", "TargetType", "WeaponDamagePercentage" },
-                values: new object[,]
-                {
-                    { 1, 90, 1, 5, 1, "Violently charge the enemy.", 15, 0, 40, 30, "Charge", 1, 3, 10 },
-                    { 2, 90, 1, 5, 1, "Violently charge the enemy.", 15, 0, 50, 40, "Charge", 2, 3, 20 },
-                    { 3, 90, 1, 5, 1, "Violently charge the enemy.", 15, 0, 50, 40, "Charge", 3, 3, 30 }
-                });
-
-            migrationBuilder.InsertData(
-                table: "StatusEffect",
-                columns: new[] { "Id", "DamagePerTurn", "DecreasedDamagePercentage", "DecreasedDamageTakenPercentage", "Duration", "HealingPerTurn", "IncreasedArmorPercentage", "IncreasedDamagePercentage", "IncreasedDamageTakenPercentage", "IncreasedIntelligencePercentage", "IncreasedResistancePercentage", "IncreasedStrengthPercentage", "IsStunned", "Name", "ReducedArmorPercentage", "ReducedIntelligencePercentage", "ReducedResistancePercentage", "ReducedStrengthPercentage", "SkillId" },
-                values: new object[,]
-                {
-                    { 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, true, "Charge Stun", 0, 0, 0, 0, 1 },
-                    { 2, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, true, "Charge Stun", 0, 0, 0, 0, 2 },
-                    { 3, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, true, "Charge Stun", 0, 0, 0, 0, 3 }
+                    table.ForeignKey(
+                        name: "FK_StatusEffectInstance_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
@@ -260,9 +265,19 @@ namespace dotnetrpg.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Fights_UserId",
+                table: "Fights",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Item_CharacterId",
                 table: "Item",
                 column: "CharacterId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Item_UserId",
+                table: "Item",
+                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_SkillInstance_CharacterId",
@@ -275,10 +290,16 @@ namespace dotnetrpg.Migrations
                 column: "SkillId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_StatusEffect_SkillId",
-                table: "StatusEffect",
-                column: "SkillId",
-                unique: true);
+                name: "IX_SkillInstance_UserId",
+                table: "SkillInstance",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Skills_StatusEffectId",
+                table: "Skills",
+                column: "StatusEffectId",
+                unique: true,
+                filter: "[StatusEffectId] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_StatusEffectInstance_CharacterId",
@@ -289,6 +310,11 @@ namespace dotnetrpg.Migrations
                 name: "IX_StatusEffectInstance_StatusEffectId",
                 table: "StatusEffectInstance",
                 column: "StatusEffectId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_StatusEffectInstance_UserId",
+                table: "StatusEffectInstance",
+                column: "UserId");
         }
 
         /// <inheritdoc />
@@ -304,6 +330,9 @@ namespace dotnetrpg.Migrations
                 name: "StatusEffectInstance");
 
             migrationBuilder.DropTable(
+                name: "Skills");
+
+            migrationBuilder.DropTable(
                 name: "Characters");
 
             migrationBuilder.DropTable(
@@ -314,9 +343,6 @@ namespace dotnetrpg.Migrations
 
             migrationBuilder.DropTable(
                 name: "Users");
-
-            migrationBuilder.DropTable(
-                name: "Skills");
         }
     }
 }

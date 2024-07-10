@@ -9,7 +9,7 @@ public class SkillInstance : BaseEntity
         Skill = skill;
         RemainingCooldown = remainingCooldown;
     }
-    
+
     public Skill Skill { get; set; } = null!;
     public Character Character { get; set; } = null!;
     public int RemainingCooldown { get; set; }

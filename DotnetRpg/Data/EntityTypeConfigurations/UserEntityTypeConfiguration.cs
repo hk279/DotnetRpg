@@ -5,8 +5,5 @@ namespace DotnetRpg.Data.EntityTypeConfigurations;
 
 public class UserEntityTypeConfiguration : IEntityTypeConfiguration<User>
 {
-    public void Configure(EntityTypeBuilder<User> builder)
-    {
-        builder.HasMany(u => u.Characters).WithOne();
-    }
+    public void Configure(EntityTypeBuilder<User> builder) { }
 }
