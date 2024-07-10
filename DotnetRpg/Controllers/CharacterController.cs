@@ -18,14 +18,14 @@ public class CharacterController : ControllerBase
     }
 
     [HttpGet("all")]
-    public async Task<ActionResult<ServiceResponse<List<GetCharacterListingDto>>>> GetAll()
+    public async Task<ActionResult<List<GetCharacterListingDto>>> GetAll()
     {
         var response = await _characterService.GetAllCharacters();
         return Ok(response);
     }
 
-    [HttpGet("{characterId}/enemies")]
-    public async Task<ActionResult<ServiceResponse<List<GetCharacterDto>>>> GetEnemies(
+    [HttpGet("{characterId:int}/enemies")]
+    public async Task<ActionResult<List<GetCharacterDto>>> GetEnemies(
         int characterId
     )
     {
@@ -33,26 +33,24 @@ public class CharacterController : ControllerBase
         return Ok(response);
     }
 
-    [HttpGet("{id}")]
-    public async Task<ActionResult<ServiceResponse<GetCharacterDto>>> GetSingle(int id)
+    [HttpGet("{characterId:int}")]
+    public async Task<ActionResult<GetCharacterDto>> GetSingle(int characterId)
     {
-        var response = await _characterService.GetCharacterById(id);
+        var response = await _characterService.GetCharacterById(characterId);
         return Ok(response);
     }
 
     [HttpPost]
-    public async Task<ActionResult<ServiceResponse<List<GetCharacterDto>>>> Add(
-        AddCharacterDto newCharacter
-    )
+    public async Task<ActionResult> Add(AddCharacterDto newCharacter)
     {
-        var response = await _characterService.AddCharacter(newCharacter);
-        return Ok(response);
+        await _characterService.AddCharacter(newCharacter);
+        return Ok();
     }
 
-    [HttpDelete("{id}")]
-    public async Task<ActionResult<ServiceResponse<List<GetCharacterDto>>>> Delete(int id)
+    [HttpDelete("{characterId:int}")]
+    public async Task<ActionResult> Delete(int characterId)
     {
-        var response = await _characterService.DeleteCharacter(id);
-        return Ok(response);
+        await _characterService.DeleteCharacter(characterId);
+        return Ok();
     }
 }

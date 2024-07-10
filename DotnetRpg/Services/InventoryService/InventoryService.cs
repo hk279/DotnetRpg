@@ -1,17 +1,16 @@
-using System.Security.Claims;
 using AutoMapper;
 using DotnetRpg.Data;
 using DotnetRpg.Dtos.Item;
 using DotnetRpg.Models.Exceptions;
 using Microsoft.EntityFrameworkCore;
 
-namespace DotnetRpg.Services.ItemService;
+namespace DotnetRpg.Services.InventoryService;
 
 public class InventoryService : IInventoryService
 {
-    const int fightRewardLevelVariance = 2;
+    private const int FightRewardLevelVariance = 2;
 
-    private readonly Dictionary<ArmorSlot, decimal> ArmorSlotStatCoefficients =
+    private readonly Dictionary<ArmorSlot, decimal> _armorSlotStatCoefficients =
         new()
         {
             { ArmorSlot.Chest, 1 },
@@ -21,7 +20,7 @@ public class InventoryService : IInventoryService
             { ArmorSlot.Feet, 0.4m }
         };
 
-    private readonly Dictionary<ItemRarity, decimal> ItemRarityStatCoefficients =
+    private readonly Dictionary<ItemRarity, decimal> _itemRarityStatCoefficients =
         new()
         {
             { ItemRarity.Common, 1 },
@@ -30,7 +29,7 @@ public class InventoryService : IInventoryService
             { ItemRarity.Epic, 1.6m }
         };
 
-    public readonly Dictionary<ItemRarity, decimal> ItemRarityDropRates =
+    private readonly Dictionary<ItemRarity, decimal> _itemRarityDropRates =
         new()
         {
             { ItemRarity.Common, 0.8m },
@@ -54,18 +53,14 @@ public class InventoryService : IInventoryService
         _autoMapper = autoMapper;
     }
 
-    public async Task<ServiceResponse<List<GetItemDto>>> GetInventory(int characterId)
+    public async Task<List<GetItemDto>> GetInventory(int characterId)
     {
-        var response = new ServiceResponse<List<GetItemDto>>();
+        var character = await _context.Characters
+                            .Include(c => c.Inventory)
+                            .FirstOrDefaultAsync(c => c.Id == characterId) 
+                        ?? throw new NotFoundException("Character not found");
 
-        var character =
-            await _context.Characters
-                .Include(c => c.Inventory)
-                .FirstOrDefaultAsync(
-                    c => c.Id == characterId && c.User != null && c.User.Id == GetUserId()
-                ) ?? throw new NotFoundException("Character not found");
-
-        response.Data = character.Inventory
+        var response = character.Inventory
             .Select(item => _autoMapper.Map<GetItemDto>(item))
             .ToList();
 
@@ -74,31 +69,22 @@ public class InventoryService : IInventoryService
 
     public async Task EquipItem(int characterId, int itemId)
     {
-        var character =
-            await _context.Characters
-                .Include(c => c.Inventory)
-                .FirstOrDefaultAsync(
-                    c => c.Id == characterId && c.User != null && c.User.Id == GetUserId()
-                ) ?? throw new NotFoundException("Character not found");
+        var character = await _context.Characters
+                            .Include(c => c.Inventory)
+                            .FirstOrDefaultAsync(c => c.Id == characterId) 
+                        ?? throw new NotFoundException("Character not found");
 
-        var itemToEquip =
-            character.Inventory.FirstOrDefault(item => item.Id == itemId)
-            ?? throw new NotFoundException("Item not found");
-        var equippedItems = character.Inventory.Where(item => item.IsEquipped);
+        var itemToEquip = character.Inventory.FirstOrDefault(item => item.Id == itemId)
+                          ?? throw new NotFoundException("Item not found");
+        var equippedItems = character.Inventory.Where(item => item.IsEquipped).ToList();
 
-        Item? itemToReplace = null;
-
-        if (itemToEquip is Weapon)
+        Item? itemToReplace = itemToEquip switch
         {
-            itemToReplace = equippedItems.OfType<Weapon>().FirstOrDefault();
-        }
-
-        if (itemToEquip is ArmorPiece armorPieceToEquip)
-        {
-            itemToReplace = equippedItems
-                .OfType<ArmorPiece>()
-                .FirstOrDefault(i => i.Slot == armorPieceToEquip.Slot);
-        }
+            Weapon => equippedItems.OfType<Weapon>().FirstOrDefault(),
+            ArmorPiece armorPieceToEquip => equippedItems.OfType<ArmorPiece>()
+                .FirstOrDefault(i => i.Slot == armorPieceToEquip.Slot),
+            _ => null
+        };
 
         if (itemToReplace != null)
         {
@@ -120,13 +106,13 @@ public class InventoryService : IInventoryService
         throw new NotImplementedException();
     }
 
-    public Item? GenerateFightRewardGear(Character playerCharacter, List<Character> enemies)
+    public Item GenerateFightRewardGear(Character playerCharacter, List<Character> enemies)
     {
         var itemLevelBase = (int)Math.Floor(enemies.Average(c => c.Level));
         var itemLevelWithVariance = Math.Max(
             RNG.GetIntInRange(
-                itemLevelBase - fightRewardLevelVariance,
-                itemLevelBase + fightRewardLevelVariance
+                itemLevelBase - FightRewardLevelVariance,
+                itemLevelBase + FightRewardLevelVariance
             ),
             1
         );
@@ -149,16 +135,16 @@ public class InventoryService : IInventoryService
         var armor = (int)
             Math.Floor(
                 baseArmor
-                    * ItemRarityStatCoefficients[itemRarity]
-                    * ArmorSlotStatCoefficients[armorSlot]
+                    * _itemRarityStatCoefficients[itemRarity]
+                    * _armorSlotStatCoefficients[armorSlot]
             );
 
         var baseResistance = itemLevel * 8 + (itemLevel * 3);
         var resistance = (int)
             Math.Floor(
                 baseResistance
-                    * ItemRarityStatCoefficients[itemRarity]
-                    * ArmorSlotStatCoefficients[armorSlot]
+                    * _itemRarityStatCoefficients[itemRarity]
+                    * _armorSlotStatCoefficients[armorSlot]
             );
 
         var gearPiece = new ArmorPiece()
@@ -184,7 +170,7 @@ public class InventoryService : IInventoryService
     private ItemRarity GetItemRarity()
     {
         var totalProbability = 0m;
-        foreach (var dropRate in ItemRarityDropRates.Values)
+        foreach (var dropRate in _itemRarityDropRates.Values)
         {
             totalProbability += dropRate;
         }
@@ -192,7 +178,7 @@ public class InventoryService : IInventoryService
         var randomValue = (decimal)new Random().NextDouble() * totalProbability;
         var accumulatedProbability = 0m;
 
-        foreach (var kvp in ItemRarityDropRates)
+        foreach (var kvp in _itemRarityDropRates)
         {
             accumulatedProbability += kvp.Value;
             if (randomValue <= accumulatedProbability)
@@ -202,17 +188,5 @@ public class InventoryService : IInventoryService
         }
 
         return ItemRarity.Common;
-    }
-
-    // TODO: Handle the user ID check in EF query filter
-    private int GetUserId()
-    {
-        var httpContext =
-            _httpContextAccessor.HttpContext
-            ?? throw new ArgumentNullException(nameof(_httpContextAccessor.HttpContext));
-        var userId =
-            httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier)
-            ?? throw new UnauthorizedException("User not identified");
-        return int.Parse(userId);
     }
 }

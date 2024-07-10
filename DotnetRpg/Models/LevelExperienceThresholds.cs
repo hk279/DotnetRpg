@@ -1,6 +1,6 @@
 namespace DotnetRpg.Models;
 
-public class LevelExperienceThresholds
+public static class LevelExperienceThresholds
 {
     /// <summary>
     /// Key-value pair represents a level and the required experience to reach that level

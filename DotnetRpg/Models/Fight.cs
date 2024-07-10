@@ -1,8 +1,15 @@
 namespace DotnetRpg.Models;
 
-public class Fight
+public class Fight : BaseEntity
 {
-    public int Id { get; set; }
-    public List<Character> Characters { get; set; } = null!;
+    public Fight() {}
+    
+    public Fight(int userId, List<Character> characters)
+    {
+        UserId = userId;
+        Characters = characters;
+    }
+
+    public List<Character> Characters { get; set; }
 }
 

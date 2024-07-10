@@ -8,7 +8,7 @@ namespace DotnetRpg.Controllers;
 [Route("[controller]")]
 public class AuthController : ControllerBase
 {
-    public readonly IAuthService _authService;
+    private readonly IAuthService _authService;
 
     public AuthController(IAuthService authService)
     {
@@ -16,21 +16,21 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("register")]
-    public async Task<ActionResult<ServiceResponse<int>>> Register(UserRegisterDto newUser)
+    public async Task<ActionResult> Register(UserRegisterDto newUser)
     {
-        var response = await _authService.Register(newUser.Username, newUser.Password);
-        return Ok(response);
+        await _authService.Register(newUser.Username, newUser.Password);
+        return Ok();
     }
 
     [HttpPost("login")]
-    public async Task<ActionResult<ServiceResponse<string>>> Login(UserLoginDto loginDetails)
+    public async Task<ActionResult<string>> Login(UserLoginDto loginDetails)
     {
-        var response = await _authService.Login(loginDetails.Username, loginDetails.Password);
-        return Ok(response);
+        var token = await _authService.Login(loginDetails.Username, loginDetails.Password);
+        return Ok(token);
     }
 
     [HttpGet("current-user")]
-    public async Task<ActionResult<ServiceResponse<string>>> GetUserName()
+    public async Task<ActionResult<string>> GetUserName()
     {
         var response = await _authService.GetUserName();
         return Ok(response);

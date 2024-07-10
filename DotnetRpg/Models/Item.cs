@@ -2,17 +2,16 @@ using System.Text.Json.Serialization;
 
 namespace DotnetRpg.Models;
 
-public abstract class Item
+public abstract class Item : BaseEntity
 {
-    public int Id { get; set; }
     public required string Name { get; set; }
     public ItemType Type { get; set; }
     public int Level { get; set; } = 1;
-    public ItemRarity Rarity { get; set; } = ItemRarity.Common;
-    public string Description { get; set; } = string.Empty;
+    public ItemRarity Rarity { get; set; }
+    public string Description { get; set; }
     public int Weight { get; set; } = 1;
     public int Value { get; set; } = 1;
-    public bool IsEquipped { get; set; } = false;
+    public bool IsEquipped { get; set; }
 
     public int Strength { get; set; }
     public int Intelligence { get; set; }

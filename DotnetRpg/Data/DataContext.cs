@@ -1,4 +1,5 @@
-using DotnetRpg.Data.Seeding;
+using System.Linq.Expressions;
+using DotnetRpg.Data.EntityTypeConfigurations;
 using DotnetRpg.Services.UserProvider;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,52 +15,32 @@ namespace DotnetRpg.Data
             _userProvider = userProvider;
         }
         
-        // TODO: Move EntityConfigurations to separate classes
-        // TODO: Apply user filter for everything
-        // TODO: Create a base entity class with Id and UserId
+        private void ApplyEntityTypeConfigurations(ModelBuilder modelBuilder)
+        {
+            // User-entity (tenant)
+            modelBuilder.ApplyConfiguration(new UserEntityTypeConfiguration());
+            
+            // Global entities, not user-specific
+            modelBuilder.ApplyConfiguration(new SkillEntityTypeConfiguration());
+            modelBuilder.ApplyConfiguration(new StatusEffectEntityTypeConfiguration());
+            
+            // User-specific entities
+            modelBuilder.ApplyConfiguration(new CharacterEntityTypeConfiguration(GetUserFilter<Character>()));
+            modelBuilder.ApplyConfiguration(new FightEntityTypeConfiguration(GetUserFilter<Fight>()));
+            modelBuilder.ApplyConfiguration(new ItemEntityTypeConfiguration(GetUserFilter<Item>()));
+            modelBuilder.ApplyConfiguration(new SkillInstanceEntityTypeConfiguration(GetUserFilter<SkillInstance>()));
+            modelBuilder.ApplyConfiguration(new StatusEffectInstanceEntityTypeConfiguration(GetUserFilter<StatusEffectInstance>()));
+        }
         
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder
-                .Entity<Fight>()
-                .HasMany(f => f.Characters)
-                .WithOne(c => c.Fight)
-                .HasForeignKey(c => c.FightId)
-                .OnDelete(DeleteBehavior.SetNull);
-
-            modelBuilder
-                .Entity<Item>()
-                .HasDiscriminator(i => i.Type)
-                .HasValue<ArmorPiece>(ItemType.ArmorPiece)
-                .HasValue<Weapon>(ItemType.Weapon);
-
-            modelBuilder
-                .Entity<Character>()
-                .HasMany(c => c.SkillInstances)
-                .WithOne(c => c.Character);
-
-            modelBuilder
-                .Entity<Character>()
-                .HasMany(c => c.StatusEffectInstances)
-                .WithOne(c => c.Character);
-
-            modelBuilder
-                .Entity<StatusEffect>()
-                .HasMany(s => s.StatusEffectInstances)
-                .WithOne(s => s.StatusEffect);
-
-            modelBuilder
-                .Entity<Skill>()
-                .HasOne(s => s.StatusEffect)
-                .WithOne(s => s.Skill)
-                .HasForeignKey<StatusEffect>(s => s.SkillId);
-
-            // Seed skills
-            // TODO: Add other classes
-            var (warriorSkills, warriorSkillStatusEffects) = SkillDataSeeder.GetWarriorSkills();
-
-            modelBuilder.Entity<Skill>().HasData(warriorSkills);
-            modelBuilder.Entity<StatusEffect>().HasData(warriorSkillStatusEffects);
+            ApplyEntityTypeConfigurations(modelBuilder);
+        }
+        
+        private Expression<Func<TEntity, bool>> GetUserFilter<TEntity>()
+            where TEntity : BaseEntity
+        {
+            return x => x.UserId == UserId;
         }
         
         public int UserId => _userProvider.GetUserId();

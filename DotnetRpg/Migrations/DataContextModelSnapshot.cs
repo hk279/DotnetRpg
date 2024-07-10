@@ -93,7 +93,7 @@ namespace dotnetrpg.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Characters");
+                    b.ToTable("Characters", (string)null);
                 });
 
             modelBuilder.Entity("DotnetRpg.Models.Fight", b =>
@@ -106,7 +106,7 @@ namespace dotnetrpg.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Fights");
+                    b.ToTable("Fights", (string)null);
                 });
 
             modelBuilder.Entity("DotnetRpg.Models.Item", b =>
@@ -162,7 +162,7 @@ namespace dotnetrpg.Migrations
 
                     b.HasIndex("CharacterId");
 
-                    b.ToTable("Item");
+                    b.ToTable("Item", (string)null);
 
                     b.HasDiscriminator<int>("Type");
 
@@ -220,7 +220,7 @@ namespace dotnetrpg.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Skills");
+                    b.ToTable("Skills", (string)null);
 
                     b.HasData(
                         new
@@ -350,7 +350,7 @@ namespace dotnetrpg.Migrations
 
                     b.HasIndex("SkillId");
 
-                    b.ToTable("SkillInstance");
+                    b.ToTable("SkillInstance", (string)null);
                 });
 
             modelBuilder.Entity("DotnetRpg.Models.StatusEffect", b =>
@@ -424,7 +424,7 @@ namespace dotnetrpg.Migrations
                     b.HasIndex("SkillId")
                         .IsUnique();
 
-                    b.ToTable("StatusEffect");
+                    b.ToTable("StatusEffect", (string)null);
 
                     b.HasData(
                         new
@@ -590,7 +590,7 @@ namespace dotnetrpg.Migrations
 
                     b.HasIndex("StatusEffectId");
 
-                    b.ToTable("StatusEffectInstance");
+                    b.ToTable("StatusEffectInstance", (string)null);
                 });
 
             modelBuilder.Entity("DotnetRpg.Models.User", b =>
@@ -615,7 +615,7 @@ namespace dotnetrpg.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("DotnetRpg.Models.ArmorPiece", b =>

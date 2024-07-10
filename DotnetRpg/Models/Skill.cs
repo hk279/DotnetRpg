@@ -2,6 +2,9 @@ using System.Text.Json.Serialization;
 
 namespace DotnetRpg.Models;
 
+/// <summary>
+/// Template for character-specific skill instances
+/// </summary>
 public class Skill
 {
     public Skill() { }
@@ -62,14 +65,5 @@ public class Skill
     public int Healing { get; set; } // TODO: Implement healing
 
     public StatusEffect? StatusEffect { get; set; }
-}
-
-[JsonConverter(typeof(JsonStringEnumConverter))]
-public enum SkillTargetType
-{
-    Unknown,
-    Self,
-    Friendly,
-    Enemy,
-    AllEnemies
+    public int? StatusEffectId { get; set; }
 }

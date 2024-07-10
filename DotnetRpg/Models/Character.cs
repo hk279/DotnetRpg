@@ -3,9 +3,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace DotnetRpg.Models;
 
-public class Character
+public class Character : BaseEntity
 {
-    public int Id { get; set; }
     [MaxLength(32)]
     public string Name { get; set; } = string.Empty;
     public string Avatar { get; set; } = string.Empty;
@@ -30,12 +29,10 @@ public class Character
         new List<StatusEffectInstance>();
 
     public CharacterClass Class { get; set; }
-    public User? User { get; set; }
     public List<SkillInstance> SkillInstances { get; set; } = new List<SkillInstance>();
     public int InventorySize { get; set; } = 10;
     public List<Item> Inventory { get; set; } = new List<Item>();
     public Fight? Fight { get; set; }
-    public int? FightId { get; set; }
 
     [NotMapped]
     public bool IsAlive => CurrentHitPoints > 0;

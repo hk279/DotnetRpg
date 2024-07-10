@@ -26,7 +26,7 @@ public class AuthServiceTests
             .Options;
 
         _dbContext = new DataContext(dbContextOptions, mockUserProvider.Object);
-        _sut = new AuthService(_dbContext, mockConfiguration.Object);
+        _sut = new AuthService(_dbContext, mockConfiguration.Object, mockUserProvider.Object);
     }
 
     [TearDown]
@@ -41,14 +41,12 @@ public class AuthServiceTests
         var userName = "newUser";
         var password = "password";
 
-        var result = await _sut.Register(userName, password);
+        await _sut.Register(userName, password);
 
         var users = await _dbContext.Users.ToListAsync();
 
         var newUser = users.First();
-
-        Assert.That(result, Is.Not.Null);
-        Assert.That(result.Data, Is.GreaterThan(0));
+        
         Assert.That(newUser, Is.Not.Null);
     }
 

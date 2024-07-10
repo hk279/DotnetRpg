@@ -10,8 +10,9 @@ using Swashbuckle.AspNetCore.Filters;
 using Microsoft.OpenApi.Models;
 using DotnetRpg.Services.FightService;
 using DotnetRpg.Services.EnemyGeneratorService;
-using DotnetRpg.Services.ItemService;
 using DotnetRpg;
+using DotnetRpg.Data.Seeding;
+using DotnetRpg.Services.InventoryService;
 using DotnetRpg.Services.UserProvider;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -97,5 +98,13 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+var optionsBuilder = new DbContextOptionsBuilder<DataContext>();
+optionsBuilder.UseSqlServer();
+optionsBuilder.EnableSensitiveDataLogging();
+
+var context = new DataContext(optionsBuilder.Options, new MockUserProvider());
+
+await DataSeeder.SeedData(context);
 
 app.Run();

@@ -2,6 +2,7 @@ using DotnetRpg.Data;
 using DotnetRpg.Dtos.Fight;
 using DotnetRpg.Models.Exceptions;
 using DotnetRpg.Services.EnemyGeneratorService;
+using DotnetRpg.Services.UserProvider;
 using Microsoft.EntityFrameworkCore;
 
 namespace DotnetRpg.Services.FightService;
@@ -10,23 +11,23 @@ public class FightService : IFightService
 {
     private readonly DataContext _context;
     private readonly IEnemyGeneratorService _enemyGeneratorService;
+    private readonly IUserProvider _userProvider;
 
-    public FightService(DataContext context, IEnemyGeneratorService enemyGeneratorService)
+    public FightService(DataContext context, IEnemyGeneratorService enemyGeneratorService, IUserProvider userProvider)
     {
         _context = context;
         _enemyGeneratorService = enemyGeneratorService;
+        _userProvider = userProvider;
     }
 
-    public async Task<ServiceResponse<BeginFightResultDto>> BeginFight(int characterId)
+    public async Task<BeginFightResultDto> BeginFight(int characterId)
     {
-        var response = new ServiceResponse<BeginFightResultDto>();
-
         var allCharacters = new List<Character>();
         var playerCharacter =
-            await _context.Characters.FirstOrDefaultAsync(c => c.Id == characterId)
+            await _context.Characters.Include(c => c.Fight).FirstOrDefaultAsync(c => c.Id == characterId)
             ?? throw new NotFoundException("Player character not found");
-
-        if (playerCharacter.FightId != null)
+        
+        if (playerCharacter.Fight != null)
         {
             throw new ConflictException("Player character is already in a fight");
         }
@@ -38,25 +39,21 @@ public class FightService : IFightService
 
         await _context.SaveChangesAsync();
 
-        var newFight = new Fight() { Characters = allCharacters };
+        var newFight = new Fight(_userProvider.GetUserId(), allCharacters);
 
         await _context.AddAsync(newFight);
         await _context.SaveChangesAsync();
 
-        response.Data = new BeginFightResultDto
+        return new BeginFightResultDto
         {
             Id = newFight.Id,
             PlayerCharacterId = playerCharacter.Id,
             EnemyCharacterIds = enemyCharacters.Select(c => c.Id).ToList(),
         };
-
-        return response;
     }
 
-    public async Task<ServiceResponse<PlayerActionResultDto>> UseSkill(PlayerSkillActionDto request)
+    public async Task<PlayerActionResultDto> UseSkill(PlayerSkillActionDto request)
     {
-        var response = new ServiceResponse<PlayerActionResultDto>();
-
         var (fight, playerCharacter, targetCharacter, allEnemyCharacters) =
             await GetPlayerActionReferenceData(request);
 
@@ -102,8 +99,7 @@ public class FightService : IFightService
                 attackResult.FightStatus = FightStatus.Victory;
                 EndFight(fight, allEnemyCharacters, playerCharacter, true);
                 await _context.SaveChangesAsync();
-                response.Data = attackResult;
-                return response;
+                return attackResult;
             }
         }
 
@@ -117,15 +113,11 @@ public class FightService : IFightService
 
         await _context.SaveChangesAsync();
 
-        response.Data = attackResult;
-
-        return response;
+        return attackResult;
     }
 
-    public async Task<ServiceResponse<PlayerActionResultDto>> WeaponAttack(PlayerActionDto request)
+    public async Task<PlayerActionResultDto> WeaponAttack(PlayerActionDto request)
     {
-        var response = new ServiceResponse<PlayerActionResultDto>();
-
         var (fight, playerCharacter, targetCharacter, allEnemyCharacters) =
             await GetPlayerActionReferenceData(request);
 
@@ -154,9 +146,8 @@ public class FightService : IFightService
             {
                 attackResult.FightStatus = FightStatus.Victory;
                 EndFight(fight, allEnemyCharacters, playerCharacter, true);
-                response.Data = attackResult;
                 await _context.SaveChangesAsync();
-                return response;
+                return attackResult;
             }
         }
 
@@ -166,10 +157,8 @@ public class FightService : IFightService
         UpdateSkillCooldowns(fight.Characters);
 
         await _context.SaveChangesAsync();
-
-        response.Data = attackResult;
-
-        return response;
+        
+        return attackResult;
     }
 
     private static int AttackWithSkill(Character attacker, Character defender, Skill skill)
@@ -206,7 +195,7 @@ public class FightService : IFightService
 
     private void EndFight(
         Fight fight,
-        IEnumerable<Character> allEnemyCharactersInFight,
+        ICollection<Character> allEnemyCharactersInFight,
         Character playerCharacter,
         bool isVictory
     )
@@ -233,7 +222,6 @@ public class FightService : IFightService
         PlayerActionResultDto resultDto
     )
     {
-        var damage = 0;
         var enemyActions = new List<ActionResultDto>();
 
         // TODO: Add support for self & friendly targeted skills
@@ -259,6 +247,7 @@ public class FightService : IFightService
                     .ToList();
 
                 // 50 / 50 change to do a skill attack or a weapon attack
+                int damage;
                 if (RNG.GetBoolean(0.5) && validSkills.Any())
                 {
                     var skillInstance = RNG.PickRandom(validSkills);

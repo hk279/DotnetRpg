@@ -1,5 +1,8 @@
 namespace DotnetRpg.Models;
 
+/// <summary>
+/// Template for character-specific status effect instances
+/// </summary>
 public class StatusEffect
 {
     public StatusEffect() { }
@@ -8,7 +11,6 @@ public class StatusEffect
         string name,
         int duration,
         StatusEffectType type,
-        int skillId,
         int damagePerTurnFactor = 0,
         int healingPerTurnFactor = 0,
         int increasedDamagePercentage = 0,
@@ -23,7 +25,6 @@ public class StatusEffect
         Name = name;
         Duration = duration;
         Type = type;
-        SkillId = skillId;
         DamagePerTurnFactor = damagePerTurnFactor;
         HealingPerTurnFactor = healingPerTurnFactor;
         IncreasedDamagePercentage = increasedDamagePercentage;
@@ -36,7 +37,7 @@ public class StatusEffect
     }
 
     public int Id { get; set; }
-    public string Name { get; set; } = null!;
+    public string Name { get; set; }
     public int Duration { get; set; }
 
     /// <summary>
@@ -64,17 +65,4 @@ public class StatusEffect
     public int IncreasedIntelligencePercentage { get; set; }
     public int IncreasedArmorPercentage { get; set; }
     public int IncreasedResistancePercentage { get; set; }
-
-    public List<StatusEffectInstance> StatusEffectInstances { get; set; } =
-        new List<StatusEffectInstance>();
-
-    public Skill Skill { get; set; } = null!;
-    public int SkillId { get; set; }
-}
-
-public enum StatusEffectType
-{
-    Unknown,
-    Physical,
-    Magic
 }

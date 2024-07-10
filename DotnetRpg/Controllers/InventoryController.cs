@@ -1,5 +1,5 @@
 using DotnetRpg.Dtos.Item;
-using DotnetRpg.Services.ItemService;
+using DotnetRpg.Services.InventoryService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -17,14 +17,14 @@ public class InventoryController : ControllerBase
         _inventoryService = inventoryService;
     }
 
-    [HttpGet("{characterId}")]
-    public async Task<ActionResult<ServiceResponse<List<GetItemDto>>>> GetInventory(int characterId)
+    [HttpGet("{characterId:int}")]
+    public async Task<ActionResult<List<GetItemDto>>> GetInventory(int characterId)
     {
         var response = await _inventoryService.GetInventory(characterId);
         return Ok(response);
     }
 
-    [HttpPost("{characterId}/equipItem/{itemId}")]
+    [HttpPost("{characterId:int}/equipItem/{itemId:int}")]
     public async Task<ActionResult> EquipItem(int characterId, int itemId)
     {
         await _inventoryService.EquipItem(characterId, itemId);

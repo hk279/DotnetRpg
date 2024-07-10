@@ -2,8 +2,8 @@ using DotnetRpg.Dtos.Character;
 using AutoMapper;
 using DotnetRpg.Data;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 using DotnetRpg.Models.Exceptions;
+using DotnetRpg.Services.UserProvider;
 
 namespace DotnetRpg.Services.CharacterService;
 
@@ -11,33 +11,30 @@ public class CharacterService : ICharacterService
 {
     private readonly IMapper _autoMapper;
     private readonly DataContext _context;
-    public readonly IHttpContextAccessor _httpContextAccessor;
-
+    private readonly IUserProvider _userProvider;
+    
     public CharacterService(
         IMapper autoMapper,
         DataContext context,
-        IHttpContextAccessor httpContextAccessor
+        IUserProvider userProvider
     )
     {
         _autoMapper = autoMapper;
         _context = context;
-        _httpContextAccessor = httpContextAccessor;
+        _userProvider = userProvider;
     }
 
-    public async Task<ServiceResponse<List<GetCharacterListingDto>>> GetAllCharacters()
+    public async Task<List<GetCharacterListingDto>> GetAllCharacters()
     {
         var allCharacters = await _context.Characters
-            .Where(c => c.User != null && c.User.Id == GetUserId())
             .Select(c => _autoMapper.Map<GetCharacterListingDto>(c))
             .ToListAsync();
 
-        return new ServiceResponse<List<GetCharacterListingDto>> { Data = allCharacters };
+        return allCharacters;
     }
 
-    public async Task<ServiceResponse<GetCharacterDto>> GetCharacterById(int characterId)
+    public async Task<GetCharacterDto> GetCharacterById(int characterId)
     {
-        var response = new ServiceResponse<GetCharacterDto>();
-
         var character =
             await _context.Characters
                 .AsSplitQuery()
@@ -45,7 +42,7 @@ public class CharacterService : ICharacterService
                 .ThenInclude(s => s.Skill)
                 .ThenInclude(s => s.StatusEffect)
                 .Include(c => c.Inventory)
-                .FirstOrDefaultAsync(c => c.Id == characterId && c.User != null && c.User.Id == GetUserId())
+                .FirstOrDefaultAsync(c => c.Id == characterId)
             ?? throw new NotFoundException("Character not found");
 
         var dto = _autoMapper.Map<GetCharacterDto>(character);
@@ -69,27 +66,21 @@ public class CharacterService : ICharacterService
             nextLevelExperienceThreshold - currentLevelExperienceThreshold;
         dto.ExperienceTowardsNextLevel = character.Experience - currentLevelExperienceThreshold;
 
-        response.Data = dto;
-
-        return response;
+        return dto;
     }
 
-    public async Task<ServiceResponse<List<GetCharacterDto>>> GetEnemies(int characterId)
+    public async Task<List<GetCharacterDto>> GetEnemies(int characterId)
     {
-        var response = new ServiceResponse<List<GetCharacterDto>>();
-
-        var character =
-            await _context.Characters.FirstOrDefaultAsync(
-                c => c.Id == characterId && c.User != null && c.User.Id == GetUserId()
-            ) ?? throw new NotFoundException("Character not found");
-
-        var fightId =
-            character.FightId ?? throw new BadRequestException("Character is not in a fight");
+        var character = await _context.Characters.Include(c => c.Fight)
+                            .FirstOrDefaultAsync(c => c.Id == characterId)
+                        ?? throw new NotFoundException("Character not found");
+        var fightId = character.Fight?.Id ?? throw new BadRequestException("Character is not in a fight");
         var enemies = await _context.Characters
+            .Include(c => c.Fight)
             .Include(c => c.Inventory)
             .Include(c => c.StatusEffectInstances)
             .ThenInclude(s => s.StatusEffect)
-            .Where(c => c.FightId == fightId && !c.IsPlayerCharacter)
+            .Where(c => c.Fight != null && c.Fight.Id == fightId && !c.IsPlayerCharacter)
             .Select(c => _autoMapper.Map<GetCharacterDto>(c))
             .ToListAsync();
 
@@ -97,18 +88,12 @@ public class CharacterService : ICharacterService
         {
             throw new NotFoundException("No enemies found");
         }
-
-        response.Data = enemies;
-
-        return response;
+        
+        return enemies;
     }
 
-    public async Task<ServiceResponse<List<GetCharacterDto>>> AddCharacter(
-        AddCharacterDto newCharacter
-    )
+    public async Task AddCharacter(AddCharacterDto newCharacter)
     {
-        var response = new ServiceResponse<List<GetCharacterDto>>();
-
         var totalAttributes =
             newCharacter.Strength
             + newCharacter.Intelligence
@@ -121,11 +106,7 @@ public class CharacterService : ICharacterService
         }
 
         var characterToAdd = _autoMapper.Map<Character>(newCharacter);
-        var currentUser =
-            await _context.Users.FirstOrDefaultAsync(u => u.Id == GetUserId())
-            ?? throw new NotFoundException("User not found");
-
-        characterToAdd.User = currentUser;
+        characterToAdd.UserId = _userProvider.GetUserId();
 
         ResetHitPointsAndEnergy(characterToAdd);
         AddStartingSkills(characterToAdd);
@@ -134,42 +115,18 @@ public class CharacterService : ICharacterService
 
         await _context.Characters.AddAsync(characterToAdd);
         await _context.SaveChangesAsync();
-
-        return response;
     }
 
-    public async Task<ServiceResponse<List<GetCharacterDto>>> DeleteCharacter(int characterId)
+    public async Task DeleteCharacter(int characterId)
     {
-        var response = new ServiceResponse<List<GetCharacterDto>>();
-
-        var characterToRemove =
-            await _context.Characters.FirstOrDefaultAsync(
-                c => c.Id == characterId && c.User != null && c.User.Id == GetUserId()
-            ) ?? throw new NotFoundException($"Character not found with ID {characterId}");
+        var characterToRemove = await _context.Characters.FirstOrDefaultAsync(c => c.Id == characterId) 
+                                ?? throw new NotFoundException($"Character not found with ID {characterId}");
 
         _context.Characters.Remove(characterToRemove);
 
         await _context.SaveChangesAsync();
-        response.Data = _context.Characters
-            .Where(c => c.User != null && c.User.Id == GetUserId())
-            .Select(c => _autoMapper.Map<GetCharacterDto>(c))
-            .ToList();
-
-        return response;
     }
-
-    // TODO: Handle the user ID check in EF query filter
-    private int GetUserId()
-    {
-        var httpContext =
-            _httpContextAccessor.HttpContext
-            ?? throw new ArgumentNullException(nameof(_httpContextAccessor.HttpContext));
-        var userId =
-            httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier)
-            ?? throw new UnauthorizedException("User not identified");
-        return int.Parse(userId);
-    }
-
+    
     private static void ResetHitPointsAndEnergy(Character character)
     {
         character.CurrentHitPoints = character.GetMaxHitPoints();
@@ -207,21 +164,21 @@ public class CharacterService : ICharacterService
         var weapon = character.Class switch
         {
             CharacterClass.Warrior
-                => new Weapon()
+                => new Weapon
                 {
                     Name = "Training Shortsword",
                     MinDamage = 4,
                     MaxDamage = 5
                 },
             CharacterClass.Mage
-                => new Weapon()
+                => new Weapon
                 {
                     Name = "Handmade Dagger",
                     MinDamage = 4,
                     MaxDamage = 5
                 },
             CharacterClass.Priest
-                => new Weapon()
+                => new Weapon
                 {
                     Name = "Traveling Staff",
                     MinDamage = 4,

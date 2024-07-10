@@ -1,10 +1,10 @@
 using DotnetRpg.Dtos.Item;
 
-namespace DotnetRpg.Services.ItemService;
+namespace DotnetRpg.Services.InventoryService;
 
 public interface IInventoryService
 {
-    Task<ServiceResponse<List<GetItemDto>>> GetInventory(int characterId);
+    Task<List<GetItemDto>> GetInventory(int characterId);
     Task EquipItem(int characterId, int itemId);
     Task UnequipItem(int characterId, int itemId);
     Task DeleteItem(int characterId, int itemId);

@@ -28,23 +28,17 @@ public class AuthService : IAuthService
         _userProvider = userProvider;
     }
 
-    public async Task<ServiceResponse<string>> GetUserName()
+    public async Task<string> GetUserName()
     {
-        var response = new ServiceResponse<string>();
-
         var userId = _userProvider.GetUserId();
         var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId)
-            ?? throw new NotFoundException($"User not found with ID {userId}");
+            ?? throw new NotFoundException($"User not found");
 
-        response.Data = user.Username;
-
-        return response;
+        return user.Username;
     }
 
-    public async Task<ServiceResponse<LoginDetails>> Login(string username, string password)
+    public async Task<string> Login(string username, string password)
     {
-        var response = new ServiceResponse<LoginDetails>();
-
         var user =
             await _context.Users.FirstOrDefaultAsync(
                 u => u.Username.ToLower().Equals(username.ToLower())
@@ -55,15 +49,13 @@ public class AuthService : IAuthService
             throw new UnauthorizedException("Login failed. Incorrect password");
         }
 
-        response.Data = new LoginDetails(user.Username, CreateToken(user));
-
-        return response;
+        var token = CreateToken(user);
+        
+        return token;
     }
 
-    public async Task<ServiceResponse<int>> Register(string userName, string password)
+    public async Task Register(string userName, string password)
     {
-        var response = new ServiceResponse<int>();
-
         await ValidateRegistration(userName, password);
 
         var user = new User { Username = userName };
@@ -74,9 +66,6 @@ public class AuthService : IAuthService
 
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
-        response.Data = user.Id;
-
-        return response;
     }
 
     public async Task<bool> UserExists(string username)

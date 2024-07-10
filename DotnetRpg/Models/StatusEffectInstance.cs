@@ -1,6 +1,6 @@
 namespace DotnetRpg.Models;
 
-public class StatusEffectInstance
+public class StatusEffectInstance : BaseEntity
 {
     public StatusEffectInstance() { }
 
@@ -9,8 +9,7 @@ public class StatusEffectInstance
         StatusEffect = statusEffect;
         RemainingDuration = remainingDuration;
     }
-
-    public int Id { get; set; }
+    
     public StatusEffect StatusEffect { get; set; } = null!;
     public Character Character { get; set; } = null!;
     public int RemainingDuration { get; set; }
