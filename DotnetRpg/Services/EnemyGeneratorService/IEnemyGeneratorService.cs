@@ -1,3 +1,5 @@
+using DotnetRpg.Models.Characters;
+
 namespace DotnetRpg.Services.EnemyGeneratorService;
 
 public interface IEnemyGeneratorService

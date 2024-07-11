@@ -1,10 +1,13 @@
-namespace DotnetRpg.Models;
+using DotnetRpg.Models.Characters;
+using DotnetRpg.Models.Generic;
+
+namespace DotnetRpg.Models.Skills;
 
 public class SkillInstance : BaseEntity
 {
     public SkillInstance() { }
 
-    public SkillInstance(Skill skill, int remainingCooldown)
+    public SkillInstance(int userId, Skill skill, int remainingCooldown) : base(userId)
     {
         Skill = skill;
         RemainingCooldown = remainingCooldown;

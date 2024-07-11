@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using DotnetRpg.Models.Fights;
 
 namespace DotnetRpg.Dtos.Fight;
 

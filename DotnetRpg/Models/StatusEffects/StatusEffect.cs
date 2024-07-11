@@ -1,4 +1,4 @@
-namespace DotnetRpg.Models;
+namespace DotnetRpg.Models.StatusEffects;
 
 /// <summary>
 /// Template for character-specific status effect instances

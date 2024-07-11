@@ -1,4 +1,6 @@
 using DotnetRpg.Dtos.Item;
+using DotnetRpg.Models.Characters;
+using DotnetRpg.Models.Items;
 
 namespace DotnetRpg.Services.InventoryService;
 

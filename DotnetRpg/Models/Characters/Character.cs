@@ -1,18 +1,51 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using DotnetRpg.Models.Fights;
+using DotnetRpg.Models.Generic;
+using DotnetRpg.Models.Items;
+using DotnetRpg.Models.Skills;
+using DotnetRpg.Models.StatusEffects;
 
-namespace DotnetRpg.Models;
+namespace DotnetRpg.Models.Characters;
 
 public class Character : BaseEntity
 {
-    [MaxLength(32)]
-    public string Name { get; set; } = string.Empty;
-    public string Avatar { get; set; } = string.Empty;
-    public bool IsPlayerCharacter { get; set; } = true;
+    public Character() { }
+
+    public Character(
+        int userId,
+        string name,
+        string avatar,
+        bool isPlayerCharacter,
+        int level,
+        int experience,
+        Attributes attributes,
+        int baseArmor,
+        int baseResistance,
+        CharacterClass characterClass
+    ): base(userId)
+    {
+        Name = name;
+        Avatar = avatar;
+        IsPlayerCharacter = isPlayerCharacter;
+        Level = level;
+        Experience = experience;
+        Strength = attributes.Strength;
+        Intelligence = attributes.Intelligence;
+        Stamina = attributes.Stamina;
+        Spirit = attributes.Spirit;
+        BaseArmor = baseArmor;
+        BaseResistance = baseResistance;
+        Class = characterClass;
+    }
+    
+    [MaxLength(32)] public string Name { get; set; } = null!;
+    public string Avatar { get; set; } = null!;
+    public bool IsPlayerCharacter { get; set; }
 
     public int Level { get; set; } = 1;
     public int Experience { get; set; }
-    public int UnassignedAttributePoints { get; set; } = 0;
+    public int UnassignedAttributePoints { get; set; }
 
     public int Strength { get; set; }
     public int Intelligence { get; set; }
@@ -25,13 +58,12 @@ public class Character : BaseEntity
     public int CurrentHitPoints { get; set; }
     public int CurrentEnergy { get; set; }
 
-    public List<StatusEffectInstance> StatusEffectInstances { get; set; } =
-        new List<StatusEffectInstance>();
+    public List<StatusEffectInstance> StatusEffectInstances { get; set; } = [];
 
     public CharacterClass Class { get; set; }
-    public List<SkillInstance> SkillInstances { get; set; } = new List<SkillInstance>();
+    public List<SkillInstance> SkillInstances { get; set; } = [];
     public int InventorySize { get; set; } = 10;
-    public List<Item> Inventory { get; set; } = new List<Item>();
+    public List<Item> Inventory { get; set; } = [];
     public Fight? Fight { get; set; }
 
 

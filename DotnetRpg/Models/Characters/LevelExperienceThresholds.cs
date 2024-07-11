@@ -1,4 +1,4 @@
-namespace DotnetRpg.Models;
+namespace DotnetRpg.Models.Characters;
 
 public static class LevelExperienceThresholds
 {

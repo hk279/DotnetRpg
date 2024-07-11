@@ -1,57 +1,40 @@
+using DotnetRpg.Models.Characters;
+using DotnetRpg.Models.Items;
+
 namespace DotnetRpg.Services.EnemyGeneratorService;
 
 public class EnemyGeneratorService : IEnemyGeneratorService
 {
-    private readonly List<EnemyGenerationData> _singleEnemyTemplates =
-        new()
-        {
-            new EnemyGenerationData(
-                "Grizzly Bear",
-                EnemyType.Single,
-                CharacterClass.Warrior,
-                new Weapon { Name = "Claw", IsEquipped = true }
-            ),
-            new EnemyGenerationData(
-                "Deranged Knight",
-                EnemyType.Single,
-                CharacterClass.Warrior,
-                new Weapon { Name = "Longsword", IsEquipped = true }
-            ),
-            new EnemyGenerationData(
-                "Rogue Wizard",
-                EnemyType.Single,
-                CharacterClass.Mage,
-                new Weapon { Name = "Ornate Staff", IsEquipped = true }
-            ),
-            new EnemyGenerationData(
-                "Cultist Shaman",
-                EnemyType.Single,
-                CharacterClass.Priest,
-                new Weapon { Name = "Sacrificial Knife", IsEquipped = true }
-            ),
-        };
+    private readonly List<EnemyTemplate> _singleEnemyTemplates =
+    [
+        new EnemyTemplate(
+            "Grizzly Bear",
+            EnemyType.Single,
+            CharacterClass.Warrior,
+            new Weapon { Name = "Claw", IsEquipped = true }
+        ),
+        new EnemyTemplate(
+            "Deranged Knight",
+            EnemyType.Single,
+            CharacterClass.Warrior,
+            new Weapon { Name = "Longsword", IsEquipped = true }
+        ),
+        new EnemyTemplate(
+            "Rogue Wizard",
+            EnemyType.Single,
+            CharacterClass.Mage,
+            new Weapon { Name = "Ornate Staff", IsEquipped = true }
+        ),
+        new EnemyTemplate(
+            "Cultist Shaman",
+            EnemyType.Single,
+            CharacterClass.Priest,
+            new Weapon { Name = "Sacrificial Knife", IsEquipped = true }
+        )
+    ];
 
-    // private readonly List<List<EnemyGenerationData>> _multiEnemyTemplates = new()
-    // {
-    //     new List<EnemyGenerationData>() {
-    //         new EnemyGenerationData("Wild Boar", EnemyType.Multi, CharacterClass.Warrior),
-    //         new EnemyGenerationData("Wild Boar", EnemyType.Multi, CharacterClass.Warrior),
-    //         new EnemyGenerationData("Rabid Wild Boar", EnemyType.Multi, CharacterClass.Warrior)
-    //     },
-
-    //     new List<EnemyGenerationData>()
-    //     {
-    //         new EnemyGenerationData("Wolf", EnemyType.Multi, CharacterClass.Warrior),
-    //         new EnemyGenerationData("Wolf", EnemyType.Multi, CharacterClass.Warrior),
-    //         new EnemyGenerationData("Alpha Wolf", EnemyType.Multi, CharacterClass.Warrior)
-    //     },
-
-    //     new List<EnemyGenerationData>()
-    //     {
-    //         new EnemyGenerationData("Cultist Novice", EnemyType.Multi, CharacterClass.Priest),
-    //         new EnemyGenerationData("Cultist Novice", EnemyType.Multi, CharacterClass.Warrior)
-    //     },
-    // };
+    // TODO: Implement multi-enemy templates. Should be weaker than single enemies.
+    private readonly List<List<EnemyTemplate>> _multiEnemyTemplates = []; 
 
     public List<Character> GetEnemies(int playerCharacterLevel)
     {
@@ -64,12 +47,12 @@ public class EnemyGeneratorService : IEnemyGeneratorService
         var enemyGenerationData = RNG.PickRandom(_singleEnemyTemplates);
         var singleEnemy = GenerateSingleEnemyCharacter(playerCharacterLevel, enemyGenerationData);
 
-        return new List<Character> { singleEnemy };
+        return [singleEnemy];
     }
 
     private static Character GenerateSingleEnemyCharacter(
         int playerCharacterLevel,
-        EnemyGenerationData data
+        EnemyTemplate data
     )
     {
         var enemyLevel = GetEnemyLevel(playerCharacterLevel);
@@ -140,7 +123,7 @@ public class EnemyGeneratorService : IEnemyGeneratorService
             Spirit = spirit,
             BaseArmor = armor,
             BaseResistance = resistance,
-            Inventory = new List<Item> { data.Weapon }
+            Inventory = [data.Weapon]
         };
 
         enemy.CurrentEnergy = enemy.GetMaxEnergy();
@@ -169,7 +152,7 @@ public class EnemyGeneratorService : IEnemyGeneratorService
         return playerCharacterLevel;
     }
 
-    private record EnemyGenerationData(
+    private record EnemyTemplate(
         string Name,
         EnemyType EnemyType,
         CharacterClass EnemyClass,

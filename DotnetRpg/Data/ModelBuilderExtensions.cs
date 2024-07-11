@@ -1,4 +1,6 @@
 using System.Linq.Expressions;
+using DotnetRpg.Models.Generic;
+using DotnetRpg.Models.Users;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace DotnetRpg.Data;

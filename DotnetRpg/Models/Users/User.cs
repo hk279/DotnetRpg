@@ -1,4 +1,4 @@
-namespace DotnetRpg.Models;
+namespace DotnetRpg.Models.Users;
 
 public class User
 {

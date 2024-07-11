@@ -1,6 +1,7 @@
 using DotnetRpg.Dtos.Item;
 using DotnetRpg.Dtos.Skill;
 using DotnetRpg.Dtos.StatusEffect;
+using DotnetRpg.Models.Characters;
 
 namespace DotnetRpg.Dtos.Character
 {

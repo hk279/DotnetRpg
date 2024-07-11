@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using DotnetRpg.Models.Items;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

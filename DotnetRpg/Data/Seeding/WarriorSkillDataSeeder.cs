@@ -1,3 +1,7 @@
+using DotnetRpg.Models.Characters;
+using DotnetRpg.Models.Skills;
+using DotnetRpg.Models.StatusEffects;
+
 namespace DotnetRpg.Data.Seeding;
 
 public static class WarriorSkillDataSeeder
@@ -14,14 +18,14 @@ public static class WarriorSkillDataSeeder
 
     private static List<Skill> GetChargeSkills()
     {
-        return new List<Skill>
-        {
+        return
+        [
             CreateChargeSkill(
                 rank: 1,
                 weaponDamagePercentage: 10,
-                minBaseDamageFactor: 30,
-                maxBaseDamageFactor: 40,
-                baseDamageAttributeScalingFactor: 90,
+                minBaseDamageFactor: 110,
+                maxBaseDamageFactor: 200,
+                baseDamageAttributeScalingFactor: 120,
                 energyCost: 15,
                 cooldown: 5,
                 new StatusEffect("Stunned", duration: 1, StatusEffectType.Physical, isStunned: true)
@@ -45,14 +49,14 @@ public static class WarriorSkillDataSeeder
                 energyCost: 15,
                 cooldown: 5,
                 new StatusEffect("Stunned", duration: 1, StatusEffectType.Physical, isStunned: true)
-            ),
-        };
+            )
+        ];
     }
 
     private static List<Skill> GetRendSkills()
     {
-        return new List<Skill>
-        {
+        return
+        [
             CreateRendSkill(1, 30, 40, 50, 50, 20, 4, new StatusEffect(
                 "Bleeding",
                 duration: 3,
@@ -71,7 +75,7 @@ public static class WarriorSkillDataSeeder
                 StatusEffectType.Physical,
                 damagePerTurnFactor: 30
             ))
-        };
+        ];
     }
 
     private static Skill CreateChargeSkill(

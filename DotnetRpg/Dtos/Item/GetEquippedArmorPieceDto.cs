@@ -1,3 +1,5 @@
+using DotnetRpg.Models.Items;
+
 namespace DotnetRpg.Dtos.Item;
 
 public class GetEquippedArmorPieceDto : GetEquippedItemDto

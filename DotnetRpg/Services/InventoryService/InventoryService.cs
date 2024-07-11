@@ -1,7 +1,9 @@
 using AutoMapper;
 using DotnetRpg.Data;
 using DotnetRpg.Dtos.Item;
+using DotnetRpg.Models.Characters;
 using DotnetRpg.Models.Exceptions;
+using DotnetRpg.Models.Items;
 using Microsoft.EntityFrameworkCore;
 
 namespace DotnetRpg.Services.InventoryService;
@@ -147,17 +149,8 @@ public class InventoryService : IInventoryService
                     * _armorSlotStatCoefficients[armorSlot]
             );
 
-        var gearPiece = new ArmorPiece()
-        {
-            Name = "Generated armor piece", // TODO: Add name generation
-            Level = itemLevel,
-            Rarity = itemRarity,
-            Weight = 2, // TODO: Generate by armor slot with some variance
-            Value = 10, // TODO: Generate by armor slot and rarity with some variance
-            Slot = armorSlot,
-            Armor = armor,
-            Resistance = resistance,
-        };
+        
+        var gearPiece = new ArmorPiece();
 
         return gearPiece;
     }

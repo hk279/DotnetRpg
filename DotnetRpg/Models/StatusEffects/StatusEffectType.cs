@@ -1,9 +1,9 @@
 using System.Text.Json.Serialization;
 
-namespace DotnetRpg.Models;
+namespace DotnetRpg.Models.StatusEffects;
 
 [JsonConverter(typeof(JsonStringEnumConverter))]
-public enum DamageType
+public enum StatusEffectType
 {
     Unknown,
     Physical,

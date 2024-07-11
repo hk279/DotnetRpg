@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using DotnetRpg.Models.Fights;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

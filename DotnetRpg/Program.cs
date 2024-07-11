@@ -1,4 +1,3 @@
-global using DotnetRpg.Models;
 using System.Text;
 using DotnetRpg.Data;
 using DotnetRpg.Services.AuthService;
@@ -16,6 +15,7 @@ using DotnetRpg.Services.InventoryService;
 using DotnetRpg.Services.UserProvider;
 using Serilog;
 using Serilog.Debugging;
+using Serilog.Events;
 
 SelfLog.Enable(Console.Error);
 Log.Logger = new LoggerConfiguration().WriteTo.Console().CreateBootstrapLogger();
@@ -23,19 +23,31 @@ Log.Logger = new LoggerConfiguration().WriteTo.Console().CreateBootstrapLogger()
 try
 {
     var builder = WebApplication.CreateBuilder(args);
+    
     var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-    var tokenSecret =
-        builder.Configuration.GetSection("TokenSettings:Secret").Value
-        ?? throw new ArgumentException("Missing token secret");
-
-    // Add services to the container.
+    var tokenSecret = builder.Configuration.GetSection("TokenSettings:Secret").Value
+                      ?? throw new ArgumentException("Missing token secret");
+    
+    // Add Serilog
+    builder.Host.UseSerilog(
+        (_, services, configuration) =>
+            configuration
+                .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
+                .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Infrastructure", LogEventLevel.Warning)
+                .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", LogEventLevel.Warning)
+                .WriteTo.Console()
+                .ReadFrom.Services(services)
+                .Enrich.FromLogContext()
+    );
+    
+    // Add services to the container
     builder.Services.AddControllers();
     builder.Services.AddDbContext<DataContext>(options =>
     {
         options.UseSqlServer(connectionString);
         options.EnableSensitiveDataLogging();
     });
-    builder.Services.AddHttpLogging(o => { });
+    builder.Services.AddScoped(sp => sp.GetRequiredService<ILoggerFactory>().CreateLogger("DefaultLogger"));
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen(c =>
     {
@@ -79,6 +91,8 @@ try
     var app = builder.Build();
 
     // Configure the HTTP request pipeline.
+    app.UseSerilogRequestLogging();
+    
     if (app.Environment.IsDevelopment())
     {
         app.UseSwagger();
@@ -93,9 +107,7 @@ try
                     .AllowCredentials()
         );
     }
-
-    app.UseHttpLogging();
-
+    
     app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
     app.UseHttpsRedirection();

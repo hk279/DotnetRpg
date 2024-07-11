@@ -1,4 +1,5 @@
 using DotnetRpg.Dtos.StatusEffect;
+using DotnetRpg.Models.Skills;
 
 namespace DotnetRpg.Dtos.Skill;
 

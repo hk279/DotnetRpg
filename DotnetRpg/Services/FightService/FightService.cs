@@ -1,6 +1,11 @@
 using DotnetRpg.Data;
 using DotnetRpg.Dtos.Fight;
+using DotnetRpg.Models.Characters;
 using DotnetRpg.Models.Exceptions;
+using DotnetRpg.Models.Fights;
+using DotnetRpg.Models.Items;
+using DotnetRpg.Models.Skills;
+using DotnetRpg.Models.StatusEffects;
 using DotnetRpg.Services.EnemyGeneratorService;
 using DotnetRpg.Services.UserProvider;
 using Microsoft.EntityFrameworkCore;
@@ -11,13 +16,11 @@ public class FightService : IFightService
 {
     private readonly DataContext _context;
     private readonly IEnemyGeneratorService _enemyGeneratorService;
-    private readonly IUserProvider _userProvider;
 
-    public FightService(DataContext context, IEnemyGeneratorService enemyGeneratorService, IUserProvider userProvider)
+    public FightService(DataContext context, IEnemyGeneratorService enemyGeneratorService)
     {
         _context = context;
         _enemyGeneratorService = enemyGeneratorService;
-        _userProvider = userProvider;
     }
 
     public async Task<BeginFightResultDto> BeginFight(int characterId)
@@ -39,7 +42,7 @@ public class FightService : IFightService
 
         await _context.SaveChangesAsync();
 
-        var newFight = new Fight(_userProvider.GetUserId(), allCharacters);
+        var newFight = new Fight(_context.UserId, allCharacters);
 
         await _context.AddAsync(newFight);
         await _context.SaveChangesAsync();
@@ -396,12 +399,12 @@ public class FightService : IFightService
         }
     }
 
-    private static void ApplyStatusEffect(Skill skill, Character targetCharacter)
+    private void ApplyStatusEffect(Skill skill, Character targetCharacter)
     {
         if (skill.StatusEffect is not null)
         {
             targetCharacter.StatusEffectInstances.Add(
-                new StatusEffectInstance(skill.StatusEffect, skill.StatusEffect.Duration)
+                new StatusEffectInstance(_context.UserId, skill.StatusEffect, skill.StatusEffect.Duration)
             );
         }
     }

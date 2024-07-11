@@ -1,3 +1,5 @@
+using DotnetRpg.Models.Characters;
+
 namespace DotnetRpg.Dtos.Character;
 
 public class GetCharacterListingDto

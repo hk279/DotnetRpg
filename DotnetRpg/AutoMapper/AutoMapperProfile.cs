@@ -3,6 +3,10 @@ using DotnetRpg.Dtos.Character;
 using DotnetRpg.Dtos.Item;
 using DotnetRpg.Dtos.Skill;
 using DotnetRpg.Dtos.StatusEffect;
+using DotnetRpg.Models.Characters;
+using DotnetRpg.Models.Items;
+using DotnetRpg.Models.Skills;
+using DotnetRpg.Models.StatusEffects;
 
 namespace DotnetRpg.AutoMapper;
 

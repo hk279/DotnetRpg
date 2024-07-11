@@ -1,6 +1,7 @@
-using System.Text.Json.Serialization;
+using DotnetRpg.Models.Characters;
+using DotnetRpg.Models.StatusEffects;
 
-namespace DotnetRpg.Models;
+namespace DotnetRpg.Models.Skills;
 
 /// <summary>
 /// Template for character-specific skill instances

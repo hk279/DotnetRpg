@@ -1,3 +1,5 @@
+using DotnetRpg.Models.StatusEffects;
+
 namespace DotnetRpg.Dtos.StatusEffect;
 
 public class GetStatusEffectDto

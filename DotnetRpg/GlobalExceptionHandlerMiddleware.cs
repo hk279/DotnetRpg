@@ -6,6 +6,13 @@ namespace DotnetRpg;
 
 public class GlobalExceptionHandlerMiddleware : IMiddleware
 {
+    private readonly ILogger _logger;
+
+    public GlobalExceptionHandlerMiddleware(ILogger logger)
+    {
+        _logger = logger;
+    }
+
     public async Task InvokeAsync(HttpContext context, RequestDelegate next)
     {
         try
@@ -14,6 +21,8 @@ public class GlobalExceptionHandlerMiddleware : IMiddleware
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "An error occurred while processing the request.");
+            
             HttpStatusCode statusCode;
             string errorTitle;
 

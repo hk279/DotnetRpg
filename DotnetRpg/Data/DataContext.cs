@@ -1,5 +1,12 @@
 using System.Linq.Expressions;
 using DotnetRpg.Data.EntityTypeConfigurations;
+using DotnetRpg.Models.Characters;
+using DotnetRpg.Models.Fights;
+using DotnetRpg.Models.Generic;
+using DotnetRpg.Models.Items;
+using DotnetRpg.Models.Skills;
+using DotnetRpg.Models.StatusEffects;
+using DotnetRpg.Models.Users;
 using DotnetRpg.Services.UserProvider;
 using Microsoft.EntityFrameworkCore;
 

@@ -1,3 +1,4 @@
+using DotnetRpg.Models.StatusEffects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

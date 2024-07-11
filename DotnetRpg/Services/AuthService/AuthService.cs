@@ -4,6 +4,7 @@ using System.Security.Cryptography;
 using System.Text;
 using DotnetRpg.Data;
 using DotnetRpg.Models.Exceptions;
+using DotnetRpg.Models.Users;
 using DotnetRpg.Services.UserProvider;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -39,10 +40,8 @@ public class AuthService : IAuthService
 
     public async Task<string> Login(string username, string password)
     {
-        var user =
-            await _context.Users.FirstOrDefaultAsync(
-                u => u.Username.ToLower().Equals(username.ToLower())
-            ) ?? throw new UnauthorizedException($"Login failed. User not found with name '{username}'.");
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Username.ToLower().Equals(username.ToLower()))
+                   ?? throw new UnauthorizedException($"Login failed. User not found with name '{username}'.");
 
         if (!VerifyPasswordHash(password, user.PasswordHash, user.PasswordSalt))
         {
@@ -68,10 +67,10 @@ public class AuthService : IAuthService
         await _context.SaveChangesAsync();
     }
 
-    public async Task<bool> UserExists(string username)
+    private async Task<bool> UserExists(string username)
     {
         var userExists = await _context.Users.AnyAsync(
-            u => u.Username.ToLower() == username.ToLower()
+            u => u.Username.Equals(username, StringComparison.CurrentCultureIgnoreCase)
         );
         return userExists;
     }
@@ -106,14 +105,10 @@ public class AuthService : IAuthService
             new(ClaimTypes.Name, user.Username)
         };
 
-        var tokenSecret =
-            _config.GetSection("TokenSettings:Secret").Value
-            ?? throw new ArgumentException("Token secret not found");
+        var tokenSecret = _config.GetSection("TokenSettings:Secret").Value
+                          ?? throw new ArgumentException("Token secret not found");
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(tokenSecret));
-        var signingCredentials = new SigningCredentials(
-            key,
-            SecurityAlgorithms.HmacSha512Signature
-        );
+        var signingCredentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(claims),

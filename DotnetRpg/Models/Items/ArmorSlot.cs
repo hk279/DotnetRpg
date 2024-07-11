@@ -1,13 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace DotnetRpg.Models;
-
-public class ArmorPiece : Item
-{
-    public required ArmorSlot Slot { get; set; }
-    public int Armor { get; set; }
-    public int Resistance { get; set; }
-}
+namespace DotnetRpg.Models.Items;
 
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum ArmorSlot

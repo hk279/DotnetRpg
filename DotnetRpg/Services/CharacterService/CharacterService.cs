@@ -1,27 +1,25 @@
 using DotnetRpg.Dtos.Character;
 using AutoMapper;
 using DotnetRpg.Data;
+using DotnetRpg.Models.Characters;
 using Microsoft.EntityFrameworkCore;
 using DotnetRpg.Models.Exceptions;
-using DotnetRpg.Services.UserProvider;
+using DotnetRpg.Models.Items;
+using DotnetRpg.Models.Skills;
 
 namespace DotnetRpg.Services.CharacterService;
 
 public class CharacterService : ICharacterService
 {
+    private const int InitialAttributePoints = 30;
+        
     private readonly IMapper _autoMapper;
     private readonly DataContext _context;
-    private readonly IUserProvider _userProvider;
     
-    public CharacterService(
-        IMapper autoMapper,
-        DataContext context,
-        IUserProvider userProvider
-    )
+    public CharacterService(IMapper autoMapper, DataContext context)
     {
         _autoMapper = autoMapper;
         _context = context;
-        _userProvider = userProvider;
     }
 
     public async Task<List<GetCharacterListingDto>> GetAllCharacters()
@@ -94,19 +92,21 @@ public class CharacterService : ICharacterService
 
     public async Task AddCharacter(AddCharacterDto newCharacter)
     {
-        var totalAttributes =
+        var totalAttributePoints =
             newCharacter.Strength
             + newCharacter.Intelligence
             + newCharacter.Stamina
             + newCharacter.Spirit;
 
-        if (totalAttributes > 30)
+        if (totalAttributePoints is not InitialAttributePoints)
         {
-            throw new BadRequestException("Allowed total attribute points exceeded");
+            throw new BadRequestException("Invalid number of attribute points assigned");
         }
 
         var characterToAdd = _autoMapper.Map<Character>(newCharacter);
-        characterToAdd.UserId = _userProvider.GetUserId();
+        
+        // Add explicitly since AutoMapper doesn't do it
+        characterToAdd.UserId = _context.UserId;
 
         ResetHitPointsAndEnergy(characterToAdd);
         AddStartingSkills(characterToAdd);
@@ -135,6 +135,7 @@ public class CharacterService : ICharacterService
 
     private void AddStartingSkills(Character character)
     {
+        // TODO: Add other class starting skills
         switch (character.Class)
         {
             case CharacterClass.Warrior:
@@ -146,7 +147,7 @@ public class CharacterService : ICharacterService
                             && s.Rank == 1
                             && (s.Name == "Charge" || s.Name == "Rend")
                     )
-                    .Select(s => new SkillInstance(s, 0))
+                    .Select(s => new SkillInstance(_context.UserId, s, 0))
                     .ToList();
 
                 character.SkillInstances.AddRange(warriorStartingSkills);
@@ -159,31 +160,46 @@ public class CharacterService : ICharacterService
         }
     }
 
-    private static void AddStartingWeapon(Character character)
+    private void AddStartingWeapon(Character character)
     {
         var weapon = character.Class switch
         {
             CharacterClass.Warrior
-                => new Weapon
-                {
-                    Name = "Training Shortsword",
-                    MinDamage = 4,
-                    MaxDamage = 5
-                },
+                => new Weapon(
+                    userId: _context.UserId,
+                    name: "Training Shortsword",
+                    weight: 2,
+                    rarity: ItemRarity.Common,
+                    value: 1,
+                    level: 1,
+                    minDamage: 4, 
+                    maxDamage: 5,
+                    attributes: new Attributes(0, 0, 0, 0)
+                ),
             CharacterClass.Mage
-                => new Weapon
-                {
-                    Name = "Handmade Dagger",
-                    MinDamage = 4,
-                    MaxDamage = 5
-                },
+                => new Weapon(
+                    userId: _context.UserId,
+                    name: "Handmade Dagger",
+                    weight: 2,
+                    rarity: ItemRarity.Common,
+                    value: 1,
+                    level: 1,
+                    minDamage: 4, 
+                    maxDamage: 5,
+                    attributes: new Attributes(0, 0, 0, 0)
+                ),
             CharacterClass.Priest
-                => new Weapon
-                {
-                    Name = "Traveling Staff",
-                    MinDamage = 4,
-                    MaxDamage = 5
-                },
+                => new Weapon(
+                    userId: _context.UserId,
+                    name: "Travelling Staff",
+                    weight: 2,
+                    rarity: ItemRarity.Common,
+                    value: 1,
+                    level: 1,
+                    minDamage: 4, 
+                    maxDamage: 5,
+                    attributes: new Attributes(0, 0, 0, 0)
+                ),
             _ => throw new ArgumentException("Invalid character class")
         };
 
@@ -192,88 +208,129 @@ public class CharacterService : ICharacterService
         character.Inventory.Add(weapon);
     }
 
-    private static void AddStartingGear(Character character)
+    private void AddStartingGear(Character character)
     {
-        var armorPieces = character.Class switch
+        List<ArmorPiece> armorPieces = character.Class switch
         {
             CharacterClass.Warrior
-                => new List<ArmorPiece>
-                {
-                    new()
-                    {
-                        Name = "Worn Leather Training Cuirass",
-                        Slot = ArmorSlot.Chest,
-                        Armor = 10,
-                        Resistance = 4,
-                        Weight = 3
-                    },
-                    new()
-                    {
-                        Name = "Patched Leather Pants",
-                        Slot = ArmorSlot.Legs,
-                        Armor = 5,
-                        Resistance = 2,
-                        Weight = 2
-                    },
-                    new()
-                    {
-                        Name = "Mudworn Boots",
-                        Slot = ArmorSlot.Feet,
-                        Armor = 3,
-                        Resistance = 1,
-                        Weight = 1
-                    },
-                },
+                =>
+                [
+                    new ArmorPiece(
+                        userId: _context.UserId,
+                        name: "Worn Leather Training Cuirass", 
+                        weight: 3,
+                        rarity: ItemRarity.Common,
+                        value: 1,
+                        level: 1,
+                        slot: ArmorSlot.Chest, 
+                        armor: 10,
+                        resistance: 2,
+                        attributes: new Attributes(0, 0, 0, 0)
+                    ),
+                    new ArmorPiece(
+                        userId: _context.UserId,
+                        name: "Patched Leather Pants", 
+                        weight: 2,
+                        rarity: ItemRarity.Common,
+                        value: 1,
+                        level: 1,
+                        slot: ArmorSlot.Legs, 
+                        armor: 5,
+                        resistance: 1,
+                        attributes: new Attributes(0, 0, 0, 0)
+                    ),
+                    new ArmorPiece(
+                        userId: _context.UserId,
+                        name: "Mudworn Boots", 
+                        weight: 1,
+                        rarity: ItemRarity.Common,
+                        value: 1,
+                        level: 1,
+                        slot: ArmorSlot.Feet, 
+                        armor: 3,
+                        resistance: 1,
+                        attributes: new Attributes(0, 0, 0, 0)
+                    )
+                ],
             CharacterClass.Mage
-                => new List<ArmorPiece>
-                {
-                    new()
-                    {
-                        Name = "Worn Linen Tunic",
-                        Slot = ArmorSlot.Chest,
-                        Armor = 4,
-                        Resistance = 4
-                    },
-                    new()
-                    {
-                        Name = "Linen Leggings",
-                        Slot = ArmorSlot.Legs,
-                        Armor = 2,
-                        Resistance = 2
-                    },
-                    new()
-                    {
-                        Name = "Handmade Sandals",
-                        Slot = ArmorSlot.Feet,
-                        Armor = 1,
-                        Resistance = 1
-                    },
-                },
+                =>
+                [
+                    new ArmorPiece(
+                        userId: _context.UserId,
+                        name: "Worn Linen Tunic", 
+                        weight: 2,
+                        rarity: ItemRarity.Common,
+                        value: 1,
+                        level: 1,
+                        slot: ArmorSlot.Chest, 
+                        armor: 4,
+                        resistance: 4,
+                        attributes: new Attributes(0, 0, 0, 0)
+                    ),
+                    new ArmorPiece(
+                        userId: _context.UserId,
+                        name: "Linen Leggings", 
+                        weight: 1,
+                        rarity: ItemRarity.Common,
+                        value: 1,
+                        level: 1,
+                        slot: ArmorSlot.Legs, 
+                        armor: 2,
+                        resistance: 2,
+                        attributes: new Attributes(0, 0, 0, 0)
+                    ),
+                    new ArmorPiece(
+                        userId: _context.UserId,
+                        name: "Handmade Sandals", 
+                        weight: 1,
+                        rarity: ItemRarity.Common,
+                        value: 1,
+                        level: 1,
+                        slot: ArmorSlot.Feet, 
+                        armor: 1,
+                        resistance: 1,
+                        attributes: new Attributes(0, 0, 0, 0)
+                    ),
+                ],
             CharacterClass.Priest
-                => new List<ArmorPiece>
-                {
-                    new()
-                    {
-                        Name = "Gray Novice Robe",
-                        Slot = ArmorSlot.Chest,
-                        Armor = 4,
-                        Resistance = 4
-                    },
-                    new()
-                    {
-                        Name = "Sackcloth Pants",
-                        Slot = ArmorSlot.Legs,
-                        Armor = 2,
-                        Resistance = 2
-                    },
-                    new()
-                    {
-                        Name = "Sturdy Footwraps",
-                        Slot = ArmorSlot.Feet,
-                        Armor = 1,
-                        Resistance = 1
-                    },
-                },
+                => [
+                    new ArmorPiece(
+                        userId: _context.UserId,
+                        name: "Gray Novice Robe", 
+                        weight: 2,
+                        rarity: ItemRarity.Common,
+                        value: 1,
+                        level: 1,
+                        slot: ArmorSlot.Chest, 
+                        armor: 5,
+                        resistance: 3,
+                        attributes: new Attributes(0, 0, 0, 0)
+                    ),
+                    new ArmorPiece(
+                        userId: _context.UserId,
+                        name: "Sackcloth Pants", 
+                        weight: 1,
+                        rarity: ItemRarity.Common,
+                        value: 1,
+                        level: 1,
+                        slot: ArmorSlot.Legs, 
+                        armor: 3,
+                        resistance: 1,
+                        attributes: new Attributes(0, 0, 0, 0)
+                    ),
+                    new ArmorPiece(
+                        userId: _context.UserId,
+                        name: "Sturdy Footwraps", 
+                        weight: 1,
+                        rarity: ItemRarity.Common,
+                        value: 1,
+                        level: 1,
+                        slot: ArmorSlot.Feet, 
+                        armor: 2,
+                        resistance: 1,
+                        attributes: new Attributes(0, 0, 0, 0)
+                    ),
+                ],
             _ => throw new ArgumentException("Invalid character class")
         };
 
