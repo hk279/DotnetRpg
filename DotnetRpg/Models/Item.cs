@@ -4,11 +4,11 @@ namespace DotnetRpg.Models;
 
 public abstract class Item : BaseEntity
 {
-    public required string Name { get; set; }
+    public string Name { get; set; } = null!;
     public ItemType Type { get; set; }
     public int Level { get; set; } = 1;
     public ItemRarity Rarity { get; set; }
-    public string Description { get; set; }
+    public string Description { get; set; } = null!;
     public int Weight { get; set; } = 1;
     public int Value { get; set; } = 1;
     public bool IsEquipped { get; set; }

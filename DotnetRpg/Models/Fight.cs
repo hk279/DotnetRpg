@@ -10,6 +10,6 @@ public class Fight : BaseEntity
         Characters = characters;
     }
 
-    public List<Character> Characters { get; set; }
+    public List<Character> Characters { get; set; } = null!;
 }
 

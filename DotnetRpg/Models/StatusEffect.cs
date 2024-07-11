@@ -37,7 +37,7 @@ public class StatusEffect
     }
 
     public int Id { get; set; }
-    public string Name { get; set; }
+    public string Name { get; set; } = null!;
     public int Duration { get; set; }
 
     /// <summary>
