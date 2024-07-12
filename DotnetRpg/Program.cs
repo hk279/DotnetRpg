@@ -22,6 +22,64 @@ Log.Logger = new LoggerConfiguration().WriteTo.Console().CreateBootstrapLogger()
 
 try
 {
+    var app = BuildApplication(args);
+
+    ConfigureRequestPipeline(app);
+
+    await SeedData(app);
+
+    app.Run();
+}
+catch (Exception e)
+{
+    Log.Fatal(e, "Host terminated unexpectedly");
+    throw;
+}
+finally
+{
+    Log.CloseAndFlush();
+}
+
+return;
+
+static async Task SeedData(WebApplication app)
+{
+    using var scope = app.Services.CreateScope();
+    var dataSeeder = scope.ServiceProvider.GetRequiredService<DataSeeder>();
+    await dataSeeder.SeedData();
+}
+
+static void ConfigureRequestPipeline(WebApplication app)
+{
+    app.UseSerilogRequestLogging();
+
+    if (app.Environment.IsDevelopment())
+    {
+        app.UseSwagger();
+        app.UseSwaggerUI();
+
+        app.UseCors(corsPolicyBuilder =>
+            corsPolicyBuilder
+                .WithOrigins("http://localhost:3000")
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowCredentials()
+        );
+    }
+
+    app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
+
+    app.UseHttpsRedirection();
+
+    app.UseAuthentication();
+
+    app.UseAuthorization();
+
+    app.MapControllers();
+}
+
+static WebApplication BuildApplication(string[] args)
+{
     var builder = WebApplication.CreateBuilder(args);
     
     var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -42,6 +100,7 @@ try
     
     // Add services to the container
     builder.Services.AddControllers();
+    builder.Services.AddLogging(x => x.AddSerilog());
     builder.Services.AddDbContext<DataContext>(options =>
     {
         options.UseSqlServer(connectionString);
@@ -82,61 +141,12 @@ try
     builder.Services.AddScoped<IFightService, FightService>();
     builder.Services.AddScoped<IEnemyGeneratorService, EnemyGeneratorService>();
     builder.Services.AddScoped<IInventoryService, InventoryService>();
-
+    
+    builder.Services.AddScoped<DataSeeder>();
+    
     builder.Services.AddScoped<IUserProvider, AuthenticatedUserProvider>();
 
     builder.Services.AddTransient<GlobalExceptionHandlerMiddleware>();
     
-    builder.Services.AddSingleton(sp => sp.GetRequiredService<ILoggerFactory>().CreateLogger("DefaultLogger"));
-
-    var app = builder.Build();
-
-    // Configure the HTTP request pipeline.
-    app.UseSerilogRequestLogging();
-    
-    if (app.Environment.IsDevelopment())
-    {
-        app.UseSwagger();
-        app.UseSwaggerUI();
-
-        app.UseCors(
-            corsPolicyBuilder =>
-                corsPolicyBuilder
-                    .WithOrigins("http://localhost:3000")
-                    .AllowAnyHeader()
-                    .AllowAnyMethod()
-                    .AllowCredentials()
-        );
-    }
-    
-    app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
-
-    app.UseHttpsRedirection();
-
-    app.UseAuthentication();
-
-    app.UseAuthorization();
-
-    app.MapControllers();
-
-    var optionsBuilder = new DbContextOptionsBuilder<DataContext>();
-    optionsBuilder.UseSqlServer(connectionString);
-    optionsBuilder.EnableSensitiveDataLogging();
-
-    var context = new DataContext(optionsBuilder.Options, new MockUserProvider());
-    
-    var loggerFactory = app.Services.GetRequiredService<ILoggerFactory>();
-
-    await DataSeeder.SeedData(context, loggerFactory.CreateLogger(nameof(DataSeeder)));
-
-    app.Run();
-}
-catch (Exception e)
-{
-    Log.Fatal(e, "Host terminated unexpectedly");
-    throw;
-}
-finally
-{
-    Log.CloseAndFlush();
+    return builder.Build();
 }

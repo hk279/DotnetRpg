@@ -6,9 +6,9 @@ namespace DotnetRpg;
 
 public class GlobalExceptionHandlerMiddleware : IMiddleware
 {
-    private readonly ILogger _logger;
+    private readonly ILogger<GlobalExceptionHandlerMiddleware> _logger;
 
-    public GlobalExceptionHandlerMiddleware(ILogger logger)
+    public GlobalExceptionHandlerMiddleware(ILogger<GlobalExceptionHandlerMiddleware> logger)
     {
         _logger = logger;
     }

@@ -3,14 +3,23 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DotnetRpg.Data.Seeding;
 
-public static class DataSeeder
+public class DataSeeder
 {
-    public static async Task SeedData(DataContext context, ILogger logger)
+    private readonly DataContext _context;
+    private readonly ILogger<DataSeeder> _logger;
+
+    public DataSeeder(DataContext context, ILogger<DataSeeder> logger)
     {
-        logger.LogInformation("Seeding skills to database...");
+        _context = context;
+        _logger = logger;
+    }
+
+    public async Task SeedData()
+    {
+        _logger.LogInformation("Seeding skills to database...");
         
         var allSkills = new List<Skill>();
-        var existingSkills = await context.Skills.ToListAsync();
+        var existingSkills = await _context.Skills.ToListAsync();
         
         allSkills.AddRange(WarriorSkillDataSeeder.GetWarriorSkills());
         // TODO: Add other class skills
@@ -21,17 +30,17 @@ public static class DataSeeder
 
         foreach (var skill in missingSkills)
         {
-            logger.LogInformation("Adding missing skill: {SkillName} (Rank {SkillRank})", skill.Name, skill.Rank);
+            _logger.LogInformation("Adding missing skill: {SkillName} (Rank {SkillRank})", skill.Name, skill.Rank);
         }
 
         if (missingSkills.Count == 0)
         {
-            logger.LogInformation("All skills already seeded");
+            _logger.LogInformation("All skills already seeded");
             return;
         }
         
-        await context.Skills.AddRangeAsync(missingSkills);
+        await _context.Skills.AddRangeAsync(missingSkills);
         
-        await context.SaveChangesAsync();
+        await _context.SaveChangesAsync();
     }
 }
