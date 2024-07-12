@@ -47,7 +47,6 @@ try
         options.UseSqlServer(connectionString);
         options.EnableSensitiveDataLogging();
     });
-    builder.Services.AddScoped(sp => sp.GetRequiredService<ILoggerFactory>().CreateLogger("DefaultLogger"));
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen(c =>
     {
@@ -87,6 +86,8 @@ try
     builder.Services.AddScoped<IUserProvider, AuthenticatedUserProvider>();
 
     builder.Services.AddTransient<GlobalExceptionHandlerMiddleware>();
+    
+    builder.Services.AddSingleton(sp => sp.GetRequiredService<ILoggerFactory>().CreateLogger("DefaultLogger"));
 
     var app = builder.Build();
 
@@ -123,8 +124,10 @@ try
     optionsBuilder.EnableSensitiveDataLogging();
 
     var context = new DataContext(optionsBuilder.Options, new MockUserProvider());
+    
+    var loggerFactory = app.Services.GetRequiredService<ILoggerFactory>();
 
-    await DataSeeder.SeedData(context);
+    await DataSeeder.SeedData(context, loggerFactory.CreateLogger(nameof(DataSeeder)));
 
     app.Run();
 }
