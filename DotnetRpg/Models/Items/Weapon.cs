@@ -3,7 +3,13 @@ namespace DotnetRpg.Models.Items;
 public class Weapon : Item
 {
     public Weapon() { }
-    
+
+    public Weapon(string name, string description = "")
+    {
+        Name = name;
+        Description = description;
+    }
+
     public Weapon(int userId,
         string name,
         int level,

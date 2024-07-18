@@ -7,7 +7,6 @@ using DotnetRpg.Models.Items;
 using DotnetRpg.Models.Skills;
 using DotnetRpg.Models.StatusEffects;
 using DotnetRpg.Services.EnemyGeneratorService;
-using DotnetRpg.Services.UserProvider;
 using Microsoft.EntityFrameworkCore;
 
 namespace DotnetRpg.Services.FightService;
@@ -29,7 +28,7 @@ public class FightService : IFightService
         var playerCharacter =
             await _context.Characters.Include(c => c.Fight).FirstOrDefaultAsync(c => c.Id == characterId)
             ?? throw new NotFoundException("Player character not found");
-        
+
         if (playerCharacter.Fight != null)
         {
             throw new ConflictException("Player character is already in a fight");
@@ -160,7 +159,7 @@ public class FightService : IFightService
         UpdateSkillCooldowns(fight.Characters);
 
         await _context.SaveChangesAsync();
-        
+
         return attackResult;
     }
 
@@ -174,7 +173,7 @@ public class FightService : IFightService
         }
 
         var damage = CalculateSkillDamage(skill, attacker, defender);
-        
+
         defender.CurrentHitPoints = Math.Max(defender.CurrentHitPoints - damage, 0);
 
         return damage;
@@ -326,16 +325,29 @@ public class FightService : IFightService
         var skillDamage = skillWeaponDamageComponent + skillBaseDamageComponent;
 
         // Calculate damage reduction
-        var damageReduction = skill.DamageType switch
-        {
-            DamageType.Physical => Math.Round((decimal)defender.GetArmor() / 100, 2),
-            DamageType.Magic => Math.Round((decimal)defender.GetResistance() / 100, 2),
-            _
-                => throw new ArgumentOutOfRangeException(nameof(skill.DamageType), "Invalid damage type")
-        };
-        var damageReductionFactor = 1 - damageReduction;
+        // (Armor / ([85 * Enemy_Level] + Armor + 20))
+        const int attackerLevelMultiplier = 85;
+        const int magicNumber = 20;
 
-        var totalDamage = (int)Math.Round(skillDamage * damageReductionFactor);
+        decimal damageReductionCoefficient;
+
+        switch (skill.DamageType)
+        {
+            case DamageType.Physical:
+                var armor = (decimal)defender.GetArmor();
+                damageReductionCoefficient =
+                    Math.Round(armor / ((attackerLevelMultiplier * attacker.Level) + armor + magicNumber), 2);
+                break;
+            case DamageType.Magic:
+                var resistance = (decimal)defender.GetResistance();
+                damageReductionCoefficient =
+                    Math.Round(resistance / ((attackerLevelMultiplier * attacker.Level) + resistance + magicNumber), 2);
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(skill.DamageType), "Invalid damage type");
+        }
+
+        var totalDamage = (int)Math.Round(skillDamage * (1 - damageReductionCoefficient));
 
         return totalDamage;
     }

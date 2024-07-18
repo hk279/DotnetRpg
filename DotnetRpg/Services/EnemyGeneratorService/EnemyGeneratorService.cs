@@ -5,111 +5,86 @@ namespace DotnetRpg.Services.EnemyGeneratorService;
 
 public class EnemyGeneratorService : IEnemyGeneratorService
 {
-    private readonly List<EnemyTemplate> _singleEnemyTemplates =
-    [
-        new EnemyTemplate(
-            "Grizzly Bear",
-            EnemyType.Single,
-            CharacterClass.Warrior,
-            new Weapon { Name = "Claw", IsEquipped = true }
-        ),
-        new EnemyTemplate(
-            "Deranged Knight",
-            EnemyType.Single,
-            CharacterClass.Warrior,
-            new Weapon { Name = "Longsword", IsEquipped = true }
-        ),
-        new EnemyTemplate(
-            "Rogue Wizard",
-            EnemyType.Single,
-            CharacterClass.Mage,
-            new Weapon { Name = "Ornate Staff", IsEquipped = true }
-        ),
-        new EnemyTemplate(
-            "Cultist Shaman",
-            EnemyType.Single,
-            CharacterClass.Priest,
-            new Weapon { Name = "Sacrificial Knife", IsEquipped = true }
-        )
-    ];
+    private const int SingleEnemyBaseAttributeAmount = 6;
+    private const int SingleEnemyBaseMitigationAmount = 12;
 
-    // TODO: Implement multi-enemy templates. Should be weaker than single enemies.
-    private readonly List<List<EnemyTemplate>> _multiEnemyTemplates = []; 
+    private readonly List<((int MinLevel, int MaxLevel) LevelRange, EnemyTemplate Enemy)> _singleEnemyTemplatesByLevelRange = new()
+    {
+        ((1, 3), new EnemyTemplate("Mutant Rat", CharacterClass.Warrior, new Weapon { Name = "Giant Teeth" })),
+        ((1, 3), new EnemyTemplate("Zombified Peasant", CharacterClass.Warrior, new Weapon { Name = "Claw" })),
+        ((3, 5), new EnemyTemplate("Cultist Gatherer", CharacterClass.Warrior, new Weapon { Name = "Bone Knife" })),
+        ((3, 5), new EnemyTemplate("Grizzly Bear", CharacterClass.Warrior, new Weapon { Name = "Claws" })),
+        ((5, 7), new EnemyTemplate("Deranged Knight", CharacterClass.Warrior, new Weapon { Name = "Longsword" })),
+        ((5, 7), new EnemyTemplate("Cultist Shaman", CharacterClass.Priest, new Weapon { Name = "Sacrificial Knife" }))
+    };
+
+    // Multi-enemy fights can have 2 or 3 enemies
+    private readonly List<((int MinLevel, int MaxLevel) LevelRange, List<EnemyTemplate> EnemyGroup)> _multiEnemyTemplatesByLevelRange = new()
+    {
+        (
+            (1, 5),
+            [
+                new EnemyTemplate("Vulture", CharacterClass.Priest, new Weapon { Name = "Claws" }),
+                new EnemyTemplate("Vulture", CharacterClass.Priest, new Weapon { Name = "Claws" }),
+                new EnemyTemplate("Vulture", CharacterClass.Priest, new Weapon { Name = "Claws" })
+            ]
+        ),
+        (
+            (5, 10),
+            [
+                new EnemyTemplate("Highwayman", CharacterClass.Warrior, new Weapon { Name = "Club" }),
+                new EnemyTemplate("Highwayman", CharacterClass.Warrior, new Weapon { Name = "Dagger" }),
+                new EnemyTemplate("Highwayman", CharacterClass.Warrior, new Weapon { Name = "Crossbow" })
+            ]
+        )
+    };
 
     public List<Character> GetEnemies(int playerCharacterLevel)
     {
-        // 20% probability to get multi-enemy combat
-        if (RNG.GetBoolean(0.2))
+        var isMultiEnemyFight = RNG.GetBoolean(0.2);
+
+        if (isMultiEnemyFight)
         {
-            // TODO: Implement multi-enemy groups
+            var enemyGroupsInLevelRange = _multiEnemyTemplatesByLevelRange
+                .Where(x => playerCharacterLevel >= x.LevelRange.MinLevel && playerCharacterLevel <= x.LevelRange.MaxLevel)
+                .Select(x => x.EnemyGroup)
+                .ToList();
+            var enemyTemplates = RNG.PickRandom(enemyGroupsInLevelRange);
+            var enemyCharacters = enemyTemplates.Select(t => GetMultiEnemyCharacter(playerCharacterLevel, t, enemyTemplates.Count));
+
+            return enemyCharacters.ToList();
         }
 
-        var enemyGenerationData = RNG.PickRandom(_singleEnemyTemplates);
-        var singleEnemy = GenerateSingleEnemyCharacter(playerCharacterLevel, enemyGenerationData);
+        var enemiesInLevelRange = _singleEnemyTemplatesByLevelRange
+            .Where(x => playerCharacterLevel >= x.LevelRange.MinLevel && playerCharacterLevel <= x.LevelRange.MaxLevel)
+            .Select(x => x.Enemy)
+            .ToList();
+        var enemyTemplate = RNG.PickRandom(enemiesInLevelRange);
+        var enemyCharacter = GetSingleEnemyCharacter(playerCharacterLevel, enemyTemplate);
 
-        return [singleEnemy];
+        return [enemyCharacter];
     }
 
-    private static Character GenerateSingleEnemyCharacter(
-        int playerCharacterLevel,
-        EnemyTemplate data
-    )
+    private static Character GetSingleEnemyCharacter(int playerCharacterLevel, EnemyTemplate data)
     {
         var enemyLevel = GetEnemyLevel(playerCharacterLevel);
-        var baseAttributeValue = 5;
 
-        var strength = data.EnemyClass switch
+        var attributeCoefficients = data.EnemyClass switch
         {
-            CharacterClass.Warrior => baseAttributeValue + enemyLevel * 5,
-            CharacterClass.Mage => baseAttributeValue + enemyLevel * 2,
-            CharacterClass.Priest => baseAttributeValue + enemyLevel * 3,
+            CharacterClass.Warrior => new AttributeCoefficients(5, 4, 2, 2, 10, 5),
+            CharacterClass.Mage => new AttributeCoefficients(2, 2, 5, 4, 5, 10),
+            CharacterClass.Priest => new AttributeCoefficients(3, 3, 3, 4, 7, 8),
             _ => throw new ArgumentException("Invalid enemy class"),
         };
 
-        var intelligence = data.EnemyClass switch
+        if (data.Weapon is not null)
         {
-            CharacterClass.Warrior => baseAttributeValue + enemyLevel * 2,
-            CharacterClass.Mage => baseAttributeValue + enemyLevel * 5,
-            CharacterClass.Priest => baseAttributeValue + enemyLevel * 3,
-            _ => throw new ArgumentException("Invalid enemy class"),
-        };
+            var enemyWeaponDamageBase = Math.Max(RNG.GetIntInRange(enemyLevel - 2, enemyLevel + 2), 1);
 
-        var stamina = data.EnemyClass switch
-        {
-            CharacterClass.Warrior => baseAttributeValue + enemyLevel * 4,
-            CharacterClass.Mage => baseAttributeValue + enemyLevel * 3,
-            CharacterClass.Priest => baseAttributeValue + enemyLevel * 4,
-            _ => throw new ArgumentException("Invalid enemy class"),
-        };
-
-        var spirit = data.EnemyClass switch
-        {
-            CharacterClass.Warrior => baseAttributeValue + enemyLevel * 3,
-            CharacterClass.Mage => baseAttributeValue + enemyLevel * 3,
-            CharacterClass.Priest => baseAttributeValue + enemyLevel * 5,
-            _ => throw new ArgumentException("Invalid enemy class"),
-        };
-
-        var armor = data.EnemyClass switch
-        {
-            CharacterClass.Warrior => baseAttributeValue + enemyLevel * 10,
-            CharacterClass.Mage => baseAttributeValue + enemyLevel * 5,
-            CharacterClass.Priest => baseAttributeValue + enemyLevel * 8,
-            _ => throw new ArgumentException("Invalid enemy class"),
-        };
-
-        var resistance = data.EnemyClass switch
-        {
-            CharacterClass.Warrior => baseAttributeValue + enemyLevel * 5,
-            CharacterClass.Mage => baseAttributeValue + enemyLevel * 10,
-            CharacterClass.Priest => baseAttributeValue + enemyLevel * 8,
-            _ => throw new ArgumentException("Invalid enemy class"),
-        };
-
-        var enemyWeaponDamageBase = Math.Max(RNG.GetIntInRange(enemyLevel - 2, enemyLevel + 2), 1);
-        data.Weapon.MinDamage = enemyWeaponDamageBase * 2;
-        data.Weapon.MaxDamage = enemyWeaponDamageBase * 3;
-        data.Weapon.IsEquipped = true;
+            data.Weapon.MinDamage = enemyWeaponDamageBase * 2;
+            data.Weapon.MaxDamage = enemyWeaponDamageBase * 3;
+            data.Weapon.IsEquipped = true;
+        }
 
         var enemy = new Character
         {
@@ -117,13 +92,56 @@ public class EnemyGeneratorService : IEnemyGeneratorService
             Class = data.EnemyClass,
             Level = enemyLevel,
             IsPlayerCharacter = false,
-            Strength = strength,
-            Intelligence = intelligence,
-            Stamina = stamina,
-            Spirit = spirit,
-            BaseArmor = armor,
-            BaseResistance = resistance,
-            Inventory = [data.Weapon]
+            Strength = SingleEnemyBaseAttributeAmount + enemyLevel * attributeCoefficients.StrengthCoefficient,
+            Stamina = SingleEnemyBaseAttributeAmount + enemyLevel * attributeCoefficients.StaminaCoefficient,
+            Intelligence = SingleEnemyBaseAttributeAmount + enemyLevel * attributeCoefficients.IntelligenceCoefficient,
+            Spirit = SingleEnemyBaseAttributeAmount + enemyLevel * attributeCoefficients.SpiritCoefficient,
+            BaseArmor = SingleEnemyBaseMitigationAmount + enemyLevel * attributeCoefficients.ArmorCoefficient,
+            BaseResistance = SingleEnemyBaseMitigationAmount + enemyLevel * attributeCoefficients.ResistanceCoefficient,
+            Inventory = data.Weapon is not null ? [data.Weapon] : []
+        };
+
+        enemy.CurrentEnergy = enemy.GetMaxEnergy();
+        enemy.CurrentHitPoints = enemy.GetMaxHitPoints();
+
+        return enemy;
+    }
+
+    private Character GetMultiEnemyCharacter(int playerCharacterLevel, EnemyTemplate data, int enemyCount)
+    {
+        var enemyLevel = GetEnemyLevel(playerCharacterLevel);
+
+        var attributeCoefficients = data.EnemyClass switch
+        {
+            CharacterClass.Warrior => new AttributeCoefficients(5, 4, 2, 2, 10, 5),
+            CharacterClass.Mage => new AttributeCoefficients(2, 2, 5, 4, 5, 10),
+            CharacterClass.Priest => new AttributeCoefficients(3, 3, 3, 4, 7, 8),
+            _ => throw new ArgumentException("Invalid enemy class"),
+        };
+
+        // TODO: Adjust weapon damage for multi enemy fights
+        if (data.Weapon is not null)
+        {
+            var enemyWeaponDamageBase = Math.Max(RNG.GetIntInRange(enemyLevel - 2, enemyLevel + 2), 1);
+
+            data.Weapon.MinDamage = enemyWeaponDamageBase * 2;
+            data.Weapon.MaxDamage = enemyWeaponDamageBase * 3;
+            data.Weapon.IsEquipped = true;
+        }
+
+        var enemy = new Character
+        {
+            Name = data.Name,
+            Class = data.EnemyClass,
+            Level = enemyLevel,
+            IsPlayerCharacter = false,
+            Strength = (SingleEnemyBaseAttributeAmount + enemyLevel * attributeCoefficients.StrengthCoefficient) / enemyCount,
+            Stamina = (SingleEnemyBaseAttributeAmount + enemyLevel * attributeCoefficients.StaminaCoefficient) / enemyCount,
+            Intelligence = (SingleEnemyBaseAttributeAmount + enemyLevel * attributeCoefficients.IntelligenceCoefficient) / enemyCount,
+            Spirit = (SingleEnemyBaseAttributeAmount + enemyLevel * attributeCoefficients.SpiritCoefficient) / enemyCount,
+            BaseArmor = (SingleEnemyBaseMitigationAmount + enemyLevel * attributeCoefficients.ArmorCoefficient) / enemyCount,
+            BaseResistance = (SingleEnemyBaseMitigationAmount + enemyLevel * attributeCoefficients.ResistanceCoefficient) / enemyCount,
+            Inventory = data.Weapon is not null ? [data.Weapon] : []
         };
 
         enemy.CurrentEnergy = enemy.GetMaxEnergy();
@@ -140,8 +158,7 @@ public class EnemyGeneratorService : IEnemyGeneratorService
     {
         if (RNG.GetBoolean(0.2))
         {
-            var enemyLevel = playerCharacterLevel - 1;
-            return enemyLevel < 1 ? 1 : enemyLevel;
+            return Math.Max(playerCharacterLevel - 1, 1);
         }
 
         if (RNG.GetBoolean(0.2))
@@ -154,16 +171,16 @@ public class EnemyGeneratorService : IEnemyGeneratorService
 
     private record EnemyTemplate(
         string Name,
-        EnemyType EnemyType,
         CharacterClass EnemyClass,
-        Weapon Weapon
+        Weapon? Weapon = null
     );
 
-    private enum EnemyType
-    {
-        Unknown,
-        Multi,
-        Single,
-        Boss
-    }
+    private record AttributeCoefficients(
+        int StrengthCoefficient,
+        int StaminaCoefficient,
+        int IntelligenceCoefficient,
+        int SpiritCoefficient,
+        int ArmorCoefficient,
+        int ResistanceCoefficient
+    );
 }
