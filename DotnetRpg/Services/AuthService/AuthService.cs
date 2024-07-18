@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using DotnetRpg.Data;
+using DotnetRpg.Dtos.User;
 using DotnetRpg.Models.Exceptions;
 using DotnetRpg.Models.Users;
 using DotnetRpg.Services.UserProvider;
@@ -38,9 +39,9 @@ public class AuthService : IAuthService
         return user.Username;
     }
 
-    public async Task<string> Login(string username, string password)
+    public async Task<LoginResponseDto> Login(string username, string password)
     {
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Username.ToLower().Equals(username.ToLower()))
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == username)
                    ?? throw new UnauthorizedException($"Login failed. User not found with name '{username}'.");
 
         if (!VerifyPasswordHash(password, user.PasswordHash, user.PasswordSalt))
@@ -49,8 +50,8 @@ public class AuthService : IAuthService
         }
 
         var token = CreateToken(user);
-        
-        return token;
+
+        return new LoginResponseDto(token, user.Username);
     }
 
     public async Task Register(string userName, string password)
@@ -70,7 +71,7 @@ public class AuthService : IAuthService
     private async Task<bool> UserExists(string username)
     {
         var userExists = await _context.Users.AnyAsync(
-            u => u.Username.Equals(username, StringComparison.CurrentCultureIgnoreCase)
+            u => u.Username == username
         );
         return userExists;
     }

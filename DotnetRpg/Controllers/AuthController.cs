@@ -23,10 +23,10 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("login")]
-    public async Task<ActionResult<string>> Login(UserLoginDto loginDetails)
+    public async Task<ActionResult<LoginResponseDto>> Login(UserLoginDto loginDetails)
     {
-        var token = await _authService.Login(loginDetails.Username, loginDetails.Password);
-        return Ok(token);
+        var response = await _authService.Login(loginDetails.Username, loginDetails.Password);
+        return Ok(response);
     }
 
     [HttpGet("current-user")]

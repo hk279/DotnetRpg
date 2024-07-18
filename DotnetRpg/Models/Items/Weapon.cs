@@ -1,3 +1,5 @@
+using DotnetRpg.Models.Generic;
+
 namespace DotnetRpg.Models.Items;
 
 public class Weapon : Item

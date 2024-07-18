@@ -1,6 +1,6 @@
 using DotnetRpg.Models.Items;
 
-namespace DotnetRpg.Dtos.Item;
+namespace DotnetRpg.Dtos.Items;
 
 public class GetItemDto
 {

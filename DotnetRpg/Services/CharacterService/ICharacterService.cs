@@ -1,4 +1,4 @@
-using DotnetRpg.Dtos.Character;
+using DotnetRpg.Dtos.Characters;
 
 namespace DotnetRpg.Services.CharacterService
 {

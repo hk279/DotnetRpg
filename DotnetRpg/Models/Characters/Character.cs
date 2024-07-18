@@ -16,29 +16,27 @@ public class Character : BaseEntity
         int userId,
         string name,
         string avatar,
+        CharacterClass characterClass,
         bool isPlayerCharacter,
         int level,
-        int experience,
         Attributes attributes,
         int baseArmor,
-        int baseResistance,
-        CharacterClass characterClass
-    ): base(userId)
+        int baseResistance
+    ) : base(userId)
     {
         Name = name;
         Avatar = avatar;
+        Class = characterClass;
         IsPlayerCharacter = isPlayerCharacter;
         Level = level;
-        Experience = experience;
         Strength = attributes.Strength;
         Intelligence = attributes.Intelligence;
         Stamina = attributes.Stamina;
         Spirit = attributes.Spirit;
         BaseArmor = baseArmor;
         BaseResistance = baseResistance;
-        Class = characterClass;
     }
-    
+
     [MaxLength(32)] public string Name { get; set; } = null!;
     public string Avatar { get; set; } = null!;
     public bool IsPlayerCharacter { get; set; }

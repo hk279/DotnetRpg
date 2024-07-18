@@ -1,21 +1,22 @@
-using DotnetRpg.Dtos.Character;
 using AutoMapper;
 using DotnetRpg.Data;
+using DotnetRpg.Dtos.Characters;
 using DotnetRpg.Models.Characters;
-using Microsoft.EntityFrameworkCore;
 using DotnetRpg.Models.Exceptions;
+using DotnetRpg.Models.Generic;
 using DotnetRpg.Models.Items;
 using DotnetRpg.Models.Skills;
+using Microsoft.EntityFrameworkCore;
 
 namespace DotnetRpg.Services.CharacterService;
 
 public class CharacterService : ICharacterService
 {
     private const int InitialAttributePoints = 30;
-        
+
     private readonly IMapper _autoMapper;
     private readonly DataContext _context;
-    
+
     public CharacterService(IMapper autoMapper, DataContext context)
     {
         _autoMapper = autoMapper;
@@ -43,7 +44,7 @@ public class CharacterService : ICharacterService
                 .FirstOrDefaultAsync(c => c.Id == characterId)
             ?? throw new NotFoundException("Character not found");
 
-        var dto = _autoMapper.Map<GetCharacterDto>(character);
+        var dto = GetCharacterDto.FromCharacter(character);
 
         // Parse level-scaled skill base damage values for the UI
         dto.SkillInstances.ForEach(s =>
@@ -53,16 +54,6 @@ public class CharacterService : ICharacterService
             s.Skill.MinBaseDamage = character.Level * (skill.MinBaseDamageFactor / 10);
             s.Skill.MaxBaseDamage = character.Level * (skill.MaxBaseDamageFactor / 10);
         });
-
-        var currentLevelExperienceThreshold = LevelExperienceThresholds.AllThresholds
-            .Single(t => t.Key == character.Level)
-            .Value;
-        var nextLevelExperienceThreshold =
-            LevelExperienceThresholds.AllThresholds.GetValueOrDefault(character.Level + 1);
-
-        dto.CurrentLevelTotalExperience =
-            nextLevelExperienceThreshold - currentLevelExperienceThreshold;
-        dto.ExperienceTowardsNextLevel = character.Experience - currentLevelExperienceThreshold;
 
         return dto;
     }
@@ -86,7 +77,7 @@ public class CharacterService : ICharacterService
         {
             throw new NotFoundException("No enemies found");
         }
-        
+
         return enemies;
     }
 
@@ -103,10 +94,7 @@ public class CharacterService : ICharacterService
             throw new BadRequestException("Invalid number of attribute points assigned");
         }
 
-        var characterToAdd = _autoMapper.Map<Character>(newCharacter);
-        
-        // Add explicitly since AutoMapper doesn't do it
-        characterToAdd.UserId = _context.UserId;
+        var characterToAdd = newCharacter.ToCharacter(_context.UserId);
 
         ResetHitPointsAndEnergy(characterToAdd);
         AddStartingSkills(characterToAdd);
@@ -119,14 +107,14 @@ public class CharacterService : ICharacterService
 
     public async Task DeleteCharacter(int characterId)
     {
-        var characterToRemove = await _context.Characters.FirstOrDefaultAsync(c => c.Id == characterId) 
+        var characterToRemove = await _context.Characters.FirstOrDefaultAsync(c => c.Id == characterId)
                                 ?? throw new NotFoundException($"Character not found with ID {characterId}");
 
         _context.Characters.Remove(characterToRemove);
 
         await _context.SaveChangesAsync();
     }
-    
+
     private static void ResetHitPointsAndEnergy(Character character)
     {
         character.CurrentHitPoints = character.GetMaxHitPoints();
@@ -172,7 +160,7 @@ public class CharacterService : ICharacterService
                     rarity: ItemRarity.Common,
                     value: 1,
                     level: 1,
-                    minDamage: 4, 
+                    minDamage: 4,
                     maxDamage: 5,
                     attributes: new Attributes(0, 0, 0, 0)
                 ),
@@ -184,7 +172,7 @@ public class CharacterService : ICharacterService
                     rarity: ItemRarity.Common,
                     value: 1,
                     level: 1,
-                    minDamage: 4, 
+                    minDamage: 4,
                     maxDamage: 5,
                     attributes: new Attributes(0, 0, 0, 0)
                 ),
@@ -196,7 +184,7 @@ public class CharacterService : ICharacterService
                     rarity: ItemRarity.Common,
                     value: 1,
                     level: 1,
-                    minDamage: 4, 
+                    minDamage: 4,
                     maxDamage: 5,
                     attributes: new Attributes(0, 0, 0, 0)
                 ),
@@ -217,36 +205,36 @@ public class CharacterService : ICharacterService
                 [
                     new ArmorPiece(
                         userId: _context.UserId,
-                        name: "Worn Leather Training Cuirass", 
+                        name: "Worn Leather Training Cuirass",
                         weight: 3,
                         rarity: ItemRarity.Common,
                         value: 1,
                         level: 1,
-                        slot: ArmorSlot.Chest, 
+                        slot: ArmorSlot.Chest,
                         armor: 10,
                         resistance: 2,
                         attributes: new Attributes(0, 0, 0, 0)
                     ),
                     new ArmorPiece(
                         userId: _context.UserId,
-                        name: "Patched Leather Pants", 
+                        name: "Patched Leather Pants",
                         weight: 2,
                         rarity: ItemRarity.Common,
                         value: 1,
                         level: 1,
-                        slot: ArmorSlot.Legs, 
+                        slot: ArmorSlot.Legs,
                         armor: 5,
                         resistance: 1,
                         attributes: new Attributes(0, 0, 0, 0)
                     ),
                     new ArmorPiece(
                         userId: _context.UserId,
-                        name: "Mudworn Boots", 
+                        name: "Mudworn Boots",
                         weight: 1,
                         rarity: ItemRarity.Common,
                         value: 1,
                         level: 1,
-                        slot: ArmorSlot.Feet, 
+                        slot: ArmorSlot.Feet,
                         armor: 3,
                         resistance: 1,
                         attributes: new Attributes(0, 0, 0, 0)
@@ -257,36 +245,36 @@ public class CharacterService : ICharacterService
                 [
                     new ArmorPiece(
                         userId: _context.UserId,
-                        name: "Worn Linen Tunic", 
+                        name: "Worn Linen Tunic",
                         weight: 2,
                         rarity: ItemRarity.Common,
                         value: 1,
                         level: 1,
-                        slot: ArmorSlot.Chest, 
+                        slot: ArmorSlot.Chest,
                         armor: 4,
                         resistance: 4,
                         attributes: new Attributes(0, 0, 0, 0)
                     ),
                     new ArmorPiece(
                         userId: _context.UserId,
-                        name: "Linen Leggings", 
+                        name: "Linen Leggings",
                         weight: 1,
                         rarity: ItemRarity.Common,
                         value: 1,
                         level: 1,
-                        slot: ArmorSlot.Legs, 
+                        slot: ArmorSlot.Legs,
                         armor: 2,
                         resistance: 2,
                         attributes: new Attributes(0, 0, 0, 0)
                     ),
                     new ArmorPiece(
                         userId: _context.UserId,
-                        name: "Handmade Sandals", 
+                        name: "Handmade Sandals",
                         weight: 1,
                         rarity: ItemRarity.Common,
                         value: 1,
                         level: 1,
-                        slot: ArmorSlot.Feet, 
+                        slot: ArmorSlot.Feet,
                         armor: 1,
                         resistance: 1,
                         attributes: new Attributes(0, 0, 0, 0)
@@ -296,36 +284,36 @@ public class CharacterService : ICharacterService
                 => [
                     new ArmorPiece(
                         userId: _context.UserId,
-                        name: "Gray Novice Robe", 
+                        name: "Gray Novice Robe",
                         weight: 2,
                         rarity: ItemRarity.Common,
                         value: 1,
                         level: 1,
-                        slot: ArmorSlot.Chest, 
+                        slot: ArmorSlot.Chest,
                         armor: 5,
                         resistance: 3,
                         attributes: new Attributes(0, 0, 0, 0)
                     ),
                     new ArmorPiece(
                         userId: _context.UserId,
-                        name: "Sackcloth Pants", 
+                        name: "Sackcloth Pants",
                         weight: 1,
                         rarity: ItemRarity.Common,
                         value: 1,
                         level: 1,
-                        slot: ArmorSlot.Legs, 
+                        slot: ArmorSlot.Legs,
                         armor: 3,
                         resistance: 1,
                         attributes: new Attributes(0, 0, 0, 0)
                     ),
                     new ArmorPiece(
                         userId: _context.UserId,
-                        name: "Sturdy Footwraps", 
+                        name: "Sturdy Footwraps",
                         weight: 1,
                         rarity: ItemRarity.Common,
                         value: 1,
                         level: 1,
-                        slot: ArmorSlot.Feet, 
+                        slot: ArmorSlot.Feet,
                         armor: 2,
                         resistance: 1,
                         attributes: new Attributes(0, 0, 0, 0)

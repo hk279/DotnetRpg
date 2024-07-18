@@ -1,21 +1,21 @@
 using System.Text;
+using DotnetRpg;
 using DotnetRpg.Data;
+using DotnetRpg.Data.Seeding;
 using DotnetRpg.Services.AuthService;
 using DotnetRpg.Services.CharacterService;
+using DotnetRpg.Services.EnemyGeneratorService;
+using DotnetRpg.Services.FightService;
+using DotnetRpg.Services.InventoryService;
+using DotnetRpg.Services.UserProvider;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Swashbuckle.AspNetCore.Filters;
 using Microsoft.OpenApi.Models;
-using DotnetRpg.Services.FightService;
-using DotnetRpg.Services.EnemyGeneratorService;
-using DotnetRpg;
-using DotnetRpg.Data.Seeding;
-using DotnetRpg.Services.InventoryService;
-using DotnetRpg.Services.UserProvider;
 using Serilog;
 using Serilog.Debugging;
 using Serilog.Events;
+using Swashbuckle.AspNetCore.Filters;
 
 SelfLog.Enable(Console.Error);
 Log.Logger = new LoggerConfiguration().WriteTo.Console().CreateBootstrapLogger();
@@ -81,11 +81,11 @@ static void ConfigureRequestPipeline(WebApplication app)
 static WebApplication BuildApplication(string[] args)
 {
     var builder = WebApplication.CreateBuilder(args);
-    
+
     var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
     var tokenSecret = builder.Configuration.GetSection("TokenSettings:Secret").Value
                       ?? throw new ArgumentException("Missing token secret");
-    
+
     // Add Serilog
     builder.Host.UseSerilog(
         (_, services, configuration) =>
@@ -97,7 +97,7 @@ static WebApplication BuildApplication(string[] args)
                 .ReadFrom.Services(services)
                 .Enrich.FromLogContext()
     );
-    
+
     // Add services to the container
     builder.Services.AddControllers();
     builder.Services.AddLogging(x => x.AddSerilog());
@@ -141,12 +141,12 @@ static WebApplication BuildApplication(string[] args)
     builder.Services.AddScoped<IFightService, FightService>();
     builder.Services.AddScoped<IEnemyGeneratorService, EnemyGeneratorService>();
     builder.Services.AddScoped<IInventoryService, InventoryService>();
-    
+
     builder.Services.AddScoped<DataSeeder>();
-    
+
     builder.Services.AddScoped<IUserProvider, AuthenticatedUserProvider>();
 
     builder.Services.AddTransient<GlobalExceptionHandlerMiddleware>();
-    
+
     return builder.Build();
 }

@@ -1,6 +1,6 @@
-namespace DotnetRpg.Dtos.User;
+namespace DotnetRpg.Dtos.Users;
 
-public class UserLoginDto
+public class UserRegisterDto
 {
     public required string Username { get; set; }
     public required string Password { get; set; }

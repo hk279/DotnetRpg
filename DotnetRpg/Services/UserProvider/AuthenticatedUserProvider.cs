@@ -14,13 +14,11 @@ public class AuthenticatedUserProvider : IUserProvider
 
     public int GetUserId()
     {
-        var httpContext =
-            _httpContextAccessor.HttpContext
+        var httpContext = _httpContextAccessor.HttpContext
             ?? throw new ArgumentNullException(nameof(_httpContextAccessor.HttpContext));
-        var userId =
-            httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier)
+        var userId = httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier)
             ?? throw new UnauthorizedException("User not identified");
-        
+
         return int.Parse(userId);
     }
 }

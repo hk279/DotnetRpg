@@ -8,16 +8,16 @@ namespace DotnetRpg.Controllers;
 [Authorize]
 [ApiController]
 [Route("[controller]")]
-public class CharacterController : ControllerBase
+public class CharactersController : ControllerBase
 {
     private readonly ICharacterService _characterService;
 
-    public CharacterController(ICharacterService characterService)
+    public CharactersController(ICharacterService characterService)
     {
         _characterService = characterService;
     }
 
-    [HttpGet("all")]
+    [HttpGet]
     public async Task<ActionResult<List<GetCharacterListingDto>>> GetAll()
     {
         var response = await _characterService.GetAllCharacters();

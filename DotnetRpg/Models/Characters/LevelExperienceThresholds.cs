@@ -5,7 +5,7 @@ public static class LevelExperienceThresholds
     /// <summary>
     /// Key-value pair represents a level and the required experience to reach that level
     /// </summary>
-    public static readonly Dictionary<int, long> AllThresholds =
+    public static readonly Dictionary<int, int> AllThresholds =
         new()
         {
             { 1, 0 },
