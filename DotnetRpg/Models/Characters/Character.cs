@@ -8,7 +8,7 @@ using DotnetRpg.Models.StatusEffects;
 
 namespace DotnetRpg.Models.Characters;
 
-public class Character : BaseEntity
+public class Character : UserSpecificEntity
 {
     public Character() { }
 
@@ -38,7 +38,7 @@ public class Character : BaseEntity
     }
 
     [MaxLength(32)] public string Name { get; set; } = null!;
-    public string Avatar { get; set; } = null!;
+    public string Avatar { get; set; } = string.Empty;
     public bool IsPlayerCharacter { get; set; }
 
     public int Level { get; set; } = 1;
@@ -72,7 +72,7 @@ public class Character : BaseEntity
     public bool IsDead => CurrentHitPoints <= 0;
 
     /// <summary>
-    /// Strength increases physical damage
+    /// - Increases physical damage
     /// </summary>
     public int GetStrength()
     {
@@ -84,7 +84,8 @@ public class Character : BaseEntity
     }
 
     /// <summary>
-    /// Intelligence increases magic damage
+    /// - Increases magic damage
+    /// - Reduces chance of weak hit
     /// </summary>
     public int GetIntelligence()
     {
@@ -96,7 +97,8 @@ public class Character : BaseEntity
     }
 
     /// <summary>
-    /// Stamina scales max HP
+    /// - Increases max HP
+    /// - Increases max energy
     /// </summary>
     public int GetStamina()
     {
@@ -108,7 +110,8 @@ public class Character : BaseEntity
     }
 
     /// <summary>
-    /// Spirit scales max energy and energy regeneration
+    /// - Increases chance of critical hit
+    /// - Increases energy regeneration
     /// </summary>
     public int GetSpirit()
     {
@@ -152,6 +155,16 @@ public class Character : BaseEntity
 
     public int GetMaxEnergy()
     {
-        return GetSpirit() * 20;
+        return GetStamina() * 20;
+    }
+
+    /// <summary>
+    /// - Base energy regeneration is 5 per turn
+    /// - Every 2 points of spirit increases the regeneration by 1
+    /// </summary>
+    public int GetEnergyRegeneration()
+    {
+        const int baseEnergyRegeneration = 5;
+        return baseEnergyRegeneration + (int)Math.Floor((decimal)GetSpirit() / 2);
     }
 }

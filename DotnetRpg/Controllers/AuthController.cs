@@ -1,4 +1,4 @@
-using DotnetRpg.Dtos.User;
+using DotnetRpg.Dtos.Users;
 using DotnetRpg.Services.AuthService;
 using Microsoft.AspNetCore.Mvc;
 

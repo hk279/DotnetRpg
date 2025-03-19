@@ -5,7 +5,6 @@ using DotnetRpg.Models.Fights;
 using DotnetRpg.Models.Generic;
 using DotnetRpg.Models.Items;
 using DotnetRpg.Models.Skills;
-using DotnetRpg.Models.StatusEffects;
 using DotnetRpg.Models.Users;
 using DotnetRpg.Services.UserProvider;
 using Microsoft.EntityFrameworkCore;
@@ -33,10 +32,12 @@ namespace DotnetRpg.Data
             
             // User-specific entities
             modelBuilder.ApplyConfiguration(new CharacterEntityTypeConfiguration(GetUserFilter<Character>()));
-            modelBuilder.ApplyConfiguration(new FightEntityTypeConfiguration(GetUserFilter<Fight>()));
-            modelBuilder.ApplyConfiguration(new ItemEntityTypeConfiguration(GetUserFilter<Item>()));
-            modelBuilder.ApplyConfiguration(new SkillInstanceEntityTypeConfiguration(GetUserFilter<SkillInstance>()));
-            modelBuilder.ApplyConfiguration(new StatusEffectInstanceEntityTypeConfiguration(GetUserFilter<StatusEffectInstance>()));
+            
+            // Character-specific entities
+            modelBuilder.ApplyConfiguration(new FightEntityTypeConfiguration());
+            modelBuilder.ApplyConfiguration(new ItemEntityTypeConfiguration());
+            modelBuilder.ApplyConfiguration(new SkillInstanceEntityTypeConfiguration());
+            modelBuilder.ApplyConfiguration(new StatusEffectInstanceEntityTypeConfiguration());
         }
         
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -45,7 +46,7 @@ namespace DotnetRpg.Data
         }
         
         private Expression<Func<TEntity, bool>> GetUserFilter<TEntity>()
-            where TEntity : BaseEntity
+            where TEntity : UserSpecificEntity
         {
             return x => x.UserId == UserId;
         }

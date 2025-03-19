@@ -4,5 +4,5 @@ namespace DotnetRpg.Services.EnemyGeneratorService;
 
 public interface IEnemyGeneratorService
 {
-    List<Character> GetEnemies(int playerCharacterLevel);
+    List<Character> GetEnemies(Character playerCharacter);
 }

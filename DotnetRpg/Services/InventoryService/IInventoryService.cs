@@ -1,4 +1,4 @@
-using DotnetRpg.Dtos.Item;
+using DotnetRpg.Dtos.Items;
 using DotnetRpg.Models.Characters;
 using DotnetRpg.Models.Items;
 

@@ -6,7 +6,8 @@ public class ArmorPiece : Item
 {
     public ArmorPiece() { }
     
-    public ArmorPiece(int userId,
+    public ArmorPiece(
+        int characterId,
         string name,
         int weight,
         ItemRarity rarity,
@@ -17,7 +18,7 @@ public class ArmorPiece : Item
         int resistance,
         Attributes attributes,
         string description = "")
-        :base(userId, name, ItemType.ArmorPiece, level, rarity, description, weight, value, false, attributes)
+        :base(characterId, name, ItemType.ArmorPiece, level, rarity, description, weight, value, false, attributes)
     {
         Slot = slot;
         Armor = armor;

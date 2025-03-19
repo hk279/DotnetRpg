@@ -1,11 +1,13 @@
 using DotnetRpg.Data;
 using DotnetRpg.Dtos.Fight;
+using DotnetRpg.Dtos.Fights;
 using DotnetRpg.Models.Characters;
 using DotnetRpg.Models.Exceptions;
 using DotnetRpg.Models.Fights;
 using DotnetRpg.Models.Items;
 using DotnetRpg.Models.Skills;
 using DotnetRpg.Models.StatusEffects;
+using DotnetRpg.Services.DamageCalculator;
 using DotnetRpg.Services.EnemyGeneratorService;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,40 +17,44 @@ public class FightService : IFightService
 {
     private readonly DataContext _context;
     private readonly IEnemyGeneratorService _enemyGeneratorService;
+    private readonly IDamageCalculator _damageCalculator;
 
-    public FightService(DataContext context, IEnemyGeneratorService enemyGeneratorService)
+    public FightService(
+        DataContext context, 
+        IEnemyGeneratorService enemyGeneratorService, 
+        IDamageCalculator damageCalculator)
     {
         _context = context;
         _enemyGeneratorService = enemyGeneratorService;
+        _damageCalculator = damageCalculator;
     }
 
-    public async Task<BeginFightResultDto> BeginFight(int characterId)
+    public async Task<BeginFightResultDto> BeginFight(int playerCharacterId)
     {
         var allCharacters = new List<Character>();
-        var playerCharacter =
-            await _context.Characters.Include(c => c.Fight).FirstOrDefaultAsync(c => c.Id == characterId)
-            ?? throw new NotFoundException("Player character not found");
+        var playerCharacter = await _context.Characters
+                                  .Include(c => c.Fight)
+                                  .FirstOrDefaultAsync(c => c.Id == playerCharacterId && c.IsPlayerCharacter) ??
+                              throw new NotFoundException("Player character not found");
 
         if (playerCharacter.Fight != null)
         {
             throw new ConflictException("Player character is already in a fight");
         }
 
-        var enemyCharacters = _enemyGeneratorService.GetEnemies(playerCharacter.Level);
+        var enemyCharacters = _enemyGeneratorService.GetEnemies(playerCharacter);
 
         allCharacters.Add(playerCharacter);
         allCharacters.AddRange(enemyCharacters);
 
-        await _context.SaveChangesAsync();
-
-        var newFight = new Fight(_context.UserId, allCharacters);
+        var newFight = new Fight(playerCharacter.Id, allCharacters);
 
         await _context.AddAsync(newFight);
         await _context.SaveChangesAsync();
 
         return new BeginFightResultDto
         {
-            Id = newFight.Id,
+            FightId = newFight.Id,
             PlayerCharacterId = playerCharacter.Id,
             EnemyCharacterIds = enemyCharacters.Select(c => c.Id).ToList(),
         };
@@ -69,11 +75,11 @@ public class FightService : IFightService
 
         playerCharacter.CurrentEnergy -= skillInstance.Skill.EnergyCost;
 
-        var damage = 0;
+        DamageInstance? damageInstance = null;
 
-        if (skillInstance.Skill.TargetType == SkillTargetType.Enemy)
+        if (skillInstance.Skill.TargetType == SkillTargetType.Enemy) 
         {
-            damage = AttackWithSkill(playerCharacter, targetCharacter, skillInstance.Skill);
+            damageInstance = AttackWithSkill(playerCharacter, targetCharacter, skillInstance.Skill);
         }
 
         var attackResult = new PlayerActionResultDto
@@ -86,7 +92,7 @@ public class FightService : IFightService
                 TargetCharacterName = targetCharacter.Name,
                 ActionType = ActionType.Skill,
                 SkillName = skillInstance.Skill.Name,
-                Damage = damage,
+                DamageInstance = damageInstance != null ? DamageInstanceDto.FromDamageInstance(damageInstance) : null,
                 Healing = 0
             },
             FightStatus = FightStatus.Ongoing,
@@ -106,9 +112,9 @@ public class FightService : IFightService
         }
 
         HandleEnemyActions(fight, playerCharacter, allEnemyCharacters, attackResult);
-        RegenerateEnergy(fight.Characters);
-        UpdateStatusEffectCooldowns(fight.Characters);
-        UpdateSkillCooldowns(fight.Characters);
+        RegenerateEnergy(fight.AllCharactersInFight);
+        UpdateStatusEffectCooldowns(fight.AllCharactersInFight);
+        UpdateSkillCooldowns(fight.AllCharactersInFight);
 
         ApplyStatusEffect(skillInstance.Skill, targetCharacter);
         skillInstance.ApplyCooldown();
@@ -123,7 +129,7 @@ public class FightService : IFightService
         var (fight, playerCharacter, targetCharacter, allEnemyCharacters) =
             await GetPlayerActionReferenceData(request);
 
-        var damage = AttackWithWeapon(playerCharacter, targetCharacter);
+        var damageInstance = AttackWithWeapon(playerCharacter, targetCharacter);
         var attackResult = new PlayerActionResultDto
         {
             PlayerAction = new ActionResultDto
@@ -134,7 +140,7 @@ public class FightService : IFightService
                 TargetCharacterName = targetCharacter.Name,
                 ActionType = ActionType.WeaponAttack,
                 SkillName = null,
-                Damage = damage,
+                DamageInstance = DamageInstanceDto.FromDamageInstance(damageInstance),
                 Healing = 0
             },
             FightStatus = FightStatus.Ongoing,
@@ -154,16 +160,16 @@ public class FightService : IFightService
         }
 
         HandleEnemyActions(fight, playerCharacter, allEnemyCharacters, attackResult);
-        RegenerateEnergy(fight.Characters);
-        UpdateStatusEffectCooldowns(fight.Characters);
-        UpdateSkillCooldowns(fight.Characters);
+        RegenerateEnergy(fight.AllCharactersInFight);
+        UpdateStatusEffectCooldowns(fight.AllCharactersInFight);
+        UpdateSkillCooldowns(fight.AllCharactersInFight);
 
         await _context.SaveChangesAsync();
 
         return attackResult;
     }
 
-    private static int AttackWithSkill(Character attacker, Character defender, Skill skill)
+    private DamageInstance AttackWithSkill(Character attacker, Character defender, Skill skill)
     {
         if (defender.IsDead)
         {
@@ -172,14 +178,14 @@ public class FightService : IFightService
             );
         }
 
-        var damage = CalculateSkillDamage(skill, attacker, defender);
+        var damageInstance = _damageCalculator.CalculateSkillDamage(skill, attacker, defender);
 
-        defender.CurrentHitPoints = Math.Max(defender.CurrentHitPoints - damage, 0);
+        defender.CurrentHitPoints = Math.Max(defender.CurrentHitPoints - damageInstance.TotalDamage, 0);
 
-        return damage;
+        return damageInstance;
     }
 
-    private static int AttackWithWeapon(Character attacker, Character defender)
+    private DamageInstance AttackWithWeapon(Character attacker, Character defender)
     {
         if (defender.IsDead)
         {
@@ -188,11 +194,11 @@ public class FightService : IFightService
             );
         }
 
-        var damage = CalculateWeaponDamage(attacker, defender);
+        var damageInstance = _damageCalculator.CalculateWeaponDamage(attacker, defender);
 
-        defender.CurrentHitPoints = Math.Max(defender.CurrentHitPoints - damage, 0);
+        defender.CurrentHitPoints = Math.Max(defender.CurrentHitPoints - damageInstance.TotalDamage, 0);
 
-        return damage;
+        return damageInstance;
     }
 
     private void EndFight(
@@ -249,25 +255,25 @@ public class FightService : IFightService
                     .ToList();
 
                 // 50 / 50 change to do a skill attack or a weapon attack
-                int damage;
+                DamageInstance damageInstance;
                 if (RNG.GetBoolean(0.5) && validSkills.Any())
                 {
                     var skillInstance = RNG.PickRandom(validSkills);
-                    damage = AttackWithSkill(enemyCharacter, playerCharacter, skillInstance.Skill);
+                    damageInstance = AttackWithSkill(enemyCharacter, playerCharacter, skillInstance.Skill);
                     skillInstance.ApplyCooldown();
 
                     enemyAction.ActionType = ActionType.Skill;
                     enemyAction.SkillName = skillInstance.Skill.Name;
-                    enemyAction.Damage = damage;
+                    enemyAction.DamageInstance = DamageInstanceDto.FromDamageInstance(damageInstance);
                     enemyAction.Healing = 0;
                 }
                 else
                 {
-                    damage = AttackWithWeapon(enemyCharacter, playerCharacter);
+                    damageInstance = AttackWithWeapon(enemyCharacter, playerCharacter);
 
                     enemyAction.ActionType = ActionType.WeaponAttack;
                     enemyAction.SkillName = null;
-                    enemyAction.Damage = damage;
+                    enemyAction.DamageInstance = DamageInstanceDto.FromDamageInstance(damageInstance);
                     enemyAction.Healing = 0;
                 }
             }
@@ -283,102 +289,12 @@ public class FightService : IFightService
 
         resultDto.EnemyActions = enemyActions;
     }
-
-    /// <summary>
-    /// A skill has weapon and base damage components. Both components are scaled by character attributes independently.
-    /// Damage is scaled down by the defender's armor / resistance.
-    /// </summary>
-    private static int CalculateSkillDamage(Skill skill, Character attacker, Character defender)
-    {
-        var scalingAttributeAmount = skill.DamageType switch
-        {
-            DamageType.Physical => attacker.GetStrength(),
-            DamageType.Magic => attacker.GetIntelligence(),
-            _ => throw new ArgumentOutOfRangeException(nameof(DamageType), "Unknown damage type")
-        };
-
-        // Calculate weapon damage component
-        var attackerWeapon = attacker.Inventory
-            .OfType<Weapon>()
-            .SingleOrDefault(item => item.Type == ItemType.Weapon && item.IsEquipped);
-        var attackerWeaponDamage =
-            attackerWeapon != null
-                ? RNG.GetIntInRange(attackerWeapon.MinDamage, attackerWeapon.MaxDamage)
-                : 1;
-        var skillWeaponDamageComponent =
-            attackerWeaponDamage * (skill.WeaponDamagePercentage / 100)
-            + (scalingAttributeAmount * (skill.BaseDamageAttributeScalingFactor / 100) / 2);
-
-        // Calculate skill base damage component
-        var levelAdjustedMinimumBaseDamage = attacker.Level * (skill.MinBaseDamageFactor / 10);
-        var levelAdjustedMaximumBaseDamage = attacker.Level * (skill.MaxBaseDamageFactor / 10);
-
-        var levelAdjustedBaseDamage = RNG.GetIntInRange(
-            levelAdjustedMinimumBaseDamage,
-            levelAdjustedMaximumBaseDamage
-        );
-
-        var skillBaseDamageComponent =
-            levelAdjustedBaseDamage
-            + (scalingAttributeAmount * (skill.BaseDamageAttributeScalingFactor / 100) / 2);
-
-        var skillDamage = skillWeaponDamageComponent + skillBaseDamageComponent;
-
-        // Calculate damage reduction
-        // (Armor / ([85 * Enemy_Level] + Armor + 20))
-        const int attackerLevelMultiplier = 85;
-        const int magicNumber = 20;
-
-        decimal damageReductionCoefficient;
-
-        switch (skill.DamageType)
-        {
-            case DamageType.Physical:
-                var armor = (decimal)defender.GetArmor();
-                damageReductionCoefficient =
-                    Math.Round(armor / ((attackerLevelMultiplier * attacker.Level) + armor + magicNumber), 2);
-                break;
-            case DamageType.Magic:
-                var resistance = (decimal)defender.GetResistance();
-                damageReductionCoefficient =
-                    Math.Round(resistance / ((attackerLevelMultiplier * attacker.Level) + resistance + magicNumber), 2);
-                break;
-            default:
-                throw new ArgumentOutOfRangeException(nameof(skill.DamageType), "Invalid damage type");
-        }
-
-        var totalDamage = (int)Math.Round(skillDamage * (1 - damageReductionCoefficient));
-
-        return totalDamage;
-    }
-
-    private static int CalculateWeaponDamage(Character attacker, Character defender)
-    {
-        // Weapons always deal physical damage
-        var damageBonus = Math.Round((decimal)attacker.GetStrength() / 100, 2);
-        var damageReduction = Math.Round((decimal)defender.GetArmor() / 100, 2);
-        var attackerWeapon = attacker.Inventory
-            .OfType<Weapon>()
-            .SingleOrDefault(item => item.Type == ItemType.Weapon && item.IsEquipped);
-
-        var baseDamage = RNG.GetIntInRange(
-            attackerWeapon?.MinDamage ?? 1,
-            attackerWeapon?.MaxDamage ?? 1
-        );
-        var damageMultiplier = 1 + damageBonus - damageReduction;
-        var damage = (int)Math.Round(baseDamage * damageMultiplier);
-
-        return damage;
-    }
-
-    /// <summary>
-    /// Energy regenerates by the amount equal to the spirit-attribute every turn.
-    /// </summary>
+    
     private static void RegenerateEnergy(List<Character> allCharactersInFight)
     {
         foreach (var character in allCharactersInFight)
         {
-            character.CurrentEnergy = Math.Min(character.CurrentEnergy + character.GetSpirit(), character.GetMaxEnergy());
+            character.CurrentEnergy = Math.Min(character.CurrentEnergy + character.GetEnergyRegeneration(), character.GetMaxEnergy());
         }
     }
 
@@ -411,12 +327,12 @@ public class FightService : IFightService
         }
     }
 
-    private void ApplyStatusEffect(Skill skill, Character targetCharacter)
+    private static void ApplyStatusEffect(Skill skill, Character targetCharacter)
     {
         if (skill.StatusEffect is not null)
         {
             targetCharacter.StatusEffectInstances.Add(
-                new StatusEffectInstance(_context.UserId, skill.StatusEffect, skill.StatusEffect.Duration)
+                new StatusEffectInstance(targetCharacter.Id, skill.StatusEffect, skill.StatusEffect.Duration)
             );
         }
     }
@@ -479,27 +395,27 @@ public class FightService : IFightService
         var fight =
             await _context.Fights
                 .AsSplitQuery()
-                .Include(f => f.Characters)
+                .Include(f => f.AllCharactersInFight)
                 .ThenInclude(c => c.SkillInstances)
                 .ThenInclude(s => s.Skill)
                 .ThenInclude(s => s.StatusEffect)
-                .Include(f => f.Characters)
+                .Include(f => f.AllCharactersInFight)
                 .ThenInclude(c => c.StatusEffectInstances)
                 .ThenInclude(s => s.StatusEffect)
-                .Include(f => f.Characters)
+                .Include(f => f.AllCharactersInFight)
                 .ThenInclude(c => c.Inventory)
                 .SingleOrDefaultAsync(f => f.Id == playerActionDto.FightId)
             ?? throw new BadRequestException("Invalid action. Fight not found");
 
         var playerCharacter =
-            fight.Characters.SingleOrDefault(c => c.IsPlayerCharacter)
+            fight.AllCharactersInFight.SingleOrDefault(c => c.IsPlayerCharacter)
             ?? throw new BadRequestException("Invalid action. Player character not found");
 
         var targetCharacter =
-            fight.Characters.Single(c => c.Id == playerActionDto.TargetCharacterId)
+            fight.AllCharactersInFight.Single(c => c.Id == playerActionDto.TargetCharacterId)
             ?? throw new BadRequestException("Invalid action. Target character not found");
 
-        var allEnemyCharactersInFight = fight.Characters.Where(c => !c.IsPlayerCharacter).ToList();
+        var allEnemyCharactersInFight = fight.AllCharactersInFight.Where(c => !c.IsPlayerCharacter).ToList();
 
         return new PlayerActionReferenceData(
             fight,

@@ -23,9 +23,10 @@ public class CharacterService : ICharacterService
         _context = context;
     }
 
-    public async Task<List<GetCharacterListingDto>> GetAllCharacters()
+    public async Task<List<GetCharacterListingDto>> GetAllPlayerCharacters()
     {
         var allCharacters = await _context.Characters
+            .Where(c => c.IsPlayerCharacter)
             .Select(c => _autoMapper.Map<GetCharacterListingDto>(c))
             .ToListAsync();
 
@@ -37,6 +38,7 @@ public class CharacterService : ICharacterService
         var character =
             await _context.Characters
                 .AsSplitQuery()
+                .Where(c => c.IsPlayerCharacter)
                 .Include(c => c.SkillInstances)
                 .ThenInclude(s => s.Skill)
                 .ThenInclude(s => s.StatusEffect)
@@ -45,15 +47,6 @@ public class CharacterService : ICharacterService
             ?? throw new NotFoundException("Character not found");
 
         var dto = GetCharacterDto.FromCharacter(character);
-
-        // Parse level-scaled skill base damage values for the UI
-        dto.SkillInstances.ForEach(s =>
-        {
-            var skill = character.SkillInstances.Single(s => s.Skill.Id == s.Id).Skill;
-
-            s.Skill.MinBaseDamage = character.Level * (skill.MinBaseDamageFactor / 10);
-            s.Skill.MaxBaseDamage = character.Level * (skill.MaxBaseDamageFactor / 10);
-        });
 
         return dto;
     }
@@ -70,15 +63,15 @@ public class CharacterService : ICharacterService
             .Include(c => c.StatusEffectInstances)
             .ThenInclude(s => s.StatusEffect)
             .Where(c => c.Fight != null && c.Fight.Id == fightId && !c.IsPlayerCharacter)
-            .Select(c => _autoMapper.Map<GetCharacterDto>(c))
             .ToListAsync();
-
+        var enemyDtos = enemies.Select(GetCharacterDto.FromCharacter).ToList();
+        
         if (!enemies.Any())
         {
             throw new NotFoundException("No enemies found");
         }
 
-        return enemies;
+        return enemyDtos;
     }
 
     public async Task AddCharacter(AddCharacterDto newCharacter)
@@ -135,7 +128,7 @@ public class CharacterService : ICharacterService
                             && s.Rank == 1
                             && (s.Name == "Charge" || s.Name == "Rend")
                     )
-                    .Select(s => new SkillInstance(_context.UserId, s, 0))
+                    .Select(s => new SkillInstance(character.Id, s, 0))
                     .ToList();
 
                 character.SkillInstances.AddRange(warriorStartingSkills);
@@ -154,7 +147,7 @@ public class CharacterService : ICharacterService
         {
             CharacterClass.Warrior
                 => new Weapon(
-                    userId: _context.UserId,
+                    characterId: character.Id,
                     name: "Training Shortsword",
                     weight: 2,
                     rarity: ItemRarity.Common,
@@ -166,7 +159,7 @@ public class CharacterService : ICharacterService
                 ),
             CharacterClass.Mage
                 => new Weapon(
-                    userId: _context.UserId,
+                    characterId: character.Id,
                     name: "Handmade Dagger",
                     weight: 2,
                     rarity: ItemRarity.Common,
@@ -178,7 +171,7 @@ public class CharacterService : ICharacterService
                 ),
             CharacterClass.Priest
                 => new Weapon(
-                    userId: _context.UserId,
+                    characterId: character.Id,
                     name: "Travelling Staff",
                     weight: 2,
                     rarity: ItemRarity.Common,
@@ -204,7 +197,7 @@ public class CharacterService : ICharacterService
                 =>
                 [
                     new ArmorPiece(
-                        userId: _context.UserId,
+                        characterId: character.Id,
                         name: "Worn Leather Training Cuirass",
                         weight: 3,
                         rarity: ItemRarity.Common,
@@ -216,7 +209,7 @@ public class CharacterService : ICharacterService
                         attributes: new Attributes(0, 0, 0, 0)
                     ),
                     new ArmorPiece(
-                        userId: _context.UserId,
+                        characterId: character.Id,
                         name: "Patched Leather Pants",
                         weight: 2,
                         rarity: ItemRarity.Common,
@@ -228,7 +221,7 @@ public class CharacterService : ICharacterService
                         attributes: new Attributes(0, 0, 0, 0)
                     ),
                     new ArmorPiece(
-                        userId: _context.UserId,
+                        characterId: character.Id,
                         name: "Mudworn Boots",
                         weight: 1,
                         rarity: ItemRarity.Common,
@@ -244,7 +237,7 @@ public class CharacterService : ICharacterService
                 =>
                 [
                     new ArmorPiece(
-                        userId: _context.UserId,
+                        characterId: character.Id,
                         name: "Worn Linen Tunic",
                         weight: 2,
                         rarity: ItemRarity.Common,
@@ -256,7 +249,7 @@ public class CharacterService : ICharacterService
                         attributes: new Attributes(0, 0, 0, 0)
                     ),
                     new ArmorPiece(
-                        userId: _context.UserId,
+                        characterId: character.Id,
                         name: "Linen Leggings",
                         weight: 1,
                         rarity: ItemRarity.Common,
@@ -268,7 +261,7 @@ public class CharacterService : ICharacterService
                         attributes: new Attributes(0, 0, 0, 0)
                     ),
                     new ArmorPiece(
-                        userId: _context.UserId,
+                        characterId: character.Id,
                         name: "Handmade Sandals",
                         weight: 1,
                         rarity: ItemRarity.Common,
@@ -283,7 +276,7 @@ public class CharacterService : ICharacterService
             CharacterClass.Priest
                 => [
                     new ArmorPiece(
-                        userId: _context.UserId,
+                        characterId: character.Id,
                         name: "Gray Novice Robe",
                         weight: 2,
                         rarity: ItemRarity.Common,
@@ -295,7 +288,7 @@ public class CharacterService : ICharacterService
                         attributes: new Attributes(0, 0, 0, 0)
                     ),
                     new ArmorPiece(
-                        userId: _context.UserId,
+                        characterId: character.Id,
                         name: "Sackcloth Pants",
                         weight: 1,
                         rarity: ItemRarity.Common,
@@ -307,7 +300,7 @@ public class CharacterService : ICharacterService
                         attributes: new Attributes(0, 0, 0, 0)
                     ),
                     new ArmorPiece(
-                        userId: _context.UserId,
+                        characterId: character.Id,
                         name: "Sturdy Footwraps",
                         weight: 1,
                         rarity: ItemRarity.Common,

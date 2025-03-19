@@ -1,20 +1,18 @@
-using DotnetRpg.Models.Characters;
 using DotnetRpg.Models.Generic;
 
 namespace DotnetRpg.Models.Skills;
 
-public class SkillInstance : BaseEntity
+public class SkillInstance : CharacterSpecificEntity
 {
     public SkillInstance() { }
 
-    public SkillInstance(int userId, Skill skill, int remainingCooldown) : base(userId)
+    public SkillInstance(int characterId, Skill skill, int remainingCooldown) : base(characterId)
     {
         Skill = skill;
         RemainingCooldown = remainingCooldown;
     }
 
     public Skill Skill { get; set; } = null!;
-    public Character Character { get; set; } = null!;
     public int RemainingCooldown { get; set; }
 
     public void ApplyCooldown()

@@ -1,8 +1,8 @@
-namespace DotnetRpg.Dtos.Fight;
+namespace DotnetRpg.Dtos.Fights;
 
 public class BeginFightResultDto
 {
-    public int Id { get; init; }
+    public int FightId { get; init; }
     public int PlayerCharacterId { get; init; }
     public required List<int> EnemyCharacterIds { get; init; }
 }

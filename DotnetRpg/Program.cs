@@ -4,6 +4,7 @@ using DotnetRpg.Data;
 using DotnetRpg.Data.Seeding;
 using DotnetRpg.Services.AuthService;
 using DotnetRpg.Services.CharacterService;
+using DotnetRpg.Services.DamageCalculator;
 using DotnetRpg.Services.EnemyGeneratorService;
 using DotnetRpg.Services.FightService;
 using DotnetRpg.Services.InventoryService;
@@ -141,6 +142,7 @@ static WebApplication BuildApplication(string[] args)
     builder.Services.AddScoped<IFightService, FightService>();
     builder.Services.AddScoped<IEnemyGeneratorService, EnemyGeneratorService>();
     builder.Services.AddScoped<IInventoryService, InventoryService>();
+    builder.Services.AddSingleton<IDamageCalculator, DamageCalculator>();
 
     builder.Services.AddScoped<DataSeeder>();
 

@@ -1,6 +1,6 @@
 using AutoMapper;
 using DotnetRpg.Data;
-using DotnetRpg.Dtos.Item;
+using DotnetRpg.Dtos.Items;
 using DotnetRpg.Models.Characters;
 using DotnetRpg.Models.Exceptions;
 using DotnetRpg.Models.Items;

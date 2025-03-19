@@ -1,4 +1,5 @@
 using DotnetRpg.Dtos.Fight;
+using DotnetRpg.Dtos.Fights;
 using DotnetRpg.Services.FightService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -8,19 +9,19 @@ namespace DotnetRpg.Controllers;
 [Authorize]
 [ApiController]
 [Route("[controller]")]
-public class FightController : ControllerBase
+public class FightsController : ControllerBase
 {
     private readonly IFightService _fightService;
 
-    public FightController(IFightService fightService)
+    public FightsController(IFightService fightService)
     {
         _fightService = fightService;
     }
 
-    [HttpPost("{characterId}")]
-    public async Task<ActionResult<BeginFightResultDto>> Fight(int characterId)
+    [HttpPost]
+    public async Task<ActionResult<BeginFightResultDto>> Fight(BeginFightDto request)
     {
-        var response = await _fightService.BeginFight(characterId);
+        var response = await _fightService.BeginFight(request.PlayerCharacterId);
         return Ok(response);
     }
 

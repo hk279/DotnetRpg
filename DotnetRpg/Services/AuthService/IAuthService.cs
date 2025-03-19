@@ -1,4 +1,4 @@
-using DotnetRpg.Dtos.User;
+using DotnetRpg.Dtos.Users;
 
 namespace DotnetRpg.Services.AuthService;
 

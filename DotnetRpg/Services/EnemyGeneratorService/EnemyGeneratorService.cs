@@ -10,12 +10,12 @@ public class EnemyGeneratorService : IEnemyGeneratorService
 
     private readonly List<((int MinLevel, int MaxLevel) LevelRange, EnemyTemplate Enemy)> _singleEnemyTemplatesByLevelRange = new()
     {
-        ((1, 3), new EnemyTemplate("Mutant Rat", CharacterClass.Warrior, new Weapon { Name = "Giant Teeth" })),
-        ((1, 3), new EnemyTemplate("Zombified Peasant", CharacterClass.Warrior, new Weapon { Name = "Claw" })),
-        ((3, 5), new EnemyTemplate("Cultist Gatherer", CharacterClass.Warrior, new Weapon { Name = "Bone Knife" })),
-        ((3, 5), new EnemyTemplate("Grizzly Bear", CharacterClass.Warrior, new Weapon { Name = "Claws" })),
-        ((5, 7), new EnemyTemplate("Deranged Knight", CharacterClass.Warrior, new Weapon { Name = "Longsword" })),
-        ((5, 7), new EnemyTemplate("Cultist Shaman", CharacterClass.Priest, new Weapon { Name = "Sacrificial Knife" }))
+        ((1, 3), new EnemyTemplate("Mutant Rat", CharacterClass.Warrior, new Weapon("Giant Teeth"))),
+        ((1, 3), new EnemyTemplate("Zombified Peasant", CharacterClass.Warrior, new Weapon("Pitchfork"))),
+        ((3, 5), new EnemyTemplate("Cultist Gatherer", CharacterClass.Warrior, new Weapon("Bone Knife"))),
+        ((3, 5), new EnemyTemplate("Grizzly Bear", CharacterClass.Warrior, new Weapon("Claws"))),
+        ((5, 7), new EnemyTemplate("Deranged Knight", CharacterClass.Warrior, new Weapon("Longsword"))),
+        ((5, 7), new EnemyTemplate("Cultist Shaman", CharacterClass.Priest, new Weapon("Sacrificial Knife")))
     };
 
     // Multi-enemy fights can have 2 or 3 enemies
@@ -24,50 +24,50 @@ public class EnemyGeneratorService : IEnemyGeneratorService
         (
             (1, 5),
             [
-                new EnemyTemplate("Vulture", CharacterClass.Priest, new Weapon { Name = "Claws" }),
-                new EnemyTemplate("Vulture", CharacterClass.Priest, new Weapon { Name = "Claws" }),
-                new EnemyTemplate("Vulture", CharacterClass.Priest, new Weapon { Name = "Claws" })
+                new EnemyTemplate("Vulture", CharacterClass.Priest, new Weapon("Claws")),
+                new EnemyTemplate("Vulture", CharacterClass.Priest, new Weapon("Claws")),
+                new EnemyTemplate("Vulture", CharacterClass.Priest, new Weapon("Claws"))
             ]
         ),
         (
             (5, 10),
             [
-                new EnemyTemplate("Highwayman", CharacterClass.Warrior, new Weapon { Name = "Club" }),
-                new EnemyTemplate("Highwayman", CharacterClass.Warrior, new Weapon { Name = "Dagger" }),
-                new EnemyTemplate("Highwayman", CharacterClass.Warrior, new Weapon { Name = "Crossbow" })
+                new EnemyTemplate("Highwayman", CharacterClass.Warrior, new Weapon("Club")),
+                new EnemyTemplate("Highwayman", CharacterClass.Warrior, new Weapon("Dagger")),
+                new EnemyTemplate("Highwayman", CharacterClass.Warrior, new Weapon("Crossbow"))
             ]
         )
     };
 
-    public List<Character> GetEnemies(int playerCharacterLevel)
+    public List<Character> GetEnemies(Character playerCharacter)
     {
         var isMultiEnemyFight = RNG.GetBoolean(0.2);
 
         if (isMultiEnemyFight)
         {
             var enemyGroupsInLevelRange = _multiEnemyTemplatesByLevelRange
-                .Where(x => playerCharacterLevel >= x.LevelRange.MinLevel && playerCharacterLevel <= x.LevelRange.MaxLevel)
+                .Where(x => playerCharacter.Level >= x.LevelRange.MinLevel && playerCharacter.Level <= x.LevelRange.MaxLevel)
                 .Select(x => x.EnemyGroup)
                 .ToList();
             var enemyTemplates = RNG.PickRandom(enemyGroupsInLevelRange);
-            var enemyCharacters = enemyTemplates.Select(t => GetMultiEnemyCharacter(playerCharacterLevel, t, enemyTemplates.Count));
+            var enemyCharacters = enemyTemplates.Select(t => GetMultiEnemyCharacter(playerCharacter, t, enemyTemplates.Count));
 
             return enemyCharacters.ToList();
         }
 
         var enemiesInLevelRange = _singleEnemyTemplatesByLevelRange
-            .Where(x => playerCharacterLevel >= x.LevelRange.MinLevel && playerCharacterLevel <= x.LevelRange.MaxLevel)
+            .Where(x => playerCharacter.Level >= x.LevelRange.MinLevel && playerCharacter.Level <= x.LevelRange.MaxLevel)
             .Select(x => x.Enemy)
             .ToList();
         var enemyTemplate = RNG.PickRandom(enemiesInLevelRange);
-        var enemyCharacter = GetSingleEnemyCharacter(playerCharacterLevel, enemyTemplate);
+        var enemyCharacter = GetSingleEnemyCharacter(playerCharacter, enemyTemplate);
 
         return [enemyCharacter];
     }
 
-    private static Character GetSingleEnemyCharacter(int playerCharacterLevel, EnemyTemplate data)
+    private static Character GetSingleEnemyCharacter(Character playerCharacter, EnemyTemplate data)
     {
-        var enemyLevel = GetEnemyLevel(playerCharacterLevel);
+        var enemyLevel = GetEnemyLevel(playerCharacter.Level);
 
         var attributeCoefficients = data.EnemyClass switch
         {
@@ -88,6 +88,7 @@ public class EnemyGeneratorService : IEnemyGeneratorService
 
         var enemy = new Character
         {
+            UserId = playerCharacter.UserId,
             Name = data.Name,
             Class = data.EnemyClass,
             Level = enemyLevel,
@@ -107,9 +108,9 @@ public class EnemyGeneratorService : IEnemyGeneratorService
         return enemy;
     }
 
-    private Character GetMultiEnemyCharacter(int playerCharacterLevel, EnemyTemplate data, int enemyCount)
+    private static Character GetMultiEnemyCharacter(Character playerCharacter, EnemyTemplate data, int enemyCount)
     {
-        var enemyLevel = GetEnemyLevel(playerCharacterLevel);
+        var enemyLevel = GetEnemyLevel(playerCharacter.Level);
 
         var attributeCoefficients = data.EnemyClass switch
         {
@@ -131,6 +132,7 @@ public class EnemyGeneratorService : IEnemyGeneratorService
 
         var enemy = new Character
         {
+            UserId = playerCharacter.UserId,
             Name = data.Name,
             Class = data.EnemyClass,
             Level = enemyLevel,

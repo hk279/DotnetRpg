@@ -15,6 +15,19 @@ public record GetSkillDto(
     int MaxBaseDamage,
     int EnergyCost,
     int Cooldown,
-    GetStatusEffectDto? StatusEffect = null);
-
-// TODO: Add FromSkill -method
+    GetStatusEffectDto? StatusEffect = null)
+{
+    public static GetSkillDto FromSkill(Skill skill) =>
+        new(skill.Id,
+            skill.Name,
+            skill.Description,
+            skill.DamageType,
+            skill.TargetType,
+            skill.Rank,
+            skill.WeaponDamagePercentage,
+            skill.MinBaseDamageFactor,
+            skill.MaxBaseDamageFactor,
+            skill.EnergyCost,
+            skill.Cooldown,
+            skill.StatusEffect != null ? GetStatusEffectDto.FromStatusEffect(skill.StatusEffect) : null);
+}

@@ -5,7 +5,7 @@ namespace DotnetRpg.Models.Skills;
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum DamageType
 {
-    Unknown,
-    Physical,
-    Magic
+    Unknown = 0,
+    Physical = 1,
+    Magic = 2
 }

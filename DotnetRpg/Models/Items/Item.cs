@@ -1,14 +1,25 @@
+using DotnetRpg.Models.Characters;
 using DotnetRpg.Models.Generic;
 
 namespace DotnetRpg.Models.Items;
 
-public abstract class Item : BaseEntity
+public abstract class Item
 {
     protected Item() { }
     
-    protected Item(int userId, string name, ItemType type, int level, ItemRarity rarity, string description, int weight, int value, bool isEquipped, Attributes attributes)
-    :base(userId)
+    protected Item(
+        int characterId,
+        string name,
+        ItemType type,
+        int level,
+        ItemRarity rarity,
+        string description,
+        int weight,
+        int value,
+        bool isEquipped,
+        Attributes attributes)
     {
+        CharacterId = characterId;
         Name = name;
         Type = type;
         Level = level;
@@ -23,6 +34,9 @@ public abstract class Item : BaseEntity
         Spirit = attributes.Spirit;
     }
 
+    public int Id { get; set; }
+    public Character Character { get; set; } = null!;
+    public int CharacterId { get; set; }
     public string Name { get; set; } = null!;
     public ItemType Type { get; set; }
     public int Level { get; set; } = 1;

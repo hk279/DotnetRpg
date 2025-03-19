@@ -43,13 +43,19 @@ public record GetCharacterDto(
 
         var equippedWeapon = character.Inventory
             .OfType<Weapon>()
-            .SingleOrDefault(item => item.Type == ItemType.Weapon && item.IsEquipped);
+            .SingleOrDefault(item => item is { Type: ItemType.Weapon, IsEquipped: true });
         var equippedArmorPieces = character.Inventory
             .OfType<ArmorPiece>()
-            .Where(item => item.Type == ItemType.ArmorPiece && item.IsEquipped)
-
-
-        return new(
+            .Where(item => item is { Type: ItemType.ArmorPiece, IsEquipped: true })
+            .Select(GetEquippedArmorPieceDto.FromArmorPiece).ToList();
+        var skills = character.SkillInstances
+            .Select(si => new GetSkillInstanceDto(si.RemainingCooldown, GetSkillDto.FromSkill(si.Skill)))
+            .ToList();
+        var statusEffects = character.StatusEffectInstances
+            .Select(GetStatusEffectInstanceDto.FromStatusEffectInstance)
+            .ToList();
+        
+        return new GetCharacterDto(
             character.Id,
             character.Name,
             character.Class,
@@ -69,9 +75,10 @@ public record GetCharacterDto(
             character.GetResistance(),
             character.InventorySize,
             equippedWeapon is not null ? GetEquippedWeaponDto.FromWeapon(equippedWeapon) : null,
-            equippedArmorPieces.Select(GetEquippedArmorPieceDto.FromArmorPiece).ToList(),
-
-
-        )
+            equippedArmorPieces,
+            skills,
+            statusEffects,
+            character.Fight?.Id
+        );
     }
 };

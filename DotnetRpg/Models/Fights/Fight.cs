@@ -3,15 +3,16 @@ using DotnetRpg.Models.Generic;
 
 namespace DotnetRpg.Models.Fights;
 
-public class Fight : BaseEntity
+public class Fight : CharacterSpecificEntity
 {
     public Fight() {}
     
-    public Fight(int userId, List<Character> characters): base(userId)
+    public Fight(int characterId, List<Character> allCharactersInFight)
     {
-        Characters = characters;
+        CharacterId = characterId;
+        AllCharactersInFight = allCharactersInFight;
     }
-
-    public List<Character> Characters { get; set; } = null!;
+    
+    public List<Character> AllCharactersInFight { get; set; } = null!;
 }
 

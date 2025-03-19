@@ -16,8 +16,11 @@ public class CharacterEntityTypeConfiguration : IEntityTypeConfiguration<Charact
 
     public void Configure(EntityTypeBuilder<Character> builder)
     {
-        builder.ConfigureBaseEntity(_filterExpression);
-        builder.HasMany(c => c.SkillInstances).WithOne(c => c.Character).OnDelete(DeleteBehavior.NoAction);
-        builder.HasMany(c => c.StatusEffectInstances).WithOne(c => c.Character).OnDelete(DeleteBehavior.NoAction);
+        builder.HasQueryFilter(_filterExpression);
+        builder.HasOne(c => c.Fight).WithMany(f => f.AllCharactersInFight);
+        builder.HasMany(c => c.SkillInstances).WithOne(c => c.Character).OnDelete(DeleteBehavior.Cascade);
+        builder.HasMany(c => c.StatusEffectInstances).WithOne(c => c.Character).OnDelete(DeleteBehavior.Cascade);
+        builder.HasMany(c => c.Inventory).WithOne(c => c.Character).OnDelete(DeleteBehavior.Cascade);
+        builder.ToTable("Characters");
     }
 }

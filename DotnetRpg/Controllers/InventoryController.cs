@@ -1,4 +1,4 @@
-using DotnetRpg.Dtos.Item;
+using DotnetRpg.Dtos.Items;
 using DotnetRpg.Services.InventoryService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

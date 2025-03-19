@@ -9,7 +9,7 @@ public static class WarriorSkillDataSeeder
     public static List<Skill> GetWarriorSkills()
     {
         var warriorSkills = new List<Skill>();
-        
+
         warriorSkills.AddRange(GetChargeSkills());
         warriorSkills.AddRange(GetRendSkills());
 
@@ -60,20 +60,20 @@ public static class WarriorSkillDataSeeder
             CreateRendSkill(1, 30, 40, 50, 50, 20, 4, new StatusEffect(
                 "Bleeding",
                 duration: 3,
-                StatusEffectType.Physical,
-                damagePerTurnFactor: 30
+                StatusEffectType.Physical
+            // damagePerTurnFactor: 30
             )),
             CreateRendSkill(2, 50, 40, 50, 50, 20, 4, new StatusEffect(
                 "Bleeding",
                 duration: 3,
-                StatusEffectType.Physical,
-                damagePerTurnFactor: 30
+                StatusEffectType.Physical
+            // damagePerTurnFactor: 30
             )),
             CreateRendSkill(3, 50, 40, 50, 50, 20, 4, new StatusEffect(
                 "Bleeding",
                 duration: 4,
-                StatusEffectType.Physical,
-                damagePerTurnFactor: 30
+                StatusEffectType.Physical
+            // damagePerTurnFactor: 30
             ))
         ];
     }

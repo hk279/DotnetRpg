@@ -12,7 +12,8 @@ public class Weapon : Item
         Description = description;
     }
 
-    public Weapon(int userId,
+    public Weapon(
+        int characterId,
         string name,
         int level,
         ItemRarity rarity,
@@ -22,7 +23,7 @@ public class Weapon : Item
         int minDamage,
         int maxDamage,
         string description = ""
-        ) : base(userId, name, ItemType.Weapon, level, rarity, description, weight, value, false, attributes)
+        ) : base(characterId, name, ItemType.Weapon, level, rarity, description, weight, value, false, attributes)
     {
         MinDamage = minDamage;
         MaxDamage = maxDamage;

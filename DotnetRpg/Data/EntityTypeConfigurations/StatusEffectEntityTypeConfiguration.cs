@@ -6,5 +6,8 @@ namespace DotnetRpg.Data.EntityTypeConfigurations;
 
 public class StatusEffectEntityTypeConfiguration : IEntityTypeConfiguration<StatusEffect>
 {
-    public void Configure(EntityTypeBuilder<StatusEffect> builder) { }
+    public void Configure(EntityTypeBuilder<StatusEffect> builder)
+    {
+        builder.ToTable("StatusEffects");
+    }
 }

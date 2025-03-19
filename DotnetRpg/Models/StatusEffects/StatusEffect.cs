@@ -41,10 +41,6 @@ public class StatusEffect
     public int Id { get; set; }
     public string Name { get; set; } = null!;
     public int Duration { get; set; }
-
-    /// <summary>
-    /// Determines which attribute (STR / INT) will scale the damage and healing over time
-    /// </summary>
     public StatusEffectType Type { get; set; }
 
     // TODO: Rethink how these are handled

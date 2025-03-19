@@ -1,4 +1,4 @@
-namespace DotnetRpg.Dtos.Fight;
+namespace DotnetRpg.Dtos.Fights;
 
 public class BeginFightDto
 {

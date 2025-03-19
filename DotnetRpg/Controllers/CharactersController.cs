@@ -1,4 +1,4 @@
-using DotnetRpg.Dtos.Character;
+using DotnetRpg.Dtos.Characters;
 using DotnetRpg.Services.CharacterService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -20,7 +20,7 @@ public class CharactersController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<List<GetCharacterListingDto>>> GetAll()
     {
-        var response = await _characterService.GetAllCharacters();
+        var response = await _characterService.GetAllPlayerCharacters();
         return Ok(response);
     }
 

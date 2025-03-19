@@ -3,7 +3,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using DotnetRpg.Data;
-using DotnetRpg.Dtos.User;
+using DotnetRpg.Dtos.Users;
 using DotnetRpg.Models.Exceptions;
 using DotnetRpg.Models.Users;
 using DotnetRpg.Services.UserProvider;
