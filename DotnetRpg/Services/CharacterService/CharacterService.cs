@@ -23,17 +23,17 @@ public class CharacterService : ICharacterService
         _context = context;
     }
 
-    public async Task<List<GetCharacterListingDto>> GetAllPlayerCharacters()
+    public async Task<List<CharacterListingDto>> GetAllPlayerCharacters()
     {
         var allCharacters = await _context.Characters
             .Where(c => c.IsPlayerCharacter)
-            .Select(c => _autoMapper.Map<GetCharacterListingDto>(c))
+            .Select(c => _autoMapper.Map<CharacterListingDto>(c))
             .ToListAsync();
 
         return allCharacters;
     }
 
-    public async Task<GetCharacterDto> GetCharacterById(int characterId)
+    public async Task<CharacterDto> GetCharacterById(int characterId)
     {
         var character =
             await _context.Characters
@@ -47,12 +47,12 @@ public class CharacterService : ICharacterService
                 .FirstOrDefaultAsync(c => c.Id == characterId)
             ?? throw new NotFoundException("Character not found");
 
-        var dto = GetCharacterDto.FromCharacter(character);
+        var dto = CharacterDto.FromCharacter(character);
 
         return dto;
     }
 
-    public async Task<List<GetCharacterDto>> GetEnemies(int characterId)
+    public async Task<List<CharacterDto>> GetEnemies(int characterId)
     {
         var character = await _context.Characters.Include(c => c.Fight)
                             .FirstOrDefaultAsync(c => c.Id == characterId)
@@ -65,7 +65,7 @@ public class CharacterService : ICharacterService
             .ThenInclude(s => s.StatusEffect)
             .Where(c => c.Fight != null && c.Fight.Id == fightId && !c.IsPlayerCharacter)
             .ToListAsync();
-        var enemyDtos = enemies.Select(GetCharacterDto.FromCharacter).ToList();
+        var enemyDtos = enemies.Select(CharacterDto.FromCharacter).ToList();
         
         if (!enemies.Any())
         {
@@ -75,20 +75,20 @@ public class CharacterService : ICharacterService
         return enemyDtos;
     }
 
-    public async Task AddCharacter(AddCharacterDto newCharacter)
+    public async Task AddCharacter(AddCharacterDto addCharacterDto)
     {
         var totalAttributePoints =
-            newCharacter.Strength
-            + newCharacter.Intelligence
-            + newCharacter.Stamina
-            + newCharacter.Spirit;
+            addCharacterDto.Strength
+            + addCharacterDto.Intelligence
+            + addCharacterDto.Stamina
+            + addCharacterDto.Spirit;
 
         if (totalAttributePoints is not InitialAttributePoints)
         {
             throw new BadRequestException("Invalid number of attribute points assigned");
         }
 
-        var characterToAdd = newCharacter.ToCharacter(_context.UserId);
+        var characterToAdd = addCharacterDto.ToCharacter(_context.UserId);
 
         ResetHitPointsAndEnergy(characterToAdd);
         AddStartingSkills(characterToAdd);
@@ -109,6 +109,36 @@ public class CharacterService : ICharacterService
         await _context.SaveChangesAsync();
     }
 
+    public async Task AssignAttributePoints(AssignAttributePointsDto assignAttributePointsDto)
+    {
+        var characterId = assignAttributePointsDto.CharacterId;
+        var character = await _context.Characters.FirstOrDefaultAsync(c => c.Id == characterId)
+                        ?? throw new NotFoundException($"Character not found with ID {characterId}");
+        var totalAssignedAttributePoints =
+            assignAttributePointsDto.Strength +
+            assignAttributePointsDto.Intelligence +
+            assignAttributePointsDto.Spirit +
+            assignAttributePointsDto.Stamina;
+        
+        if (character.UnassignedAttributePoints < totalAssignedAttributePoints)
+        {
+            throw new BadRequestException(
+                $"Attempted to assign {totalAssignedAttributePoints} attribute points to character while having only {character.UnassignedAttributePoints} unassigned attribute points");
+        }
+        
+        character.Strength += assignAttributePointsDto.Strength;
+        character.Intelligence += assignAttributePointsDto.Intelligence;
+        character.Spirit += assignAttributePointsDto.Spirit;
+        character.Stamina += assignAttributePointsDto.Stamina;
+        character.UnassignedAttributePoints -= totalAssignedAttributePoints;
+
+        // Set current to max in case the max was increased due to attribute changes
+        character.CurrentHitPoints = character.GetMaxHitPoints();
+        character.CurrentEnergy = character.GetMaxEnergy();
+        
+        await _context.SaveChangesAsync();
+    }
+    
     private static void ResetHitPointsAndEnergy(Character character)
     {
         character.CurrentHitPoints = character.GetMaxHitPoints();

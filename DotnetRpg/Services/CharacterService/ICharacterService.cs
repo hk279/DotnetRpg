@@ -4,10 +4,11 @@ namespace DotnetRpg.Services.CharacterService
 {
     public interface ICharacterService
     {
-        Task<List<GetCharacterListingDto>> GetAllPlayerCharacters();
-        Task<GetCharacterDto> GetCharacterById(int id);
-        Task<List<GetCharacterDto>> GetEnemies(int characterId);
-        Task AddCharacter(AddCharacterDto newCharacter);
+        Task<List<CharacterListingDto>> GetAllPlayerCharacters();
+        Task<CharacterDto> GetCharacterById(int id);
+        Task<List<CharacterDto>> GetEnemies(int characterId);
+        Task AddCharacter(AddCharacterDto addCharacterDto);
         Task DeleteCharacter(int id);
+        Task AssignAttributePoints(AssignAttributePointsDto assignAttributePointsDto);
     }
 }

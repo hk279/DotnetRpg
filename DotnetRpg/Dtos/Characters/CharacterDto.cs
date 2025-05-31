@@ -6,7 +6,7 @@ using DotnetRpg.Models.Items;
 
 namespace DotnetRpg.Dtos.Characters;
 
-public record GetCharacterDto(
+public record CharacterDto(
     int Id,
     string Name,
     CharacterClass Class,
@@ -32,7 +32,7 @@ public record GetCharacterDto(
     List<GetStatusEffectInstanceDto> StatusEffectInstances,
     int? FightId)
 {
-    public static GetCharacterDto FromCharacter(Character character)
+    public static CharacterDto FromCharacter(Character character)
     {
         var currentLevelExperienceThreshold = LevelExperienceThresholds.AllThresholds.GetValueOrDefault(character.Level);
         var nextLevelExperienceThreshold = LevelExperienceThresholds.AllThresholds.GetValueOrDefault(character.Level + 1);
@@ -56,7 +56,7 @@ public record GetCharacterDto(
             .Select(GetStatusEffectInstanceDto.FromStatusEffectInstance)
             .ToList();
         
-        return new GetCharacterDto(
+        return new CharacterDto(
             character.Id,
             character.Name,
             character.Class,

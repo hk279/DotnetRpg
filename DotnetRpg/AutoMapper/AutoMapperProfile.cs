@@ -15,7 +15,7 @@ public class AutoMapperProfile : Profile
     public AutoMapperProfile()
     {
         CreateMap<AddCharacterDto, Character>();
-        CreateMap<Character, GetCharacterListingDto>();
+        CreateMap<Character, CharacterListingDto>();
 
         CreateMap<SkillInstance, GetSkillInstanceDto>();
         CreateMap<Skill, GetSkillDto>();

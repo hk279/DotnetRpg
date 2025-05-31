@@ -18,14 +18,14 @@ public class CharactersController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<GetCharacterListingDto>>> GetAll()
+    public async Task<ActionResult<List<CharacterListingDto>>> GetAll()
     {
         var response = await _characterService.GetAllPlayerCharacters();
         return Ok(response);
     }
 
     [HttpGet("{characterId:int}/enemies")]
-    public async Task<ActionResult<List<GetCharacterDto>>> GetEnemies(
+    public async Task<ActionResult<List<CharacterDto>>> GetEnemies(
         int characterId
     )
     {
@@ -34,16 +34,16 @@ public class CharactersController : ControllerBase
     }
 
     [HttpGet("{characterId:int}")]
-    public async Task<ActionResult<GetCharacterDto>> GetSingle(int characterId)
+    public async Task<ActionResult<CharacterDto>> GetSingle(int characterId)
     {
         var response = await _characterService.GetCharacterById(characterId);
         return Ok(response);
     }
 
     [HttpPost]
-    public async Task<ActionResult> Add(AddCharacterDto newCharacter)
+    public async Task<ActionResult> Add(AddCharacterDto addCharacterDto)
     {
-        await _characterService.AddCharacter(newCharacter);
+        await _characterService.AddCharacter(addCharacterDto);
         return Ok();
     }
 
@@ -51,6 +51,13 @@ public class CharactersController : ControllerBase
     public async Task<ActionResult> Delete(int characterId)
     {
         await _characterService.DeleteCharacter(characterId);
+        return Ok();
+    }
+
+    [HttpPost("assign-attribute-points")]
+    public async Task<ActionResult> AssignAttributePoints(AssignAttributePointsDto request)
+    {
+        await _characterService.AssignAttributePoints(request);
         return Ok();
     }
 }
