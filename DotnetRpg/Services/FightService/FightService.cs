@@ -82,7 +82,7 @@ public class FightService : IFightService
             damageInstance = AttackWithSkill(playerCharacter, targetCharacter, skillInstance.Skill);
         }
 
-        var attackResult = new PlayerActionResultDto
+        var playerActionResult = new PlayerActionResultDto
         {
             PlayerAction = new ActionResultDto
             {
@@ -104,14 +104,17 @@ public class FightService : IFightService
 
             if (allEnemiesDefeated)
             {
-                attackResult.FightStatus = FightStatus.Victory;
-                EndFight(fight, allEnemyCharacters, playerCharacter, true);
+                playerActionResult.FightStatus = FightStatus.Victory;
+                EndFight(fight, allEnemyCharacters, playerCharacter, playerActionResult, true);
                 await _context.SaveChangesAsync();
-                return attackResult;
+                return playerActionResult;
             }
         }
 
-        HandleEnemyActions(fight, playerCharacter, allEnemyCharacters, attackResult);
+        HandleEnemyActions(fight, playerCharacter, allEnemyCharacters, playerActionResult);
+        
+        // TODO: What happens when a fight is lost?
+        
         RegenerateEnergy(fight.AllCharactersInFight);
         UpdateStatusEffectCooldowns(fight.AllCharactersInFight);
         UpdateSkillCooldowns(fight.AllCharactersInFight);
@@ -121,7 +124,7 @@ public class FightService : IFightService
 
         await _context.SaveChangesAsync();
 
-        return attackResult;
+        return playerActionResult;
     }
 
     public async Task<PlayerActionResultDto> WeaponAttack(PlayerActionDto request)
@@ -130,7 +133,7 @@ public class FightService : IFightService
             await GetPlayerActionReferenceData(request);
 
         var damageInstance = AttackWithWeapon(playerCharacter, targetCharacter);
-        var attackResult = new PlayerActionResultDto
+        var playerActionResult = new PlayerActionResultDto
         {
             PlayerAction = new ActionResultDto
             {
@@ -152,21 +155,20 @@ public class FightService : IFightService
 
             if (allEnemiesDefeated)
             {
-                attackResult.FightStatus = FightStatus.Victory;
-                EndFight(fight, allEnemyCharacters, playerCharacter, true);
+                EndFight(fight, allEnemyCharacters, playerCharacter, playerActionResult, true);
                 await _context.SaveChangesAsync();
-                return attackResult;
+                return playerActionResult;
             }
         }
 
-        HandleEnemyActions(fight, playerCharacter, allEnemyCharacters, attackResult);
+        HandleEnemyActions(fight, playerCharacter, allEnemyCharacters, playerActionResult);
         RegenerateEnergy(fight.AllCharactersInFight);
         UpdateStatusEffectCooldowns(fight.AllCharactersInFight);
         UpdateSkillCooldowns(fight.AllCharactersInFight);
 
         await _context.SaveChangesAsync();
 
-        return attackResult;
+        return playerActionResult;
     }
 
     private DamageInstance AttackWithSkill(Character attacker, Character defender, Skill skill)
@@ -205,29 +207,29 @@ public class FightService : IFightService
         Fight fight,
         ICollection<Character> allEnemyCharactersInFight,
         Character playerCharacter,
+        PlayerActionResultDto playerActionResult,
         bool isVictory
     )
     {
-        _context.RemoveRange(allEnemyCharactersInFight);
-        _context.Remove(fight);
-
         playerCharacter.CurrentHitPoints = playerCharacter.GetMaxHitPoints();
         playerCharacter.CurrentEnergy = playerCharacter.GetMaxEnergy();
         playerCharacter.SkillInstances.ForEach(s => s.RemainingCooldown = 0);
-
+        playerActionResult.FightStatus = isVictory ? FightStatus.Victory : FightStatus.Defeat;
+        
         if (isVictory)
         {
-            RewardExperience(playerCharacter, allEnemyCharactersInFight);
+            RewardExperience(playerCharacter, allEnemyCharactersInFight, playerActionResult);
         }
-
-        // TODO: What happens when a fight is lost?
+        
+        _context.RemoveRange(allEnemyCharactersInFight);
+        _context.Remove(fight);
     }
 
     private void HandleEnemyActions(
         Fight fight,
         Character playerCharacter,
         List<Character> allEnemyCharacters,
-        PlayerActionResultDto resultDto
+        PlayerActionResultDto playerActionResult
     )
     {
         var enemyActions = new List<ActionResultDto>();
@@ -281,13 +283,12 @@ public class FightService : IFightService
             enemyActions.Add(enemyAction);
         }
 
+        playerActionResult.EnemyActions = enemyActions;
+        
         if (playerCharacter.IsDead)
         {
-            resultDto.FightStatus = FightStatus.Defeat;
-            EndFight(fight, allEnemyCharacters, playerCharacter, false);
+            EndFight(fight, allEnemyCharacters, playerCharacter, playerActionResult, false);
         }
-
-        resultDto.EnemyActions = enemyActions;
     }
     
     private static void RegenerateEnergy(List<Character> allCharactersInFight)
@@ -339,19 +340,18 @@ public class FightService : IFightService
 
     private static void RewardExperience(
         Character playerCharacter,
-        IEnumerable<Character> enemyCharacters
+        IEnumerable<Character> enemyCharacters,
+        PlayerActionResultDto playerActionResult
     )
     {
         // Max level
-        if (playerCharacter.Level == 50)
-        {
-            return;
-        }
+        if (playerCharacter.Level == 50) return;
 
         var averageEnemyLevel = enemyCharacters.Average(s => s.Level);
-        var experienceReward = (int)Math.Round(10 * averageEnemyLevel);
+        var experienceReward = (int)Math.Round(50 * averageEnemyLevel);
         var newExperienceTotal = playerCharacter.Experience + experienceReward;
         playerCharacter.Experience = newExperienceTotal;
+        playerActionResult.ExperienceGained = experienceReward;
 
         var newLevel = LevelExperienceThresholds.AllThresholds
             .Where(t => newExperienceTotal >= t.Value)
@@ -362,8 +362,8 @@ public class FightService : IFightService
         {
             playerCharacter.Level = newLevel;
             playerCharacter.UnassignedAttributePoints++;
+            playerActionResult.HasLevelUp = true;
         }
-
     }
 
     private static void ValidatePlayerSkillAction(SkillInstance skillInstance, Character playerCharacter)
