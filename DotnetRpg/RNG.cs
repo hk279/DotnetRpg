@@ -2,20 +2,20 @@ namespace DotnetRpg;
 
 public static class RNG
 {
-    private readonly static Random rng = new();
+    private static readonly Random Rng = new();
 
     public static bool GetBoolean(double probability)
     {
         if (probability < 0 || probability > 1) throw new ArgumentException("Probability must be between 0 and 1.");
 
-        return rng.NextDouble() < probability;
+        return Rng.NextDouble() < probability;
     }
 
     public static int GetIntInRange(int min, int max)
     {
         if (min >= max) throw new ArgumentException("Invalid range: min must be less than max.");
 
-        return rng.Next(min, max + 1);
+        return Rng.Next(min, max + 1);
     }
 
     public static T PickRandom<T>(List<T> items)
@@ -26,7 +26,7 @@ public static class RNG
 
         if (itemCount == 0) throw new ArgumentException("The collection must not be empty.");
 
-        var randomIndex = rng.Next(itemCount);
+        var randomIndex = Rng.Next(itemCount);
 
         return items[randomIndex];
     }

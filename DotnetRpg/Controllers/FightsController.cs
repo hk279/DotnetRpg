@@ -8,7 +8,7 @@ namespace DotnetRpg.Controllers;
 
 [Authorize]
 [ApiController]
-[Route("[controller]")]
+[Route("fight")]
 public class FightsController : ControllerBase
 {
     private readonly IFightService _fightService;

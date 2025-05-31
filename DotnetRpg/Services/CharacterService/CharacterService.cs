@@ -39,6 +39,7 @@ public class CharacterService : ICharacterService
             await _context.Characters
                 .AsSplitQuery()
                 .Where(c => c.IsPlayerCharacter)
+                .Include(c => c.Fight)
                 .Include(c => c.SkillInstances)
                 .ThenInclude(s => s.Skill)
                 .ThenInclude(s => s.StatusEffect)

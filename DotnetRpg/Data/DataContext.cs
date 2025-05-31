@@ -31,7 +31,7 @@ namespace DotnetRpg.Data
             modelBuilder.ApplyConfiguration(new StatusEffectEntityTypeConfiguration());
             
             // User-specific entities
-            modelBuilder.ApplyConfiguration(new CharacterEntityTypeConfiguration(GetUserFilter<Character>()));
+            modelBuilder.ApplyConfiguration(new CharacterEntityTypeConfiguration(GetCharacterGlobalQueryFilter()));
             
             // Character-specific entities
             modelBuilder.ApplyConfiguration(new FightEntityTypeConfiguration());
@@ -45,10 +45,9 @@ namespace DotnetRpg.Data
             ApplyEntityTypeConfigurations(modelBuilder);
         }
         
-        private Expression<Func<TEntity, bool>> GetUserFilter<TEntity>()
-            where TEntity : UserSpecificEntity
+        private Expression<Func<Character, bool>> GetCharacterGlobalQueryFilter()
         {
-            return x => x.UserId == UserId;
+            return c => c.UserId == UserId || c.IsPlayerCharacter;
         }
         
         public int UserId => _userProvider.GetUserId();
