@@ -237,6 +237,9 @@ public class FightService : IFightService
         // TODO: Add support for self & friendly targeted skills
         foreach (var enemyCharacter in allEnemyCharacters)
         {
+            // Skip action if the character is dead
+            if (enemyCharacter.IsDead) continue;
+            
             var enemyAction = new ActionResultDto
             {
                 CharacterId = enemyCharacter.Id,
@@ -244,40 +247,37 @@ public class FightService : IFightService
                 TargetCharacterId = playerCharacter.Id,
                 TargetCharacterName = playerCharacter.Name,
             };
+            
+            var validSkills = enemyCharacter.SkillInstances
+                .Where(
+                    s =>
+                        s.Skill.TargetType == SkillTargetType.Enemy
+                        && s.Skill.EnergyCost <= enemyCharacter.CurrentEnergy
+                        && s.RemainingCooldown == 0
+                )
+                .ToList();
 
-            if (enemyCharacter.IsAlive)
+            // 50 / 50 change to do a skill attack or a weapon attack
+            DamageInstance damageInstance;
+            if (RNG.GetBoolean(0.5) && validSkills.Any())
             {
-                var validSkills = enemyCharacter.SkillInstances
-                    .Where(
-                        s =>
-                            s.Skill.TargetType == SkillTargetType.Enemy
-                            && s.Skill.EnergyCost <= enemyCharacter.CurrentEnergy
-                            && s.RemainingCooldown == 0
-                    )
-                    .ToList();
+                var skillInstance = RNG.PickRandom(validSkills);
+                damageInstance = AttackWithSkill(enemyCharacter, playerCharacter, skillInstance.Skill);
+                skillInstance.ApplyCooldown();
 
-                // 50 / 50 change to do a skill attack or a weapon attack
-                DamageInstance damageInstance;
-                if (RNG.GetBoolean(0.5) && validSkills.Any())
-                {
-                    var skillInstance = RNG.PickRandom(validSkills);
-                    damageInstance = AttackWithSkill(enemyCharacter, playerCharacter, skillInstance.Skill);
-                    skillInstance.ApplyCooldown();
+                enemyAction.ActionType = ActionType.Skill;
+                enemyAction.SkillName = skillInstance.Skill.Name;
+                enemyAction.DamageInstance = DamageInstanceDto.FromDamageInstance(damageInstance);
+                enemyAction.Healing = 0;
+            }
+            else
+            {
+                damageInstance = AttackWithWeapon(enemyCharacter, playerCharacter);
 
-                    enemyAction.ActionType = ActionType.Skill;
-                    enemyAction.SkillName = skillInstance.Skill.Name;
-                    enemyAction.DamageInstance = DamageInstanceDto.FromDamageInstance(damageInstance);
-                    enemyAction.Healing = 0;
-                }
-                else
-                {
-                    damageInstance = AttackWithWeapon(enemyCharacter, playerCharacter);
-
-                    enemyAction.ActionType = ActionType.WeaponAttack;
-                    enemyAction.SkillName = null;
-                    enemyAction.DamageInstance = DamageInstanceDto.FromDamageInstance(damageInstance);
-                    enemyAction.Healing = 0;
-                }
+                enemyAction.ActionType = ActionType.WeaponAttack;
+                enemyAction.SkillName = null;
+                enemyAction.DamageInstance = DamageInstanceDto.FromDamageInstance(damageInstance);
+                enemyAction.Healing = 0;
             }
 
             enemyActions.Add(enemyAction);
