@@ -119,11 +119,11 @@ public class EnemyGeneratorService : IEnemyGeneratorService
             CharacterClass.Priest => new AttributeCoefficients(3, 3, 3, 4, 7, 8),
             _ => throw new ArgumentException("Invalid enemy class"),
         };
-
-        // TODO: Adjust weapon damage for multi enemy fights
+        
         if (data.Weapon is not null)
         {
             var enemyWeaponDamageBase = Math.Max(RNG.GetIntInRange(enemyLevel - 2, enemyLevel + 2), 1);
+            enemyWeaponDamageBase /= enemyCount;
 
             data.Weapon.MinDamage = enemyWeaponDamageBase * 2;
             data.Weapon.MaxDamage = enemyWeaponDamageBase * 3;

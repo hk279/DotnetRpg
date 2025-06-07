@@ -16,7 +16,7 @@ public class DamageCalculator : IDamageCalculator
             _ => throw new ArgumentOutOfRangeException(nameof(DamageType), "Unknown damage type")
         };
 
-        // Calculate weapon damage component
+        // Calculate skill weapon damage component
         var attackerWeapon = attacker.Inventory
             .OfType<Weapon>()
             .SingleOrDefault(item => item.Type == ItemType.Weapon && item.IsEquipped);
@@ -24,24 +24,13 @@ public class DamageCalculator : IDamageCalculator
             attackerWeapon != null
                 ? RNG.GetIntInRange(attackerWeapon.MinDamage, attackerWeapon.MaxDamage)
                 : 1;
-        var skillWeaponDamageComponent =
-            attackerWeaponDamage * (skill.WeaponDamagePercentage / 100)
-            + (scalingAttributeAmount * (skill.BaseDamageAttributeScalingFactor / 100) / 2);
+        var weaponDamageComponent = attackerWeaponDamage * (skill.WeaponDamagePercentage / 100);
 
         // Calculate skill base damage component
-        var levelAdjustedMinimumBaseDamage = attacker.Level * (skill.MinBaseDamageFactor / 10);
-        var levelAdjustedMaximumBaseDamage = attacker.Level * (skill.MaxBaseDamageFactor / 10);
-
-        var levelAdjustedBaseDamage = RNG.GetIntInRange(
-            levelAdjustedMinimumBaseDamage,
-            levelAdjustedMaximumBaseDamage
-        );
-
-        var skillBaseDamageComponent =
-            levelAdjustedBaseDamage
-            + (scalingAttributeAmount * (skill.BaseDamageAttributeScalingFactor / 100) / 2);
-
-        var skillDamage = skillWeaponDamageComponent + skillBaseDamageComponent;
+        var baseDamage = RNG.GetIntInRange(skill.MinBaseDamageFactor, skill.MaxBaseDamageFactor);
+        var baseDamageComponent = baseDamage + (scalingAttributeAmount * (skill.BaseDamageAttributeScalingFactor / 100) / 2);
+        
+        var skillDamage = weaponDamageComponent + baseDamageComponent;
 
         // Calculate damage reduction
         // (Armor / ([85 * Enemy_Level] + Armor + 20))
@@ -94,20 +83,24 @@ public class DamageCalculator : IDamageCalculator
 
     /// <summary>
     /// Base weak hit chance is 10%. This is scaled down by attacker's INT.
-    /// Every 1 point of INT will reduce the chance by 0,1%
+    /// Every 1 point of INT will reduce the chance by 0,05%
     /// </summary>
     public double CalculateWeakHitChance(Character attacker)
     {
-        return 0.1 - attacker.GetIntelligence() * 0.01;
+        const double baseChance = 0.1;
+        var calculatedProbability = baseChance - attacker.GetIntelligence() * 0.0005;
+        return Math.Max(calculatedProbability, 0);
     }
 
     /// <summary>
     /// Base critical hit chance is 5%. This is scaled up by attacker's SPI.
-    /// Every 1 point of SPI will increase the chance by 0,1%
+    /// Every 1 point of SPI will increase the chance by 0,05%
     /// </summary>
     public double CalculateCriticalHitChance(Character attacker)
     {
-        return 0.1 - attacker.GetSpirit() * 0.01;
+        const double baseChance = 0.05;
+        var calculatedProbability = baseChance + attacker.GetSpirit() * 0.0005;
+        return Math.Max(calculatedProbability, 0);
     }
 
     public (int totalDamage, HitType hitType) ApplyWeakOrCriticalHitModifier(int damage, Character attacker)

@@ -3,6 +3,7 @@ using DotnetRpg.Data;
 using DotnetRpg.Dtos.Characters;
 using DotnetRpg.Models.Characters;
 using DotnetRpg.Models.Exceptions;
+using DotnetRpg.Models.Fights;
 using DotnetRpg.Models.Generic;
 using DotnetRpg.Models.Items;
 using DotnetRpg.Models.Skills;
@@ -93,7 +94,7 @@ public class CharacterService : ICharacterService
         ResetHitPointsAndEnergy(characterToAdd);
         AddStartingSkills(characterToAdd);
         AddStartingWeapon(characterToAdd);
-        AddStartingGear(characterToAdd);
+        AddStartingArmor(characterToAdd);
 
         await _context.Characters.AddAsync(characterToAdd);
         await _context.SaveChangesAsync();
@@ -101,12 +102,36 @@ public class CharacterService : ICharacterService
 
     public async Task DeleteCharacter(int characterId)
     {
-        var characterToRemove = await _context.Characters.FirstOrDefaultAsync(c => c.Id == characterId)
+        var characterToRemove = await _context.Characters
+                                    .Include(c => c.Fight)
+                                    .ThenInclude(f => f!.AllCharactersInFight)
+                                    .FirstOrDefaultAsync(c => c.Id == characterId)
                                 ?? throw new NotFoundException($"Character not found with ID {characterId}");
-
-        _context.Characters.Remove(characterToRemove);
+        
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+        
+        // Remove all characters from current fight
+        var currentFight = characterToRemove.Fight;
+        var allCharactersInCurrentFight = currentFight?.AllCharactersInFight.Where(c => !c.IsPlayerCharacter).ToList() ?? [];
+        foreach (var character in allCharactersInCurrentFight)
+        {
+            character.Fight = null;
+        }
 
         await _context.SaveChangesAsync();
+            
+        // Remove fight
+        if (currentFight is not null) _context.Fights.Remove(currentFight);
+
+        await _context.SaveChangesAsync();
+        
+        // Remove player character and enemy characters 
+        _context.Characters.Remove(characterToRemove);
+        _context.Characters.RemoveRange(allCharactersInCurrentFight);
+            
+        await _context.SaveChangesAsync();
+            
+        await transaction.CommitAsync();
     }
 
     public async Task AssignAttributePoints(AssignAttributePointsDto assignAttributePointsDto)
@@ -172,7 +197,7 @@ public class CharacterService : ICharacterService
         }
     }
 
-    private void AddStartingWeapon(Character character)
+    private static void AddStartingWeapon(Character character)
     {
         var weapon = character.Class switch
         {
@@ -184,8 +209,8 @@ public class CharacterService : ICharacterService
                     rarity: ItemRarity.Common,
                     value: 1,
                     level: 1,
-                    minDamage: 4,
-                    maxDamage: 5,
+                    minDamage: 15,
+                    maxDamage: 20,
                     attributes: new Attributes(0, 0, 0, 0)
                 ),
             CharacterClass.Mage
@@ -196,8 +221,8 @@ public class CharacterService : ICharacterService
                     rarity: ItemRarity.Common,
                     value: 1,
                     level: 1,
-                    minDamage: 4,
-                    maxDamage: 5,
+                    minDamage: 15,
+                    maxDamage: 20,
                     attributes: new Attributes(0, 0, 0, 0)
                 ),
             CharacterClass.Priest
@@ -208,8 +233,8 @@ public class CharacterService : ICharacterService
                     rarity: ItemRarity.Common,
                     value: 1,
                     level: 1,
-                    minDamage: 4,
-                    maxDamage: 5,
+                    minDamage: 15,
+                    maxDamage: 20,
                     attributes: new Attributes(0, 0, 0, 0)
                 ),
             _ => throw new ArgumentException("Invalid character class")
@@ -220,7 +245,7 @@ public class CharacterService : ICharacterService
         character.Inventory.Add(weapon);
     }
 
-    private void AddStartingGear(Character character)
+    private static void AddStartingArmor(Character character)
     {
         List<ArmorPiece> armorPieces = character.Class switch
         {

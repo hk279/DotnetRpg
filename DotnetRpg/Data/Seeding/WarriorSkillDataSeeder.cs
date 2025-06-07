@@ -23,31 +23,31 @@ public static class WarriorSkillDataSeeder
             CreateChargeSkill(
                 rank: 1,
                 weaponDamagePercentage: 10,
-                minBaseDamageFactor: 110,
-                maxBaseDamageFactor: 200,
-                baseDamageAttributeScalingFactor: 120,
+                minBaseDamageFactor: 80,
+                maxBaseDamageFactor: 100,
+                baseDamageAttributeScalingFactor: 80,
                 energyCost: 15,
-                cooldown: 5,
+                cooldown: 6,
                 new StatusEffect("Stunned", duration: 1, StatusEffectType.Physical, isStunned: true)
             ),
             CreateChargeSkill(
                 rank: 2,
                 weaponDamagePercentage: 20,
-                minBaseDamageFactor: 40,
-                maxBaseDamageFactor: 50,
+                minBaseDamageFactor: 120,
+                maxBaseDamageFactor: 160,
                 baseDamageAttributeScalingFactor: 90,
                 energyCost: 15,
-                cooldown: 5,
+                cooldown: 6,
                 new StatusEffect("Stunned", duration: 1, StatusEffectType.Physical, isStunned: true)
             ),
             CreateChargeSkill(
                 rank: 3,
                 weaponDamagePercentage: 30,
-                minBaseDamageFactor: 40,
-                maxBaseDamageFactor: 50,
-                baseDamageAttributeScalingFactor: 90,
+                minBaseDamageFactor: 150,
+                maxBaseDamageFactor: 200,
+                baseDamageAttributeScalingFactor: 100,
                 energyCost: 15,
-                cooldown: 5,
+                cooldown: 6,
                 new StatusEffect("Stunned", duration: 1, StatusEffectType.Physical, isStunned: true)
             )
         ];
@@ -63,13 +63,13 @@ public static class WarriorSkillDataSeeder
                 StatusEffectType.Physical
             // damagePerTurnFactor: 30
             )),
-            CreateRendSkill(2, 50, 40, 50, 50, 20, 4, new StatusEffect(
+            CreateRendSkill(2, 50, 60, 80, 60, 20, 4, new StatusEffect(
                 "Bleeding",
                 duration: 3,
                 StatusEffectType.Physical
             // damagePerTurnFactor: 30
             )),
-            CreateRendSkill(3, 50, 40, 50, 50, 20, 4, new StatusEffect(
+            CreateRendSkill(3, 70, 80, 100, 70, 20, 4, new StatusEffect(
                 "Bleeding",
                 duration: 4,
                 StatusEffectType.Physical
