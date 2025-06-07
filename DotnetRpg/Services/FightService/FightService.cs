@@ -257,7 +257,7 @@ public class FightService : IFightService
                 )
                 .ToList();
 
-            // 50 / 50 change to do a skill attack or a weapon attack
+            // 50 / 50 chance to do a skill attack or a weapon attack
             DamageInstance damageInstance;
             if (RNG.GetBoolean(0.5) && validSkills.Any())
             {
@@ -305,10 +305,7 @@ public class FightService : IFightService
         {
             character.SkillInstances.ForEach(s =>
             {
-                if (s.RemainingCooldown > 0)
-                {
-                    s.RemainingCooldown--;
-                }
+                if (s.RemainingCooldown > 0) s.RemainingCooldown--;
             });
         }
     }
@@ -344,7 +341,7 @@ public class FightService : IFightService
         PlayerActionResultDto playerActionResult
     )
     {
-        // Max level
+        // No more experience gain at max level
         if (playerCharacter.Level == 50) return;
 
         var averageEnemyLevel = enemyCharacters.Average(s => s.Level);
